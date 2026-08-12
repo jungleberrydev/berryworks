@@ -106,19 +106,52 @@
 }
 
 .panel-subhead {
-  margin: 1.15rem 0 0.5rem;
+  margin: 1.35rem 0 0.4rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
   font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.panel > h2:first-child {
+  margin-top: 0;
+}
+
+.settings-group {
+  margin-bottom: 0.15rem;
+}
+
+.settings-group > .hint {
+  margin-bottom: 0.45rem;
+}
+
+.settings-group > .hint:last-child {
+  margin-bottom: 0;
+}
+
+.settings-group > .settings-stack:last-child,
+.settings-group > .appearance-grid:last-child {
+  margin-bottom: 0;
+}
+
+.settings-group + button.secondary {
+  margin-top: 0.85rem;
 }
 
 .settings-stack {
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.55rem;
 }
 
 .settings-stack .field {
   margin-bottom: 0;
+}
+
+.settings-stack + .hint {
+  margin-top: -0.1rem;
 }
 
 .spell-list-tall {
@@ -574,7 +607,7 @@ button.secondary {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem 1.25rem;
-  margin: 0.75rem 0 1rem;
+  margin: 0 0 1rem;
   color: var(--muted);
   font-size: 0.9rem;
   font-variant-numeric: tabular-nums;

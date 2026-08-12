@@ -13,6 +13,9 @@ import {
 } from "./themes";
 import { PET_NAME_HINT } from "./pets";
 
+/** Fixed production sync base; not user-editable in the Loot UI. */
+const DEFAULT_LOOT_SYNC_URL = "https://norrathroster.com";
+
 export interface SpellClassLevel {
   class: string;
   level: number;
@@ -45,6 +48,7 @@ export interface AppConfig {
   respawn_zone?: string;
   loot_tracking?: boolean;
   loot_sync_enabled?: boolean;
+  /** Always production; not user-editable in UI. */
   loot_sync_url?: string;
   /** Legacy/ops shared key (optional). */
   loot_sync_key?: string;
@@ -662,7 +666,7 @@ function readFormIntoConfig(): AppConfig {
     respawn_zone: (document.getElementById("respawn-zone") as HTMLSelectElement).value,
     loot_tracking: (document.getElementById("loot-tracking") as HTMLInputElement).checked,
     loot_sync_enabled: (document.getElementById("loot-sync-enabled") as HTMLInputElement).checked,
-    loot_sync_url: (document.getElementById("loot-sync-url") as HTMLInputElement).value.trim(),
+    loot_sync_url: DEFAULT_LOOT_SYNC_URL,
     loot_sync_key: config.loot_sync_key ?? "",
     loot_upload_token: config.loot_upload_token ?? "",
     loot_discord_username: config.loot_discord_username ?? "",
@@ -799,8 +803,6 @@ async function load() {
     config.loot_tracking !== false;
   (document.getElementById("loot-sync-enabled") as HTMLInputElement).checked =
     !!config.loot_sync_enabled;
-  (document.getElementById("loot-sync-url") as HTMLInputElement).value =
-    config.loot_sync_url?.trim() || "https://norrathroster.com";
   updateLootDiscordUi(config);
   writeAppearanceToForm(overlayOf(config));
   await loadLogSuggestions();
@@ -1241,8 +1243,6 @@ window.addEventListener("DOMContentLoaded", async () => {
       config.loot_tracking !== false;
     (document.getElementById("loot-sync-enabled") as HTMLInputElement).checked =
       !!config.loot_sync_enabled;
-    (document.getElementById("loot-sync-url") as HTMLInputElement).value =
-      config.loot_sync_url?.trim() || "https://norrathroster.com";
     updateLootDiscordUi(config);
     writeAppearanceToForm(overlayOf(config));
     syncRespawnZoneSelect();

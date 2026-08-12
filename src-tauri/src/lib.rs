@@ -494,6 +494,12 @@ fn login_loot_discord(
             .ok()
             .and_then(|v| v.get("error")?.as_str().map(|s| s.to_string()))
             .unwrap_or_else(|| start_text.chars().take(200).collect());
+        if start_status.as_u16() == 404 {
+            return Err(format!(
+                "Login start failed (404): Discord loot auth is not available at {base}. \
+                 Deploy norrath-roster with loot auth enabled."
+            ));
+        }
         return Err(format!("Login start failed ({start_status}): {msg}"));
     }
     let start_json: serde_json::Value =

@@ -304,14 +304,8 @@ pub fn normalize_config(config: &mut AppConfig) {
     config.my_pet_name = config.my_pet_name.trim().to_string();
     config.overlay.recently_wore_off_secs = config.overlay.recently_wore_off_secs_clamped();
     config.overlay.voice_volume = config.overlay.voice_volume_clamped();
-    config.loot_sync_url = config
-        .loot_sync_url
-        .trim()
-        .trim_end_matches('/')
-        .to_string();
-    if config.loot_sync_url.is_empty() {
-        config.loot_sync_url = default_loot_sync_url();
-    }
+    // Always use production sync URL (field kept for config load compat; not user-editable).
+    config.loot_sync_url = default_loot_sync_url();
     config.loot_sync_key = config.loot_sync_key.trim().to_string();
     config.loot_upload_token = config.loot_upload_token.trim().to_string();
     config.loot_discord_username = config.loot_discord_username.trim().to_string();

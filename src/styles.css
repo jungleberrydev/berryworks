@@ -666,3 +666,18 @@ button.secondary {
 .loot-actions {
   align-items: center;
 }
+
+.loot-discord-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.loot-discord-status {
+  font-size: 0.92rem;
+  color: var(--muted, #b9a8b2);
+}
+
+.loot-discord-status.is-signed-in {
+  color: #9ed4b8;
+}

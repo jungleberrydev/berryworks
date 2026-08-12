@@ -86,6 +86,9 @@ pub struct OverlayAppearance {
     /// Web Speech voiceURI for announcements; empty = system default.
     #[serde(default = "default_voice_uri")]
     pub voice_uri: String,
+    /// TTS volume 0.0–1.0 (SpeechSynthesisUtterance.volume).
+    #[serde(default = "default_voice_volume")]
+    pub voice_volume: f64,
     /// Show the independent respawn overlay window.
     #[serde(default = "default_show_respawn_window")]
     pub show_respawn_window: bool,
@@ -143,6 +146,10 @@ fn default_voice_uri() -> String {
     String::new()
 }
 
+fn default_voice_volume() -> f64 {
+    1.0
+}
+
 /// Recently-wore-off retention window bounds (seconds).
 pub const RECENTLY_WORE_OFF_SECS_MIN: u64 = 15;
 pub const RECENTLY_WORE_OFF_SECS_MAX: u64 = 300;
@@ -152,6 +159,14 @@ impl OverlayAppearance {
     pub fn recently_wore_off_secs_clamped(&self) -> u64 {
         self.recently_wore_off_secs
             .clamp(RECENTLY_WORE_OFF_SECS_MIN, RECENTLY_WORE_OFF_SECS_MAX)
+    }
+
+    /// Clamped TTS volume (0.0..=1.0).
+    pub fn voice_volume_clamped(&self) -> f64 {
+        if !self.voice_volume.is_finite() {
+            return 1.0;
+        }
+        self.voice_volume.clamp(0.0, 1.0)
     }
 }
 
@@ -189,6 +204,7 @@ impl Default for OverlayAppearance {
             hide_other_pets: false,
             voice_announcements: true,
             voice_uri: default_voice_uri(),
+            voice_volume: default_voice_volume(),
             show_respawn_window: true,
             track_all_kills: true,
             show_window_border: false,
@@ -220,16 +236,28 @@ pub struct AppConfig {
     /// When true, parse loot/kill lines into local loot.json drop stats.
     #[serde(default = "default_loot_tracking")]
     pub loot_tracking: bool,
-    /// Opt-in upload of anonymous aggregates to Norrath Roster.
+    /// Opt-in upload of aggregates to Norrath Roster.
     #[serde(default)]
     pub loot_sync_enabled: bool,
     /// Base site URL (no trailing slash), e.g. https://norrathroster.com
     #[serde(default = "default_loot_sync_url")]
     pub loot_sync_url: String,
-    /// Shared ingest key (Bearer / X-Berryworks-Key).
+    /// Legacy/ops shared ingest key (optional; prefer Discord upload token).
     #[serde(default)]
     pub loot_sync_key: String,
-    /// Stable anonymous contributor UUID for idempotent uploads.
+    /// Discord-issued Berryworks loot upload token (Bearer).
+    #[serde(default)]
+    pub loot_upload_token: String,
+    /// Discord username from last successful Berryworks login.
+    #[serde(default)]
+    pub loot_discord_username: String,
+    /// Discord global display name when available.
+    #[serde(default)]
+    pub loot_discord_global_name: String,
+    /// Discord snowflake for the signed-in loot uploader.
+    #[serde(default)]
+    pub loot_discord_user_id: String,
+    /// Stable anonymous contributor UUID for ops-key uploads.
     #[serde(default)]
     pub loot_contributor_id: String,
     pub overlay_locked: bool,
@@ -260,6 +288,10 @@ impl Default for AppConfig {
             loot_sync_enabled: false,
             loot_sync_url: default_loot_sync_url(),
             loot_sync_key: String::new(),
+            loot_upload_token: String::new(),
+            loot_discord_username: String::new(),
+            loot_discord_global_name: String::new(),
+            loot_discord_user_id: String::new(),
             loot_contributor_id: String::new(),
             overlay_locked: false,
             overlay: OverlayAppearance::default(),
@@ -271,6 +303,7 @@ impl Default for AppConfig {
 pub fn normalize_config(config: &mut AppConfig) {
     config.my_pet_name = config.my_pet_name.trim().to_string();
     config.overlay.recently_wore_off_secs = config.overlay.recently_wore_off_secs_clamped();
+    config.overlay.voice_volume = config.overlay.voice_volume_clamped();
     config.loot_sync_url = config
         .loot_sync_url
         .trim()
@@ -280,6 +313,10 @@ pub fn normalize_config(config: &mut AppConfig) {
         config.loot_sync_url = default_loot_sync_url();
     }
     config.loot_sync_key = config.loot_sync_key.trim().to_string();
+    config.loot_upload_token = config.loot_upload_token.trim().to_string();
+    config.loot_discord_username = config.loot_discord_username.trim().to_string();
+    config.loot_discord_global_name = config.loot_discord_global_name.trim().to_string();
+    config.loot_discord_user_id = config.loot_discord_user_id.trim().to_string();
     if config.loot_contributor_id.trim().is_empty() {
         config.loot_contributor_id = uuid::Uuid::new_v4().to_string();
     } else {

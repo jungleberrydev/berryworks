@@ -46,7 +46,13 @@ export interface AppConfig {
   loot_tracking?: boolean;
   loot_sync_enabled?: boolean;
   loot_sync_url?: string;
+  /** Legacy/ops shared key (optional). */
   loot_sync_key?: string;
+  /** Discord-issued Berryworks upload token. */
+  loot_upload_token?: string;
+  loot_discord_username?: string;
+  loot_discord_global_name?: string;
+  loot_discord_user_id?: string;
   loot_contributor_id?: string;
   overlay_locked: boolean;
   overlay?: OverlayAppearance;
@@ -500,6 +506,9 @@ function readAppearanceFromForm(): OverlayAppearance {
     document.getElementById("ov-voice-announcements") as HTMLInputElement
   ).checked;
   const voiceUri = (document.getElementById("ov-voice-uri") as HTMLSelectElement).value.trim();
+  const voiceVolumePct = Number(
+    (document.getElementById("ov-voice-volume") as HTMLInputElement).value
+  );
   const showRespawnWindow = (document.getElementById("ov-show-respawn-window") as HTMLInputElement)
     .checked;
   const trackAllKills = (document.getElementById("ov-track-all-kills") as HTMLInputElement)
@@ -524,6 +533,10 @@ function readAppearanceFromForm(): OverlayAppearance {
     hide_other_pets: hideOtherPets,
     voice_announcements: voiceAnnouncements,
     voice_uri: voiceUri,
+    voice_volume: Math.min(
+      1,
+      Math.max(0, (Number.isFinite(voiceVolumePct) ? voiceVolumePct : 100) / 100)
+    ),
     show_respawn_window: showRespawnWindow,
     track_all_kills: trackAllKills,
     // Native DWM border is tied to lock state; keep prior value for config compat.
@@ -567,6 +580,11 @@ function writeAppearanceToForm(ov: OverlayAppearance) {
   (document.getElementById("ov-voice-announcements") as HTMLInputElement).checked =
     merged.voice_announcements !== false;
   populateVoiceSelect(merged.voice_uri ?? "");
+  const voiceVol = Math.round(
+    Math.min(1, Math.max(0, Number.isFinite(merged.voice_volume) ? merged.voice_volume : 1)) * 100
+  );
+  (document.getElementById("ov-voice-volume") as HTMLInputElement).value = String(voiceVol);
+  $("ov-voice-volume-label").textContent = `${voiceVol}%`;
   (document.getElementById("ov-show-respawn-window") as HTMLInputElement).checked =
     merged.show_respawn_window !== false;
   (document.getElementById("ov-track-all-kills") as HTMLInputElement).checked =
@@ -620,9 +638,11 @@ function testAnnouncementVoice() {
   const voice =
     (uri && (voices.find((v) => v.voiceURI === uri) ?? voices.find((v) => v.name === uri))) ||
     null;
+  const volumePct = Number((document.getElementById("ov-voice-volume") as HTMLInputElement).value);
   speechSynthesis.cancel();
   const utter = new SpeechSynthesisUtterance("Clarity has worn off");
   utter.rate = 1.05;
+  utter.volume = Math.min(1, Math.max(0, (Number.isFinite(volumePct) ? volumePct : 100) / 100));
   if (voice) utter.voice = voice;
   speechSynthesis.speak(utter);
 }
@@ -643,7 +663,11 @@ function readFormIntoConfig(): AppConfig {
     loot_tracking: (document.getElementById("loot-tracking") as HTMLInputElement).checked,
     loot_sync_enabled: (document.getElementById("loot-sync-enabled") as HTMLInputElement).checked,
     loot_sync_url: (document.getElementById("loot-sync-url") as HTMLInputElement).value.trim(),
-    loot_sync_key: (document.getElementById("loot-sync-key") as HTMLInputElement).value.trim(),
+    loot_sync_key: config.loot_sync_key ?? "",
+    loot_upload_token: config.loot_upload_token ?? "",
+    loot_discord_username: config.loot_discord_username ?? "",
+    loot_discord_global_name: config.loot_discord_global_name ?? "",
+    loot_discord_user_id: config.loot_discord_user_id ?? "",
     overlay: readAppearanceFromForm(),
   };
   const seen = new Set<string>();
@@ -669,6 +693,7 @@ async function persistAppearanceLive() {
 function scheduleAppearanceSave() {
   $("ov-panel-opacity-label").textContent = `${(document.getElementById("ov-panel-opacity") as HTMLInputElement).value}%`;
   $("ov-bar-opacity-label").textContent = `${(document.getElementById("ov-bar-opacity") as HTMLInputElement).value}%`;
+  $("ov-voice-volume-label").textContent = `${(document.getElementById("ov-voice-volume") as HTMLInputElement).value}%`;
   const recentSecs = clampRecentlyWoreOffSecs(
     Number((document.getElementById("ov-recently-wore-off-secs") as HTMLInputElement).value)
   );
@@ -776,8 +801,7 @@ async function load() {
     !!config.loot_sync_enabled;
   (document.getElementById("loot-sync-url") as HTMLInputElement).value =
     config.loot_sync_url?.trim() || "https://norrathroster.com";
-  (document.getElementById("loot-sync-key") as HTMLInputElement).value =
-    config.loot_sync_key ?? "";
+  updateLootDiscordUi(config);
   writeAppearanceToForm(overlayOf(config));
   await loadLogSuggestions();
   renderSpellList();
@@ -928,6 +952,34 @@ function initSectionNav() {
   }
 }
 
+function updateLootDiscordUi(cfg: AppConfig | null) {
+  const status = document.getElementById("loot-discord-status");
+  const loginBtn = document.getElementById("btn-loot-discord-login") as HTMLButtonElement | null;
+  const logoutBtn = document.getElementById("btn-loot-discord-logout") as HTMLButtonElement | null;
+  if (!status || !loginBtn || !logoutBtn) return;
+  const token = cfg?.loot_upload_token?.trim() ?? "";
+  const name =
+    cfg?.loot_discord_global_name?.trim() ||
+    cfg?.loot_discord_username?.trim() ||
+    "";
+  if (token && name) {
+    status.textContent = `Signed in as ${name}`;
+    status.classList.add("is-signed-in");
+    loginBtn.hidden = true;
+    logoutBtn.hidden = false;
+  } else if (token) {
+    status.textContent = "Signed in with Discord";
+    status.classList.add("is-signed-in");
+    loginBtn.hidden = true;
+    logoutBtn.hidden = false;
+  } else {
+    status.textContent = "Not signed in";
+    status.classList.remove("is-signed-in");
+    loginBtn.hidden = false;
+    logoutBtn.hidden = true;
+  }
+}
+
 function initLootUi() {
   const search = document.getElementById("loot-search") as HTMLInputElement | null;
   if (search) {
@@ -960,7 +1012,6 @@ function initLootUi() {
     const status = $("loot-status");
     status.textContent = "Uploading…";
     try {
-      // Persist sync settings first so the Rust side sees the latest key/URL.
       const next = readFormIntoConfig();
       config = await invoke<AppConfig>("save_settings", { config: next });
       const result = await invoke<{
@@ -996,6 +1047,43 @@ function initLootUi() {
     if (!config) return;
     const next = readFormIntoConfig();
     config = await invoke<AppConfig>("save_settings", { config: next });
+  });
+  $("btn-loot-discord-login").addEventListener("click", async () => {
+    const status = $("loot-status");
+    const loginBtn = document.getElementById(
+      "btn-loot-discord-login"
+    ) as HTMLButtonElement;
+    loginBtn.disabled = true;
+    status.textContent = "Waiting for Discord in your browser…";
+    try {
+      // Persist sync URL first so Rust polls the correct host.
+      const next = readFormIntoConfig();
+      config = await invoke<AppConfig>("save_settings", { config: next });
+      const result = await invoke<{
+        user: { id: string; username: string; globalName?: string | null };
+      }>("login_loot_discord");
+      config = await invoke<AppConfig>("get_config");
+      (document.getElementById("loot-sync-enabled") as HTMLInputElement).checked = true;
+      updateLootDiscordUi(config);
+      const name = result.user.globalName || result.user.username;
+      status.textContent = `Signed in as ${name}`;
+    } catch (err) {
+      status.textContent = err instanceof Error ? err.message : String(err);
+    } finally {
+      loginBtn.disabled = false;
+    }
+  });
+  $("btn-loot-discord-logout").addEventListener("click", async () => {
+    const status = $("loot-status");
+    try {
+      await invoke("logout_loot_discord");
+      config = await invoke<AppConfig>("get_config");
+      updateLootDiscordUi(config);
+      status.textContent = "Signed out";
+      setTimeout(() => (status.textContent = ""), 2000);
+    } catch (err) {
+      status.textContent = err instanceof Error ? err.message : String(err);
+    }
   });
 }
 
@@ -1104,6 +1192,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     "ov-hide-other-pets",
     "ov-voice-announcements",
     "ov-voice-uri",
+    "ov-voice-volume",
     "my-pet-name",
     "ov-show-respawn-window",
     "ov-track-all-kills",
@@ -1154,10 +1243,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       !!config.loot_sync_enabled;
     (document.getElementById("loot-sync-url") as HTMLInputElement).value =
       config.loot_sync_url?.trim() || "https://norrathroster.com";
-    if (!(document.getElementById("loot-sync-key") as HTMLInputElement).value) {
-      (document.getElementById("loot-sync-key") as HTMLInputElement).value =
-        config.loot_sync_key ?? "";
-    }
+    updateLootDiscordUi(config);
     writeAppearanceToForm(overlayOf(config));
     syncRespawnZoneSelect();
   });

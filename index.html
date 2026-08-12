@@ -211,6 +211,11 @@
                 <button id="btn-test-voice" type="button" class="secondary">Test voice</button>
               </div>
             </label>
+            <label class="field field-wide">
+              <span>Announcement volume</span>
+              <input id="ov-voice-volume" type="range" min="0" max="100" step="1" value="100" />
+              <span id="ov-voice-volume-label" class="range-label">100%</span>
+            </label>
             <label class="field checkbox">
               <input id="ov-show-recently-wore-off" type="checkbox" checked />
               <span>Show recently wore off</span>
@@ -321,8 +326,9 @@
         <h2>Loot tracking</h2>
         <p class="hint">
           Tracks kills and corpse loot from your character log (EQL lines name the mob). Zone follows
-          Timers → Respawns / log zone-ins. Optional sync uploads anonymous aggregates to Norrath
-          Roster (<a href="https://norrathroster.com/loot" id="loot-web-link" target="_blank" rel="noopener">norrathroster.com/loot</a>).
+          Timers → Respawns / log zone-ins. Optional sync uploads drop aggregates to Norrath Roster
+          (<a href="https://norrathroster.com/loot" id="loot-web-link" target="_blank" rel="noopener">norrathroster.com/loot</a>)
+          after you sign in with Discord.
         </p>
         <div class="settings-stack">
           <label class="field checkbox">
@@ -343,20 +349,21 @@
               spellcheck="false"
             />
           </label>
-          <label class="field field-wide">
-            <span>Sync key</span>
-            <input
-              id="loot-sync-key"
-              type="password"
-              placeholder="Same as server BERRYWORKS_LOOT_INGEST_KEY"
-              autocomplete="off"
-              spellcheck="false"
-            />
-          </label>
+          <div class="loot-discord-row">
+            <div id="loot-discord-status" class="loot-discord-status">Not signed in</div>
+            <div class="row gap">
+              <button id="btn-loot-discord-login" type="button" class="primary">
+                Sign in with Discord
+              </button>
+              <button id="btn-loot-discord-logout" type="button" class="secondary" hidden>
+                Sign out
+              </button>
+            </div>
+          </div>
         </div>
         <p class="hint">
-          Uploads are anonymous (random contributor id). Re-uploads only add new kills/drops, not
-          duplicates. Ask a site admin for the ingest key.
+          Sign in opens your browser. Uploads are tied to your Discord account (idempotent re-uploads).
+          Community rates on the site may still require the community_loot feature flag.
         </p>
         <div class="loot-summary" id="loot-summary">
           <span>0 kills</span>

@@ -28,8 +28,13 @@ pub enum LogEvent {
     LandYou { message: String },
     WearOff { message: String },
     MezBreak { target: String, breaker: String },
-    /// NPC death. `by_you` is true for `You have slain …!`.
-    Death { target: String, by_you: bool },
+    /// NPC death. `by_you` is true for `You have slain …!` or `… has been slain by You!`.
+    /// `killer` is set for `… has been slain by NAME!` (including when NAME is You).
+    Death {
+        target: String,
+        by_you: bool,
+        killer: Option<String>,
+    },
     ZoneChange { zone: String },
     /// `You have gained a level! Welcome to level N!`
     LevelUp { level: u32 },
@@ -74,12 +79,16 @@ fn re_you_slain() -> &'static Regex {
     RE.get_or_init(|| Regex::new(r"(?i)^You have slain (.+?)!?\s*$").unwrap())
 }
 
-/// Other-kill / NPC death: `A zol ghoul knight has been slain by Vebn!`
-fn re_death() -> &'static Regex {
+/// Other-kill: `A zol ghoul knight has been slain by Vebn!`
+fn re_slain_by() -> &'static Regex {
     static RE: OnceLock<Regex> = OnceLock::new();
-    RE.get_or_init(|| {
-        Regex::new(r"(?i)^(.+?) (?:has been slain by .+!|died\.?|has died\.?)$").unwrap()
-    })
+    RE.get_or_init(|| Regex::new(r"(?i)^(.+?) has been slain by (.+?)!\s*$").unwrap())
+}
+
+/// NPC death without a killer: `A froglok died.` / `A froglok has died.`
+fn re_died() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| Regex::new(r"(?i)^(.+?) (?:died\.?|has died\.?)$").unwrap())
 }
 
 fn re_mez_break() -> &'static Regex {
@@ -259,12 +268,24 @@ pub fn parse_line(line: &str) -> LogEvent {
         return LogEvent::Death {
             target: caps[1].trim().trim_end_matches('!').trim().to_string(),
             by_you: true,
+            killer: None,
         };
     }
-    if let Some(caps) = re_death().captures(msg) {
+    if let Some(caps) = re_slain_by().captures(msg) {
+        let target = caps[1].trim().to_string();
+        let killer = caps[2].trim().trim_end_matches('!').trim().to_string();
+        let by_you = killer.eq_ignore_ascii_case("You");
+        return LogEvent::Death {
+            target,
+            by_you,
+            killer: Some(killer),
+        };
+    }
+    if let Some(caps) = re_died().captures(msg) {
         return LogEvent::Death {
             target: caps[1].trim().to_string(),
             by_you: false,
+            killer: None,
         };
     }
 
@@ -480,6 +501,7 @@ mod tests {
             LogEvent::Death {
                 target: "a frenzied ghoul".into(),
                 by_you: true,
+                killer: None,
             }
         );
     }
@@ -494,6 +516,22 @@ mod tests {
             LogEvent::Death {
                 target: "A zol ghoul knight".into(),
                 by_you: false,
+                killer: Some("Vebn".into()),
+            }
+        );
+    }
+
+    #[test]
+    fn parses_has_been_slain_by_you() {
+        let e = parse_line(
+            "[Thu Aug 06 21:51:20 2026] A zol ghoul knight has been slain by You!",
+        );
+        assert_eq!(
+            e,
+            LogEvent::Death {
+                target: "A zol ghoul knight".into(),
+                by_you: true,
+                killer: Some("You".into()),
             }
         );
     }

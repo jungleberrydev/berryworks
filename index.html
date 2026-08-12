@@ -230,6 +230,19 @@
               <span id="ov-voice-volume-label" class="range-label">100%</span>
             </label>
             <label class="field checkbox">
+              <input id="ov-flash-expiry-warn" type="checkbox" checked />
+              <span>Flash timers near expiry</span>
+            </label>
+            <label class="field checkbox">
+              <input id="ov-verbal-expiry-warn" type="checkbox" />
+              <span>Verbal warning before expiry</span>
+            </label>
+            <label class="field field-wide">
+              <span>Warn before expiry</span>
+              <input id="ov-expiry-warn-secs" type="range" min="1" max="30" step="1" value="30" />
+              <span id="ov-expiry-warn-label" class="range-label">30s</span>
+            </label>
+            <label class="field checkbox">
               <input id="ov-show-recently-wore-off" type="checkbox" checked />
               <span>Show recently wore off</span>
             </label>
@@ -240,9 +253,10 @@
             </label>
           </div>
           <p class="hint">
-            Dismiss needs overlays unlocked (General). Recently wore off lists renew-relevant self/ally buffs
-            (Clarity, Celerity, SOW, Chloroplast/regen, shields) — not blossom/celestial HoTs, invis, roots, or
-            enemy debuffs. Voice speaks from the main overlay.
+            Dismiss needs overlays unlocked (General). Flash and verbal share the warn lead time (1–30s). Verbal
+            uses the announcement voice/volume and speaks once when a timer crosses the threshold. Recently wore
+            off lists renew-relevant self/ally buffs (Clarity, Celerity, SOW, Chloroplast/regen, shields) — not
+            blossom/celestial HoTs, invis, roots, or enemy debuffs. Voice speaks from the main overlay.
           </p>
 
           <h2 class="panel-subhead">Filters &amp; windows</h2>
@@ -338,10 +352,13 @@
       <section class="panel settings-panel is-active">
         <h2>Loot tracking</h2>
         <p class="hint">
-          Tracks kills and corpse loot from your character log (EQL lines name the mob). Zone follows
-          Timers → Respawns / log zone-ins. Optional sync uploads drop aggregates to Norrath Roster
+          Drop rates use observation opportunities as the denominator: your kills
+          (<code>You have slain</code> / pet when Pet name is set) plus corpses you loot that were not
+          already counted (e.g. group kills). Multiple items from the same corpse count as one
+          opportunity. Zone follows Timers → Respawns / log zone-ins. Optional sync uploads aggregates to
+          Norrath Roster
           (<a href="https://norrathroster.com/loot" id="loot-web-link" target="_blank" rel="noopener">norrathroster.com/loot</a>)
-          after you sign in with Discord.
+          after Discord sign-in. Requires a saved log path and <code>/log</code> on in-game.
         </p>
         <div class="settings-stack">
           <label class="field checkbox">

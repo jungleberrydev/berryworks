@@ -89,6 +89,15 @@ pub struct OverlayAppearance {
     /// TTS volume 0.0–1.0 (SpeechSynthesisUtterance.volume).
     #[serde(default = "default_voice_volume")]
     pub voice_volume: f64,
+    /// Flash (urgent pulse) when a timer has ≤ `expiry_warn_secs` remaining.
+    #[serde(default = "default_flash_expiry_warn")]
+    pub flash_expiry_warn: bool,
+    /// Speak spell name when a timer crosses into the expiry-warn window (main overlay).
+    #[serde(default = "default_verbal_expiry_warn")]
+    pub verbal_expiry_warn: bool,
+    /// Shared lead time (seconds) for flash + verbal pre-expiry alerts. Clamped 1..=30.
+    #[serde(default = "default_expiry_warn_secs")]
+    pub expiry_warn_secs: u64,
     /// Show the independent respawn overlay window.
     #[serde(default = "default_show_respawn_window")]
     pub show_respawn_window: bool,
@@ -150,9 +159,25 @@ fn default_voice_volume() -> f64 {
     1.0
 }
 
+fn default_flash_expiry_warn() -> bool {
+    true
+}
+
+fn default_verbal_expiry_warn() -> bool {
+    false
+}
+
+fn default_expiry_warn_secs() -> u64 {
+    30
+}
+
 /// Recently-wore-off retention window bounds (seconds).
 pub const RECENTLY_WORE_OFF_SECS_MIN: u64 = 15;
 pub const RECENTLY_WORE_OFF_SECS_MAX: u64 = 300;
+
+/// Pre-expiry flash/verbal lead-time bounds (seconds).
+pub const EXPIRY_WARN_SECS_MIN: u64 = 1;
+pub const EXPIRY_WARN_SECS_MAX: u64 = 30;
 
 impl OverlayAppearance {
     /// Clamped retention for recently-wore-off rows (15..=300 seconds).
@@ -167,6 +192,12 @@ impl OverlayAppearance {
             return 1.0;
         }
         self.voice_volume.clamp(0.0, 1.0)
+    }
+
+    /// Clamped pre-expiry warn lead time (1..=30 seconds).
+    pub fn expiry_warn_secs_clamped(&self) -> u64 {
+        self.expiry_warn_secs
+            .clamp(EXPIRY_WARN_SECS_MIN, EXPIRY_WARN_SECS_MAX)
     }
 }
 
@@ -205,6 +236,9 @@ impl Default for OverlayAppearance {
             voice_announcements: true,
             voice_uri: default_voice_uri(),
             voice_volume: default_voice_volume(),
+            flash_expiry_warn: default_flash_expiry_warn(),
+            verbal_expiry_warn: default_verbal_expiry_warn(),
+            expiry_warn_secs: default_expiry_warn_secs(),
             show_respawn_window: true,
             track_all_kills: true,
             show_window_border: false,
@@ -304,6 +338,7 @@ pub fn normalize_config(config: &mut AppConfig) {
     config.my_pet_name = config.my_pet_name.trim().to_string();
     config.overlay.recently_wore_off_secs = config.overlay.recently_wore_off_secs_clamped();
     config.overlay.voice_volume = config.overlay.voice_volume_clamped();
+    config.overlay.expiry_warn_secs = config.overlay.expiry_warn_secs_clamped();
     // Always use production sync URL (field kept for config load compat; not user-editable).
     config.loot_sync_url = default_loot_sync_url();
     config.loot_sync_key = config.loot_sync_key.trim().to_string();
@@ -1039,5 +1074,22 @@ mod tests {
             .insert("Shield of Thorns (Spell)".into(), true);
         assert!(is_watched(&config, "Shield of Thorns"));
         assert!(is_watched(&config, "Shield of Thorns (Spell)"));
+    }
+
+    #[test]
+    fn expiry_warn_secs_clamped_and_defaults() {
+        let mut ov = OverlayAppearance::default();
+        assert!(ov.flash_expiry_warn);
+        assert!(!ov.verbal_expiry_warn);
+        assert_eq!(ov.expiry_warn_secs, 30);
+        assert_eq!(ov.expiry_warn_secs_clamped(), 30);
+        ov.expiry_warn_secs = 0;
+        assert_eq!(ov.expiry_warn_secs_clamped(), 1);
+        ov.expiry_warn_secs = 99;
+        assert_eq!(ov.expiry_warn_secs_clamped(), 30);
+        let mut cfg = AppConfig::default();
+        cfg.overlay.expiry_warn_secs = 0;
+        normalize_config(&mut cfg);
+        assert_eq!(cfg.overlay.expiry_warn_secs, 1);
     }
 }

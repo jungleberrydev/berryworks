@@ -34,6 +34,12 @@ export interface OverlayAppearance {
   voice_uri: string;
   /** TTS volume 0–1 (SpeechSynthesisUtterance.volume). */
   voice_volume: number;
+  /** Flash (urgent pulse) when a timer is within expiry_warn_secs of ending. */
+  flash_expiry_warn: boolean;
+  /** Speak when a timer crosses into the expiry-warn window (main overlay). */
+  verbal_expiry_warn: boolean;
+  /** Shared lead time (seconds) for flash + verbal pre-expiry alerts. Clamped 1..=30. */
+  expiry_warn_secs: number;
   /** Show the independent respawn overlay window. */
   show_respawn_window: boolean;
   /** Start a zone-default respawn timer on every kill (rares still use overrides). */
@@ -92,6 +98,9 @@ export interface ThemePreset {
     | "voice_announcements"
     | "voice_uri"
     | "voice_volume"
+    | "flash_expiry_warn"
+    | "verbal_expiry_warn"
+    | "expiry_warn_secs"
     | "show_respawn_window"
     | "track_all_kills"
     | "show_window_border"
@@ -121,6 +130,9 @@ export const DEFAULT_OVERLAY: OverlayAppearance = {
   voice_announcements: true,
   voice_uri: "",
   voice_volume: 1,
+  flash_expiry_warn: true,
+  verbal_expiry_warn: false,
+  expiry_warn_secs: 30,
   show_respawn_window: true,
   track_all_kills: true,
   show_window_border: false,
@@ -133,6 +145,13 @@ export function clampRecentlyWoreOffSecs(secs: number | undefined | null): numbe
   return Math.min(300, Math.max(15, Math.round(n)));
 }
 
+/** Clamp pre-expiry warn lead time to 1..=30 seconds. */
+export function clampExpiryWarnSecs(secs: number | undefined | null): number {
+  const n = Number(secs);
+  if (!Number.isFinite(n)) return DEFAULT_OVERLAY.expiry_warn_secs;
+  return Math.min(30, Math.max(1, Math.round(n)));
+}
+
 export function formatRecentlyWoreOffLabel(secs: number): string {
   const s = clampRecentlyWoreOffSecs(secs);
   if (s < 60) return `${s}s`;
@@ -140,6 +159,10 @@ export function formatRecentlyWoreOffLabel(secs: number): string {
   const rem = s % 60;
   if (rem === 0) return m === 1 ? "1 min" : `${m} min`;
   return `${m}m ${rem}s`;
+}
+
+export function formatExpiryWarnLabel(secs: number): string {
+  return `${clampExpiryWarnSecs(secs)}s`;
 }
 
 export function overlayFontCss(fontFamily: string | undefined | null): string {
@@ -242,6 +265,9 @@ export function applyThemePreset(
     voice_announcements: current.voice_announcements,
     voice_uri: current.voice_uri,
     voice_volume: current.voice_volume,
+    flash_expiry_warn: current.flash_expiry_warn,
+    verbal_expiry_warn: current.verbal_expiry_warn,
+    expiry_warn_secs: current.expiry_warn_secs,
     show_respawn_window: current.show_respawn_window,
     track_all_kills: current.track_all_kills,
     show_window_border: current.show_window_border,

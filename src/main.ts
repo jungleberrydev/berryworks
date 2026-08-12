@@ -9,7 +9,9 @@ import {
   OVERLAY_FONTS,
   TIMER_SIZES,
   applyThemePreset,
+  clampExpiryWarnSecs,
   clampRecentlyWoreOffSecs,
+  formatExpiryWarnLabel,
   formatRecentlyWoreOffLabel,
   iconImgHtml,
   type OverlayAppearance,
@@ -516,6 +518,13 @@ function readAppearanceFromForm(): OverlayAppearance {
   const voiceVolumePct = Number(
     (document.getElementById("ov-voice-volume") as HTMLInputElement).value
   );
+  const flashExpiryWarn = (document.getElementById("ov-flash-expiry-warn") as HTMLInputElement)
+    .checked;
+  const verbalExpiryWarn = (document.getElementById("ov-verbal-expiry-warn") as HTMLInputElement)
+    .checked;
+  const expiryWarnSecs = clampExpiryWarnSecs(
+    Number((document.getElementById("ov-expiry-warn-secs") as HTMLInputElement).value)
+  );
   const showRespawnWindow = (document.getElementById("ov-show-respawn-window") as HTMLInputElement)
     .checked;
   const trackAllKills = (document.getElementById("ov-track-all-kills") as HTMLInputElement)
@@ -544,6 +553,9 @@ function readAppearanceFromForm(): OverlayAppearance {
       1,
       Math.max(0, (Number.isFinite(voiceVolumePct) ? voiceVolumePct : 100) / 100)
     ),
+    flash_expiry_warn: flashExpiryWarn,
+    verbal_expiry_warn: verbalExpiryWarn,
+    expiry_warn_secs: expiryWarnSecs,
     show_respawn_window: showRespawnWindow,
     track_all_kills: trackAllKills,
     // Native DWM border is tied to lock state; keep prior value for config compat.
@@ -592,6 +604,13 @@ function writeAppearanceToForm(ov: OverlayAppearance) {
   );
   (document.getElementById("ov-voice-volume") as HTMLInputElement).value = String(voiceVol);
   $("ov-voice-volume-label").textContent = `${voiceVol}%`;
+  (document.getElementById("ov-flash-expiry-warn") as HTMLInputElement).checked =
+    merged.flash_expiry_warn !== false;
+  (document.getElementById("ov-verbal-expiry-warn") as HTMLInputElement).checked =
+    !!merged.verbal_expiry_warn;
+  const warnSecs = clampExpiryWarnSecs(merged.expiry_warn_secs);
+  (document.getElementById("ov-expiry-warn-secs") as HTMLInputElement).value = String(warnSecs);
+  $("ov-expiry-warn-label").textContent = formatExpiryWarnLabel(warnSecs);
   (document.getElementById("ov-show-respawn-window") as HTMLInputElement).checked =
     merged.show_respawn_window !== false;
   (document.getElementById("ov-track-all-kills") as HTMLInputElement).checked =
@@ -705,6 +724,10 @@ function scheduleAppearanceSave() {
     Number((document.getElementById("ov-recently-wore-off-secs") as HTMLInputElement).value)
   );
   $("ov-recently-wore-off-label").textContent = formatRecentlyWoreOffLabel(recentSecs);
+  const warnSecs = clampExpiryWarnSecs(
+    Number((document.getElementById("ov-expiry-warn-secs") as HTMLInputElement).value)
+  );
+  $("ov-expiry-warn-label").textContent = formatExpiryWarnLabel(warnSecs);
   if (appearanceSaveTimer) clearTimeout(appearanceSaveTimer);
   appearanceSaveTimer = setTimeout(() => {
     void persistAppearanceLive();
@@ -728,6 +751,9 @@ function renderLiveTimers(timers: ActiveTimer[]) {
     return;
   }
   box.className = "live-timers";
+  const ov = overlayOf(config);
+  const flash = ov.flash_expiry_warn !== false;
+  const warnMs = clampExpiryWarnSecs(ov.expiry_warn_secs) * 1000;
   const sorted = [...timers].sort(
     (a, b) => new Date(a.ends_at).getTime() - new Date(b.ends_at).getTime(),
   );
@@ -737,7 +763,7 @@ function renderLiveTimers(timers: ActiveTimer[]) {
       const total = t.duration_secs * 1000;
       const left = Math.max(0, new Date(t.ends_at).getTime() - Date.now());
       const pct = total > 0 ? (left / total) * 100 : 0;
-      const urgent = left > 0 && left < 30_000;
+      const urgent = flash && left > 0 && left < warnMs;
       return `<div class="timer-row cat-${t.category}${urgent ? " timer-urgent" : ""}">
         <div class="timer-meta">${iconImgHtml(spellIconByName(t.spell))} <strong>${escapeHtml(t.spell)}</strong> — ${escapeHtml(t.target)}</div>
         <div class="timer-time">${text}</div>
@@ -855,7 +881,7 @@ function renderLootTable(snap: LootSnapshot) {
 
   if (lootView === "mobs") {
     if (!snap.mobs.length) {
-      wrap.innerHTML = `<div class="hint">No mobs match — kill and loot while tracking is on.</div>`;
+      wrap.innerHTML = `<div class="hint">No mobs match — kill or loot corpses while tracking is on.</div>`;
       return;
     }
     wrap.innerHTML = `<table class="loot-table">
@@ -1270,6 +1296,9 @@ window.addEventListener("DOMContentLoaded", async () => {
     "ov-voice-announcements",
     "ov-voice-uri",
     "ov-voice-volume",
+    "ov-flash-expiry-warn",
+    "ov-verbal-expiry-warn",
+    "ov-expiry-warn-secs",
     "my-pet-name",
     "ov-show-respawn-window",
     "ov-track-all-kills",

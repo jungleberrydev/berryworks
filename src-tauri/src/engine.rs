@@ -745,6 +745,7 @@ mod tests {
             LogEvent::Death {
                 target: "A gnoll".into(),
                 by_you: true,
+                killer: None,
             },
             &[],
             &config,
@@ -1109,6 +1110,7 @@ mod tests {
             LogEvent::Death {
                 target: "A gnoll".into(),
                 by_you: true,
+                killer: None,
             },
             &[],
             &config,

@@ -4,6 +4,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import {
   DEFAULT_OVERLAY,
   TIMER_SIZES,
+  clampExpiryWarnSecs,
   iconImgHtml,
   overlayFontCss,
   type OverlayAppearance,
@@ -84,6 +85,9 @@ let voiceAnnouncements = true;
 let voiceUri = "";
 /** TTS volume 0–1. */
 let voiceVolume = 1;
+let flashExpiryWarn = true;
+let verbalExpiryWarn = false;
+let expiryWarnSecs = 30;
 let myPetName = "";
 let overlayRole: OverlayRole = "main";
 let lastTimers: ActiveTimer[] = [];
@@ -93,6 +97,8 @@ let lastRespawnZone: string | null = null;
 let campsCache: CampsFile | null = null;
 /** Recent-expired IDs already announced (or present at startup). Main overlay only. */
 let announcedRecentIds = new Set<string>();
+/** Timer IDs already given a pre-expiry verbal warning (or under threshold at startup). */
+let announcedPreExpiryIds = new Set<string>();
 let voicePrimed = false;
 function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
@@ -137,6 +143,9 @@ function applyAppearance(ov: OverlayAppearance) {
   voiceUri = (appearance.voice_uri ?? "").trim();
   const vol = Number(appearance.voice_volume);
   voiceVolume = Number.isFinite(vol) ? Math.min(1, Math.max(0, vol)) : 1;
+  flashExpiryWarn = appearance.flash_expiry_warn !== false;
+  verbalExpiryWarn = !!appearance.verbal_expiry_warn;
+  expiryWarnSecs = clampExpiryWarnSecs(appearance.expiry_warn_secs);
   const root = document.documentElement;
   root.style.setProperty("--ov-text", appearance.text_color);
   root.style.setProperty("--ov-panel", withAlpha(appearance.panel_color, appearance.panel_opacity));
@@ -275,13 +284,14 @@ function groupByTarget<T extends { target: string }>(
 function remainMs(endsAt: string): number {
   return Math.max(0, new Date(endsAt).getTime() - Date.now());
 }
-const URGENT_REMAIN_SECS = 30;
+function isUrgent(leftMs: number): boolean {
+  return flashExpiryWarn && leftMs > 0 && leftMs < expiryWarnSecs * 1000;
+}
 function renderActiveRow(t: ActiveTimer, hideTarget: boolean): string {
   const total = t.duration_secs * 1000;
   const left = remainMs(t.ends_at);
   const pct = total > 0 ? (left / total) * 100 : 0;
-  const urgent = left > 0 && left < URGENT_REMAIN_SECS * 1000;
-  const urgentClass = urgent ? " otimer-urgent" : "";
+  const urgentClass = isUrgent(left) ? " otimer-urgent" : "";
   const icon = spellIconHtml(t.spell);
   const minimal = appearance.timer_size === "minimal";
   if (minimal) {
@@ -375,8 +385,7 @@ function renderRespawnRow(t: RespawnTimer): string {
   const total = t.duration_secs * 1000;
   const left = remainMs(t.ends_at);
   const pct = total > 0 ? (left / total) * 100 : 0;
-  const urgent = left > 0 && left < URGENT_REMAIN_SECS * 1000;
-  const urgentClass = urgent ? " otimer-urgent" : "";
+  const urgentClass = isUrgent(left) ? " otimer-urgent" : "";
   const rareClass = t.is_rare ? " otimer-rare" : "";
   const cat = t.is_rare ? "rare" : "trash";
   const minimal = appearance.timer_size === "minimal";
@@ -452,8 +461,8 @@ function resolveSpeechVoice(uri: string): SpeechSynthesisVoice | null {
   );
 }
 
-function speakAnnouncement(text: string) {
-  if (overlayRole !== "main" || !voiceAnnouncements) return;
+function speak(text: string) {
+  if (overlayRole !== "main") return;
   if (typeof speechSynthesis === "undefined") return;
   primeSpeech();
   const utter = new SpeechSynthesisUtterance(text);
@@ -462,6 +471,11 @@ function speakAnnouncement(text: string) {
   const voice = resolveSpeechVoice(voiceUri);
   if (voice) utter.voice = voice;
   speechSynthesis.speak(utter);
+}
+
+function speakAnnouncement(text: string) {
+  if (!voiceAnnouncements) return;
+  speak(text);
 }
 
 /** Announce newly worn-off renew buffs (main overlay only). */
@@ -481,6 +495,41 @@ function announceNewWornOff(recent: RecentExpired[]) {
 
 function seedAnnouncedRecent(recent: RecentExpired[]) {
   announcedRecentIds = new Set(recent.map((r) => r.id));
+}
+
+/** Speak once when a timer first crosses into the pre-expiry window (main overlay). */
+function announcePreExpiry(timers: ActiveTimer[]) {
+  if (overlayRole !== "main" || !verbalExpiryWarn) return;
+  const thresholdMs = expiryWarnSecs * 1000;
+  const live = new Set(timers.map((t) => t.id));
+  for (const t of timers) {
+    const left = remainMs(t.ends_at);
+    if (left <= 0) continue;
+    if (left >= thresholdMs) {
+      // Renewed / duration grew past threshold → allow a later warning.
+      announcedPreExpiryIds.delete(t.id);
+      continue;
+    }
+    if (announcedPreExpiryIds.has(t.id)) continue;
+    announcedPreExpiryIds.add(t.id);
+    speak(`${t.spell} wearing off`);
+  }
+  for (const id of [...announcedPreExpiryIds]) {
+    if (!live.has(id)) announcedPreExpiryIds.delete(id);
+  }
+}
+
+/** Seed timers already under the warn window so opening the overlay doesn't spam. */
+function seedAnnouncedPreExpiry(timers: ActiveTimer[]) {
+  const thresholdMs = expiryWarnSecs * 1000;
+  announcedPreExpiryIds = new Set(
+    timers
+      .filter((t) => {
+        const left = remainMs(t.ends_at);
+        return left > 0 && left < thresholdMs;
+      })
+      .map((t) => t.id)
+  );
 }
 
 function renderRespawns(timers: RespawnTimer[], zone: string | null) {
@@ -509,6 +558,7 @@ function render(timers: ActiveTimer[], recent: RecentExpired[] = []) {
   lastRecent = recent;
   announceNewWornOff(recent);
   const visibleTimers = filterForRole(timers);
+  announcePreExpiry(visibleTimers);
   const visibleRecent = filterForRole(recent);
   const box = document.getElementById("timers")!;
   const showRecent = showRecentlyWoreOff && visibleRecent.length > 0;
@@ -615,6 +665,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   } else {
     const payload = await invoke<TimersPayload>("get_timers");
     seedAnnouncedRecent(payload.recent_expired ?? []);
+    seedAnnouncedPreExpiry(filterForRole(payload.timers));
     if (overlayRole === "main") primeSpeech();
     render(payload.timers, payload.recent_expired ?? []);
     await listen<TimersPayload>("timers-updated", (event) => {

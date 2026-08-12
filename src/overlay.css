@@ -394,7 +394,7 @@ body.panel-clear .orecent-section {
   display: none;
 }
 
-/* Flash red when under 30 seconds remain (main + enemies overlays). */
+/* Flash red when remaining time is within configured expiry_warn_secs. */
 @keyframes otimer-urgent-pulse {
   0%,
   100% {

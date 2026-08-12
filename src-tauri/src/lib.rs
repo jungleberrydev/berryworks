@@ -376,10 +376,12 @@ fn upload_loot(state: State<'_, AppState>) -> Result<LootSyncResult, String> {
             drops_added: None,
         });
     }
-    if config.loot_sync_key.trim().is_empty() {
+    let upload_token = config.loot_upload_token.trim().to_string();
+    let ops_key = config.loot_sync_key.trim().to_string();
+    if upload_token.is_empty() && ops_key.is_empty() {
         return Ok(LootSyncResult {
             ok: false,
-            message: "Set the sync key from Norrath Roster (BERRYWORKS_LOOT_INGEST_KEY).".into(),
+            message: "Sign in with Discord to upload (Loot tab).".into(),
             kills_added: None,
             drops_added: None,
         });
@@ -406,14 +408,15 @@ fn upload_loot(state: State<'_, AppState>) -> Result<LootSyncResult, String> {
         .timeout(std::time::Duration::from_secs(60))
         .build()
         .map_err(|e| e.to_string())?;
-    let response = client
-        .post(&url)
-        .header(
-            "Authorization",
-            format!("Bearer {}", config.loot_sync_key.trim()),
-        )
-        .header("X-Berryworks-Key", config.loot_sync_key.trim())
-        .json(&payload)
+    let mut request = client.post(&url).json(&payload);
+    if !upload_token.is_empty() {
+        request = request.header("Authorization", format!("Bearer {upload_token}"));
+    } else {
+        request = request
+            .header("Authorization", format!("Bearer {ops_key}"))
+            .header("X-Berryworks-Key", ops_key);
+    }
+    let response = request
         .send()
         .map_err(|e| format!("Upload failed: {e}"))?;
 
@@ -446,6 +449,162 @@ fn upload_loot(state: State<'_, AppState>) -> Result<LootSyncResult, String> {
             .and_then(|v| v.as_u64())
             .or_else(|| parsed.get("drops_added").and_then(|v| v.as_u64())),
     })
+}
+
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+struct LootDiscordUser {
+    id: String,
+    username: String,
+    #[serde(rename = "globalName")]
+    global_name: Option<String>,
+}
+
+#[derive(Clone, serde::Serialize)]
+struct LootDiscordLoginResult {
+    user: LootDiscordUser,
+}
+
+/// Open Discord OAuth in the browser and poll until Berryworks issues an upload token.
+#[tauri::command]
+fn login_loot_discord(
+    app: AppHandle,
+    state: State<'_, AppState>,
+) -> Result<LootDiscordLoginResult, String> {
+    use tauri_plugin_opener::OpenerExt;
+
+    let base = {
+        let mut cfg = state.config.lock().unwrap();
+        normalize_config(&mut cfg);
+        cfg.loot_sync_url.trim_end_matches('/').to_string()
+    };
+    let client = reqwest::blocking::Client::builder()
+        .timeout(std::time::Duration::from_secs(30))
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    let start_url = format!("{base}/api/loot/auth/start");
+    let start_res = client
+        .post(&start_url)
+        .send()
+        .map_err(|e| format!("Could not start Discord login: {e}"))?;
+    let start_status = start_res.status();
+    let start_text = start_res.text().unwrap_or_default();
+    if !start_status.is_success() {
+        let msg = serde_json::from_str::<serde_json::Value>(&start_text)
+            .ok()
+            .and_then(|v| v.get("error")?.as_str().map(|s| s.to_string()))
+            .unwrap_or_else(|| start_text.chars().take(200).collect());
+        if start_status.as_u16() == 404 {
+            return Err(format!(
+                "Login start failed (404): Discord loot auth is not available at {base}. \
+                 Deploy norrath-roster with loot auth enabled."
+            ));
+        }
+        return Err(format!("Login start failed ({start_status}): {msg}"));
+    }
+    let start_json: serde_json::Value =
+        serde_json::from_str(&start_text).map_err(|e| e.to_string())?;
+    let session_id = start_json
+        .get("sessionId")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| "Login start missing sessionId".to_string())?
+        .to_string();
+    let authorize_url = start_json
+        .get("authorizeUrl")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| "Login start missing authorizeUrl".to_string())?
+        .to_string();
+
+    app.opener()
+        .open_url(authorize_url, None::<&str>)
+        .map_err(|e| format!("Could not open browser: {e}"))?;
+
+    let poll_url = format!("{base}/api/loot/auth/poll");
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(5 * 60);
+    loop {
+        if std::time::Instant::now() > deadline {
+            return Err("Discord login timed out. Try again.".into());
+        }
+        thread::sleep(Duration::from_millis(1500));
+        let poll_res = client
+            .get(&poll_url)
+            .query(&[("sessionId", session_id.as_str())])
+            .send()
+            .map_err(|e| format!("Login poll failed: {e}"))?;
+        if !poll_res.status().is_success() {
+            continue;
+        }
+        let poll_json: serde_json::Value = poll_res.json().map_err(|e| e.to_string())?;
+        let status = poll_json
+            .get("status")
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
+        match status {
+            "pending" => continue,
+            "ready" => {
+                let token = poll_json
+                    .get("token")
+                    .and_then(|v| v.as_str())
+                    .ok_or_else(|| "Login ready but token missing".to_string())?
+                    .to_string();
+                let user_val = poll_json
+                    .get("user")
+                    .cloned()
+                    .ok_or_else(|| "Login ready but user missing".to_string())?;
+                let user: LootDiscordUser =
+                    serde_json::from_value(user_val).map_err(|e| e.to_string())?;
+                {
+                    let mut cfg = state.config.lock().unwrap();
+                    cfg.loot_upload_token = token;
+                    cfg.loot_discord_user_id = user.id.clone();
+                    cfg.loot_discord_username = user.username.clone();
+                    cfg.loot_discord_global_name =
+                        user.global_name.clone().unwrap_or_default();
+                    cfg.loot_sync_enabled = true;
+                    normalize_config(&mut cfg);
+                    save_config(&cfg)?;
+                }
+                return Ok(LootDiscordLoginResult { user });
+            }
+            "banned" => return Err("This Discord account is banned.".into()),
+            "expired" | "failed" | "consumed" => {
+                return Err("Discord login expired or failed. Try again.".into());
+            }
+            other => {
+                return Err(format!("Unexpected login status: {other}"));
+            }
+        }
+    }
+}
+
+#[tauri::command]
+fn logout_loot_discord(state: State<'_, AppState>) -> Result<(), String> {
+    let (base, token) = {
+        let cfg = state.config.lock().unwrap();
+        (
+            cfg.loot_sync_url.trim_end_matches('/').to_string(),
+            cfg.loot_upload_token.trim().to_string(),
+        )
+    };
+    if !token.is_empty() {
+        if let Ok(client) = reqwest::blocking::Client::builder()
+            .timeout(std::time::Duration::from_secs(15))
+            .build()
+        {
+            let _ = client
+                .post(format!("{base}/api/loot/auth/revoke"))
+                .header("Authorization", format!("Bearer {token}"))
+                .send();
+        }
+    }
+    let mut cfg = state.config.lock().unwrap();
+    cfg.loot_upload_token.clear();
+    cfg.loot_discord_username.clear();
+    cfg.loot_discord_global_name.clear();
+    cfg.loot_discord_user_id.clear();
+    normalize_config(&mut cfg);
+    save_config(&cfg)?;
+    Ok(())
 }
 
 #[tauri::command]
@@ -577,6 +736,8 @@ pub fn run() {
             get_loot,
             clear_loot,
             upload_loot,
+            login_loot_discord,
+            logout_loot_discord,
             dismiss_timer,
             dismiss_respawn,
             set_overlay_locked,

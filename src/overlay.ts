@@ -82,6 +82,8 @@ let hideOtherPets = false;
 let voiceAnnouncements = true;
 /** Web Speech voiceURI; empty = system default. */
 let voiceUri = "";
+/** TTS volume 0–1. */
+let voiceVolume = 1;
 let myPetName = "";
 let overlayRole: OverlayRole = "main";
 let lastTimers: ActiveTimer[] = [];
@@ -133,6 +135,8 @@ function applyAppearance(ov: OverlayAppearance) {
   hideOtherPets = !!appearance.hide_other_pets;
   voiceAnnouncements = appearance.voice_announcements !== false;
   voiceUri = (appearance.voice_uri ?? "").trim();
+  const vol = Number(appearance.voice_volume);
+  voiceVolume = Number.isFinite(vol) ? Math.min(1, Math.max(0, vol)) : 1;
   const root = document.documentElement;
   root.style.setProperty("--ov-text", appearance.text_color);
   root.style.setProperty("--ov-panel", withAlpha(appearance.panel_color, appearance.panel_opacity));
@@ -454,6 +458,7 @@ function speakAnnouncement(text: string) {
   primeSpeech();
   const utter = new SpeechSynthesisUtterance(text);
   utter.rate = 1.05;
+  utter.volume = voiceVolume;
   const voice = resolveSpeechVoice(voiceUri);
   if (voice) utter.voice = voice;
   speechSynthesis.speak(utter);

@@ -1,6 +1,6 @@
 [package]
 name = "berry-timers"
-version = "0.1.0"
+version = "0.2.0"
 description = "Berryworks — EverQuest Legends toolkit"
 authors = ["you"]
 edition = "2021"

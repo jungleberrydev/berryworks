@@ -32,6 +32,8 @@ export interface OverlayAppearance {
    * Empty string = system default voice.
    */
   voice_uri: string;
+  /** TTS volume 0–1 (SpeechSynthesisUtterance.volume). */
+  voice_volume: number;
   /** Show the independent respawn overlay window. */
   show_respawn_window: boolean;
   /** Start a zone-default respawn timer on every kill (rares still use overrides). */
@@ -89,6 +91,7 @@ export interface ThemePreset {
     | "hide_other_pets"
     | "voice_announcements"
     | "voice_uri"
+    | "voice_volume"
     | "show_respawn_window"
     | "track_all_kills"
     | "show_window_border"
@@ -117,6 +120,7 @@ export const DEFAULT_OVERLAY: OverlayAppearance = {
   hide_other_pets: false,
   voice_announcements: true,
   voice_uri: "",
+  voice_volume: 1,
   show_respawn_window: true,
   track_all_kills: true,
   show_window_border: false,
@@ -237,6 +241,7 @@ export function applyThemePreset(
     hide_other_pets: current.hide_other_pets,
     voice_announcements: current.voice_announcements,
     voice_uri: current.voice_uri,
+    voice_volume: current.voice_volume,
     show_respawn_window: current.show_respawn_window,
     track_all_kills: current.track_all_kills,
     show_window_border: current.show_window_border,

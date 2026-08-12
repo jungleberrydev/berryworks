@@ -44,6 +44,38 @@
   border-radius: 10px;
 }
 
+.section-nav {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.section-tab {
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--panel) 80%, black);
+  color: var(--muted);
+  border-radius: 8px;
+  padding: 0.5rem 1.2rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.section-tab:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+}
+
+.section-tab.is-active {
+  color: var(--text);
+  background: color-mix(in srgb, var(--accent) 32%, var(--panel));
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--border));
+}
+
+.app-section[hidden] {
+  display: none;
+}
+
 .settings-tab {
   border: 1px solid transparent;
   background: transparent;
@@ -536,4 +568,101 @@ button.secondary {
   50% {
     background: #ff7a7a;
   }
+}
+
+.loot-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  margin: 0.75rem 0 1rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.loot-summary strong {
+  color: var(--text);
+  font-weight: 650;
+}
+
+.loot-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.loot-search-row {
+  flex: 1 1 220px;
+  margin: 0;
+}
+
+.loot-view-tabs {
+  display: flex;
+  gap: 0.35rem;
+  padding: 0.25rem;
+  background: color-mix(in srgb, var(--panel) 70%, black);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.loot-table-wrap {
+  max-height: min(560px, 58vh);
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--input) 88%, black);
+  margin-bottom: 0.9rem;
+}
+
+.loot-table-wrap .hint {
+  padding: 0.85rem 1rem;
+  margin: 0;
+}
+
+.loot-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.loot-table th,
+.loot-table td {
+  text-align: left;
+  padding: 0.45rem 0.7rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  vertical-align: top;
+}
+
+.loot-table th {
+  position: sticky;
+  top: 0;
+  background: color-mix(in srgb, var(--panel) 92%, black);
+  color: var(--muted);
+  font-weight: 650;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  z-index: 1;
+}
+
+.loot-table td.num {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.loot-table tr:hover td {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.loot-rate {
+  color: var(--accent-2);
+  font-weight: 650;
+}
+
+.loot-actions {
+  align-items: center;
 }

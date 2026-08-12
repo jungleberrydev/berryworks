@@ -43,8 +43,42 @@ export interface AppConfig {
   watched_rares?: Record<string, boolean>;
   camp_overrides?: Record<string, number>;
   respawn_zone?: string;
+  loot_tracking?: boolean;
+  loot_sync_enabled?: boolean;
+  loot_sync_url?: string;
+  loot_sync_key?: string;
+  loot_contributor_id?: string;
   overlay_locked: boolean;
   overlay?: OverlayAppearance;
+}
+
+export interface LootMobRow {
+  zone: string;
+  mob: string;
+  mob_key: string;
+  kills: number;
+  unique_items: number;
+  coin_avg_copper: number;
+}
+
+export interface LootItemRow {
+  zone: string;
+  mob: string;
+  mob_key: string;
+  item: string;
+  times: number;
+  quantity: number;
+  kills: number;
+  rate: number | null;
+}
+
+export interface LootSnapshot {
+  total_kills: number;
+  total_item_appearances: number;
+  mob_count: number;
+  zone: string | null;
+  mobs: LootMobRow[];
+  items: LootItemRow[];
 }
 
 export interface RareCamp {
@@ -85,7 +119,11 @@ let spells: SpellDef[] = [];
 let camps: CampsFile | null = null;
 let config: AppConfig | null = null;
 let spellSearch = "";
+let lootSearch = "";
+let lootView: "mobs" | "items" = "mobs";
+let lootSnapshot: LootSnapshot | null = null;
 let appearanceSaveTimer: ReturnType<typeof setTimeout> | null = null;
+let lootSearchTimer: ReturnType<typeof setTimeout> | null = null;
 
 function $(id: string): HTMLElement {
   const el = document.getElementById(id);
@@ -602,6 +640,10 @@ function readFormIntoConfig(): AppConfig {
     watched_rares: { ...(config.watched_rares ?? {}) },
     camp_overrides: { ...(config.camp_overrides ?? {}) },
     respawn_zone: (document.getElementById("respawn-zone") as HTMLSelectElement).value,
+    loot_tracking: (document.getElementById("loot-tracking") as HTMLInputElement).checked,
+    loot_sync_enabled: (document.getElementById("loot-sync-enabled") as HTMLInputElement).checked,
+    loot_sync_url: (document.getElementById("loot-sync-url") as HTMLInputElement).value.trim(),
+    loot_sync_key: (document.getElementById("loot-sync-key") as HTMLInputElement).value.trim(),
     overlay: readAppearanceFromForm(),
   };
   const seen = new Set<string>();
@@ -728,6 +770,14 @@ async function load() {
   (document.getElementById("my-pet-name") as HTMLInputElement).value = config.my_pet_name ?? "";
   (document.getElementById("my-pet-name") as HTMLInputElement).title = PET_NAME_HINT;
   (document.getElementById("overlay-locked") as HTMLInputElement).checked = config.overlay_locked;
+  (document.getElementById("loot-tracking") as HTMLInputElement).checked =
+    config.loot_tracking !== false;
+  (document.getElementById("loot-sync-enabled") as HTMLInputElement).checked =
+    !!config.loot_sync_enabled;
+  (document.getElementById("loot-sync-url") as HTMLInputElement).value =
+    config.loot_sync_url?.trim() || "https://norrathroster.com";
+  (document.getElementById("loot-sync-key") as HTMLInputElement).value =
+    config.loot_sync_key ?? "";
   writeAppearanceToForm(overlayOf(config));
   await loadLogSuggestions();
   renderSpellList();
@@ -735,10 +785,222 @@ async function load() {
   renderRareList();
   const payload = await invoke<{ timers: ActiveTimer[] }>("get_timers");
   renderLiveTimers(payload.timers);
+  await refreshLoot();
+}
+
+function formatRate(rate: number | null): string {
+  if (rate == null || !Number.isFinite(rate)) return "—";
+  return `${(rate * 100).toFixed(rate >= 0.1 ? 1 : 2)}%`;
+}
+
+function formatCopper(copper: number): string {
+  if (!copper) return "—";
+  const p = Math.floor(copper / 1000);
+  const g = Math.floor((copper % 1000) / 100);
+  const s = Math.floor((copper % 100) / 10);
+  const c = copper % 10;
+  const parts: string[] = [];
+  if (p) parts.push(`${p}p`);
+  if (g) parts.push(`${g}g`);
+  if (s) parts.push(`${s}s`);
+  if (c || parts.length === 0) parts.push(`${c}c`);
+  return parts.join(" ");
+}
+
+function renderLootSummary(snap: LootSnapshot) {
+  const el = document.getElementById("loot-summary");
+  if (!el) return;
+  const zone = snap.zone ? ` · zone ${escapeHtml(snap.zone)}` : "";
+  el.innerHTML = `
+    <span><strong>${snap.total_kills}</strong> kills</span>
+    <span><strong>${snap.total_item_appearances}</strong> item drops</span>
+    <span><strong>${snap.mob_count}</strong> mobs</span>
+    <span class="hint" style="margin:0">${zone || "· zone unknown"}</span>
+  `;
+}
+
+function renderLootTable(snap: LootSnapshot) {
+  const wrap = document.getElementById("loot-table");
+  if (!wrap) return;
+  renderLootSummary(snap);
+
+  if (lootView === "mobs") {
+    if (!snap.mobs.length) {
+      wrap.innerHTML = `<div class="hint">No mobs match — kill and loot while tracking is on.</div>`;
+      return;
+    }
+    wrap.innerHTML = `<table class="loot-table">
+      <thead>
+        <tr>
+          <th>Mob</th>
+          <th>Zone</th>
+          <th class="num">Kills</th>
+          <th class="num">Items</th>
+          <th class="num">Avg coin</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${snap.mobs
+          .map(
+            (m) => `<tr>
+          <td>${escapeHtml(m.mob)}</td>
+          <td>${escapeHtml(m.zone)}</td>
+          <td class="num">${m.kills}</td>
+          <td class="num">${m.unique_items}</td>
+          <td class="num">${escapeHtml(formatCopper(m.coin_avg_copper))}</td>
+        </tr>`
+          )
+          .join("")}
+      </tbody>
+    </table>`;
+    return;
+  }
+
+  if (!snap.items.length) {
+    wrap.innerHTML = `<div class="hint">No items match — loot corpses while tracking is on.</div>`;
+    return;
+  }
+  wrap.innerHTML = `<table class="loot-table">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Mob</th>
+        <th>Zone</th>
+        <th class="num">Times</th>
+        <th class="num">Qty</th>
+        <th class="num">Kills</th>
+        <th class="num">Rate</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${snap.items
+        .map(
+          (i) => `<tr>
+        <td>${escapeHtml(i.item)}</td>
+        <td>${escapeHtml(i.mob)}</td>
+        <td>${escapeHtml(i.zone)}</td>
+        <td class="num">${i.times}</td>
+        <td class="num">${i.quantity}</td>
+        <td class="num">${i.kills}</td>
+        <td class="num loot-rate">${formatRate(i.rate)}</td>
+      </tr>`
+        )
+        .join("")}
+    </tbody>
+  </table>`;
+}
+
+async function refreshLoot(query = lootSearch) {
+  lootSnapshot = await invoke<LootSnapshot>("get_loot", { query });
+  renderLootTable(lootSnapshot);
+}
+
+function scheduleLootRefresh() {
+  if (lootSearchTimer) clearTimeout(lootSearchTimer);
+  lootSearchTimer = setTimeout(() => {
+    void refreshLoot(lootSearch);
+  }, 180);
+}
+
+function initSectionNav() {
+  const tabs = document.querySelectorAll<HTMLButtonElement>(".section-tab");
+  const panels = document.querySelectorAll<HTMLElement>("[data-section-panel]");
+  const activate = (id: string) => {
+    for (const tab of tabs) {
+      const on = tab.dataset.section === id;
+      tab.classList.toggle("is-active", on);
+      tab.setAttribute("aria-selected", on ? "true" : "false");
+    }
+    for (const panel of panels) {
+      const on = panel.dataset.sectionPanel === id;
+      panel.classList.toggle("is-active", on);
+      panel.hidden = !on;
+    }
+    if (id === "loot") {
+      void refreshLoot();
+    }
+  };
+  for (const tab of tabs) {
+    tab.addEventListener("click", () => {
+      const id = tab.dataset.section;
+      if (id) activate(id);
+    });
+  }
+}
+
+function initLootUi() {
+  const search = document.getElementById("loot-search") as HTMLInputElement | null;
+  if (search) {
+    search.addEventListener("input", () => {
+      lootSearch = search.value;
+      scheduleLootRefresh();
+    });
+  }
+  document.querySelectorAll<HTMLButtonElement>("[data-loot-view]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const view = btn.dataset.lootView;
+      if (view !== "mobs" && view !== "items") return;
+      lootView = view;
+      document.querySelectorAll<HTMLButtonElement>("[data-loot-view]").forEach((b) => {
+        b.classList.toggle("is-active", b.dataset.lootView === view);
+      });
+      if (lootSnapshot) renderLootTable(lootSnapshot);
+      else void refreshLoot();
+    });
+  });
+  $("btn-clear-loot").addEventListener("click", async () => {
+    if (!confirm("Clear all local loot tracking data?")) return;
+    await invoke("clear_loot");
+    await refreshLoot();
+    const status = $("loot-status");
+    status.textContent = "Cleared";
+    setTimeout(() => (status.textContent = ""), 2000);
+  });
+  $("btn-upload-loot").addEventListener("click", async () => {
+    const status = $("loot-status");
+    status.textContent = "Uploading…";
+    try {
+      // Persist sync settings first so the Rust side sees the latest key/URL.
+      const next = readFormIntoConfig();
+      config = await invoke<AppConfig>("save_settings", { config: next });
+      const result = await invoke<{
+        ok: boolean;
+        message: string;
+        kills_added: number | null;
+        drops_added: number | null;
+      }>("upload_loot");
+      status.textContent = result.ok
+        ? `${result.message}${
+            result.kills_added != null || result.drops_added != null
+              ? ` (+${result.kills_added ?? 0} kills, +${result.drops_added ?? 0} drops)`
+              : ""
+          }`
+        : result.message;
+    } catch (err) {
+      status.textContent = err instanceof Error ? err.message : String(err);
+    }
+    setTimeout(() => {
+      if (status.textContent?.startsWith("Uploaded") || status.textContent === "Cleared") {
+        status.textContent = "";
+      }
+    }, 5000);
+  });
+  $("btn-save-loot").addEventListener("click", async () => {
+    const next = readFormIntoConfig();
+    config = await invoke<AppConfig>("save_settings", { config: next });
+    const status = $("loot-status");
+    status.textContent = "Saved";
+    setTimeout(() => (status.textContent = ""), 2000);
+  });
+  $("loot-tracking").addEventListener("change", async () => {
+    if (!config) return;
+    const next = readFormIntoConfig();
+    config = await invoke<AppConfig>("save_settings", { config: next });
+  });
 }
 
 function initSettingsTabs() {
-  const tabs = document.querySelectorAll<HTMLButtonElement>(".settings-tab");
+  const tabs = document.querySelectorAll<HTMLButtonElement>(".settings-tab:not([data-loot-view])");
   const panels = document.querySelectorAll<HTMLElement>("[data-tab-panel]");
   const activate = (id: string) => {
     for (const tab of tabs) {
@@ -761,7 +1023,9 @@ function initSettingsTabs() {
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
+  initSectionNav();
   initSettingsTabs();
+  initLootUi();
   await load();
   initVoiceSelect();
 
@@ -870,10 +1134,30 @@ window.addEventListener("DOMContentLoaded", async () => {
     renderLiveTimers(event.payload.timers);
   });
 
+  await listen<LootSnapshot>("loot-updated", (event) => {
+    // Keep filtered view in sync without wiping the search box.
+    if (!lootSearch.trim()) {
+      lootSnapshot = event.payload;
+      renderLootTable(lootSnapshot);
+    } else {
+      void refreshLoot();
+    }
+  });
+
   await listen<AppConfig>("config-updated", (event) => {
     config = event.payload;
     (document.getElementById("my-pet-name") as HTMLInputElement).value =
       config.my_pet_name ?? "";
+    (document.getElementById("loot-tracking") as HTMLInputElement).checked =
+      config.loot_tracking !== false;
+    (document.getElementById("loot-sync-enabled") as HTMLInputElement).checked =
+      !!config.loot_sync_enabled;
+    (document.getElementById("loot-sync-url") as HTMLInputElement).value =
+      config.loot_sync_url?.trim() || "https://norrathroster.com";
+    if (!(document.getElementById("loot-sync-key") as HTMLInputElement).value) {
+      (document.getElementById("loot-sync-key") as HTMLInputElement).value =
+        config.loot_sync_key ?? "";
+    }
     writeAppearanceToForm(overlayOf(config));
     syncRespawnZoneSelect();
   });

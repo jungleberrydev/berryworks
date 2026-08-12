@@ -217,9 +217,32 @@ pub struct AppConfig {
     /// Last known / manually selected camping zone (display name).
     #[serde(default)]
     pub respawn_zone: String,
+    /// When true, parse loot/kill lines into local loot.json drop stats.
+    #[serde(default = "default_loot_tracking")]
+    pub loot_tracking: bool,
+    /// Opt-in upload of anonymous aggregates to Norrath Roster.
+    #[serde(default)]
+    pub loot_sync_enabled: bool,
+    /// Base site URL (no trailing slash), e.g. https://norrathroster.com
+    #[serde(default = "default_loot_sync_url")]
+    pub loot_sync_url: String,
+    /// Shared ingest key (Bearer / X-Berryworks-Key).
+    #[serde(default)]
+    pub loot_sync_key: String,
+    /// Stable anonymous contributor UUID for idempotent uploads.
+    #[serde(default)]
+    pub loot_contributor_id: String,
     pub overlay_locked: bool,
     #[serde(default)]
     pub overlay: OverlayAppearance,
+}
+
+fn default_loot_tracking() -> bool {
+    true
+}
+
+fn default_loot_sync_url() -> String {
+    "https://norrathroster.com".into()
 }
 
 impl Default for AppConfig {
@@ -233,6 +256,11 @@ impl Default for AppConfig {
             watched_rares: HashMap::new(),
             camp_overrides: HashMap::new(),
             respawn_zone: String::new(),
+            loot_tracking: true,
+            loot_sync_enabled: false,
+            loot_sync_url: default_loot_sync_url(),
+            loot_sync_key: String::new(),
+            loot_contributor_id: String::new(),
             overlay_locked: false,
             overlay: OverlayAppearance::default(),
         }
@@ -243,6 +271,20 @@ impl Default for AppConfig {
 pub fn normalize_config(config: &mut AppConfig) {
     config.my_pet_name = config.my_pet_name.trim().to_string();
     config.overlay.recently_wore_off_secs = config.overlay.recently_wore_off_secs_clamped();
+    config.loot_sync_url = config
+        .loot_sync_url
+        .trim()
+        .trim_end_matches('/')
+        .to_string();
+    if config.loot_sync_url.is_empty() {
+        config.loot_sync_url = default_loot_sync_url();
+    }
+    config.loot_sync_key = config.loot_sync_key.trim().to_string();
+    if config.loot_contributor_id.trim().is_empty() {
+        config.loot_contributor_id = uuid::Uuid::new_v4().to_string();
+    } else {
+        config.loot_contributor_id = config.loot_contributor_id.trim().to_string();
+    }
 }
 
 pub fn load_spells() -> Result<Vec<SpellDef>, String> {

@@ -17,6 +17,9 @@
   --ov-border: rgba(196, 92, 138, 0.45);
   --ov-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
   --ov-blur: blur(8px);
+  --ov-radius: 12px;
+  --ov-bar-radius: 999px;
+  --ov-strip-radius: 999px;
   --overlay-font: "Segoe UI", sans-serif;
 }
 
@@ -80,6 +83,7 @@ body[data-size="large"] {
 }
 
 .overlay-panel {
+  position: relative;
   margin: 8px;
   flex: 1;
   min-height: 0;
@@ -87,7 +91,7 @@ body[data-size="large"] {
   flex-direction: column;
   background: var(--ov-panel);
   border: 1px solid var(--ov-border);
-  border-radius: 12px;
+  border-radius: var(--ov-radius);
   backdrop-filter: var(--ov-blur);
   box-shadow: var(--ov-shadow);
   overflow: hidden;
@@ -118,6 +122,108 @@ body[data-theme="kunark"] {
   --ov-border: rgba(90, 140, 70, 0.4);
 }
 
+body[data-theme="ironkeep"] {
+  --ov-border: rgba(201, 162, 39, 0.45);
+  --ov-radius: 2px;
+  --ov-bar-radius: 1px;
+  --ov-strip-radius: 0;
+  --ov-blur: none;
+  --ov-shadow: 0 0 0 1px rgba(0, 0, 0, 0.7), 0 10px 28px rgba(0, 0, 0, 0.55);
+}
+
+body[data-theme="grimoire"] {
+  --ov-border: rgba(184, 134, 42, 0.4);
+  --ov-radius: 3px;
+  --ov-bar-radius: 1px;
+  --ov-strip-radius: 0;
+  --ov-blur: none;
+  --ov-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+}
+
+body[data-theme="phosphor"],
+body[data-theme="amber"],
+body[data-theme="vga"] {
+  --ov-radius: 0;
+  --ov-bar-radius: 0;
+  --ov-strip-radius: 0;
+  --ov-blur: none;
+}
+
+body[data-theme="phosphor"] {
+  --ov-border: rgba(46, 229, 106, 0.45);
+  --ov-shadow: 0 0 18px rgba(46, 229, 106, 0.18), inset 0 0 40px rgba(0, 40, 0, 0.25);
+}
+
+body[data-theme="amber"] {
+  --ov-border: rgba(255, 176, 0, 0.4);
+  --ov-shadow: 0 0 18px rgba(255, 176, 0, 0.16), inset 0 0 40px rgba(40, 20, 0, 0.28);
+}
+
+body[data-theme="vga"] {
+  --ov-border: rgba(85, 255, 255, 0.4);
+  --ov-shadow: 0 0 0 1px #000, 0 8px 24px rgba(0, 0, 0, 0.7);
+}
+
+body[data-theme="phosphor"] .overlay-panel::after,
+body[data-theme="amber"] .overlay-panel::after,
+body[data-theme="vga"] .overlay-panel::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.14) 2px,
+    rgba(0, 0, 0, 0.14) 4px
+  );
+  opacity: 0.55;
+}
+
+body[data-theme="vga"] .overlay-panel::after {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 1px,
+    rgba(0, 0, 0, 0.22) 1px,
+    rgba(0, 0, 0, 0.22) 2px
+  );
+}
+
+body.panel-clear .overlay-panel::after {
+  display: none;
+}
+
+body[data-theme="ironkeep"] .overlay-titlebar,
+body[data-theme="grimoire"] .overlay-titlebar {
+  border-bottom-color: color-mix(in srgb, var(--ov-dot) 40%, transparent);
+}
+
+body[data-theme="phosphor"] .ospell,
+body[data-theme="phosphor"] .otime,
+body[data-theme="amber"] .ospell,
+body[data-theme="amber"] .otime {
+  text-shadow: 0 0 8px color-mix(in srgb, currentColor 50%, transparent);
+}
+
+body[data-theme="ironkeep"] .ogroup-label,
+body[data-theme="grimoire"] .ogroup-label {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: calc(var(--ov-target) * 0.95);
+  font-weight: 600;
+}
+
+body[data-theme="phosphor"] .ogroup-label,
+body[data-theme="amber"] .ogroup-label,
+body[data-theme="vga"] .ogroup-label {
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
 .overlay-titlebar {
   display: flex;
   flex-shrink: 0;
@@ -141,7 +247,7 @@ body.is-locked .overlay-titlebar {
 .drag-strip {
   flex: 1;
   height: 6px;
-  border-radius: 999px;
+  border-radius: var(--ov-strip-radius);
   background: rgba(255, 255, 255, 0.12);
   pointer-events: none;
 }
@@ -157,7 +263,7 @@ body[data-size="minimal"] .drag-strip {
   color: var(--ov-text);
   background: color-mix(in srgb, var(--ov-panel) 70%, black);
   border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 4px;
+  border-radius: min(4px, var(--ov-radius));
   padding: 0.15rem 0.25rem;
   cursor: pointer;
 }
@@ -253,7 +359,7 @@ body[data-size="minimal"] .otarget {
 
 .obar {
   height: var(--ov-bar-h);
-  border-radius: 999px;
+  border-radius: var(--ov-bar-radius);
   background: rgba(255, 255, 255, 0.1);
   overflow: hidden;
   margin-top: 0.1rem;

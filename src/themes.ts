@@ -38,7 +38,7 @@ export interface OverlayAppearance {
   flash_expiry_warn: boolean;
   /** Speak when a timer crosses into the expiry-warn window (main overlay). */
   verbal_expiry_warn: boolean;
-  /** Shared lead time (seconds) for flash + verbal pre-expiry alerts. Clamped 1..=30. */
+  /** Shared lead time (seconds) for flash + verbal pre-expiry alerts. Clamped 1..=120. */
   expiry_warn_secs: number;
   /** Show the independent respawn overlay window. */
   show_respawn_window: boolean;
@@ -68,6 +68,16 @@ export const OVERLAY_FONTS: OverlayFontOption[] = [
     css: '"Cascadia Mono", Consolas, monospace',
   },
   { id: "Consolas", label: "Consolas", css: 'Consolas, "Courier New", monospace' },
+  {
+    id: "Courier New",
+    label: "Courier New",
+    css: '"Courier New", Courier, monospace',
+  },
+  {
+    id: "Lucida Console",
+    label: "Lucida Console",
+    css: '"Lucida Console", "Courier New", monospace',
+  },
   { id: "Georgia", label: "Georgia", css: 'Georgia, "Times New Roman", serif' },
   {
     id: "Palatino Linotype",
@@ -81,9 +91,18 @@ export const OVERLAY_FONTS: OverlayFontOption[] = [
   { id: "Tahoma", label: "Tahoma", css: "Tahoma, sans-serif" },
 ];
 
+export type ThemeGroup = "classic" | "fantasy" | "terminal";
+
+export const THEME_GROUPS: { id: ThemeGroup; label: string }[] = [
+  { id: "classic", label: "Classic" },
+  { id: "fantasy", label: "Fantasy" },
+  { id: "terminal", label: "Terminal / retro" },
+];
+
 export interface ThemePreset {
   id: string;
   label: string;
+  group: ThemeGroup;
   appearance: Omit<
     OverlayAppearance,
     | "timer_size"
@@ -104,7 +123,10 @@ export interface ThemePreset {
     | "show_respawn_window"
     | "track_all_kills"
     | "show_window_border"
-  >;
+  > & {
+    /** When set, picking this theme also switches overlay font. */
+    font_family?: string;
+  };
 }
 
 export const TIMER_SIZES = ["minimal", "small", "normal", "large"] as const;
@@ -132,7 +154,7 @@ export const DEFAULT_OVERLAY: OverlayAppearance = {
   voice_volume: 1,
   flash_expiry_warn: true,
   verbal_expiry_warn: false,
-  expiry_warn_secs: 30,
+  expiry_warn_secs: 10,
   show_respawn_window: true,
   track_all_kills: true,
   show_window_border: false,
@@ -145,11 +167,25 @@ export function clampRecentlyWoreOffSecs(secs: number | undefined | null): numbe
   return Math.min(300, Math.max(15, Math.round(n)));
 }
 
-/** Clamp pre-expiry warn lead time to 1..=30 seconds. */
+/** Pre-expiry flash/verbal lead-time bounds (seconds). */
+export const EXPIRY_WARN_SECS_MIN = 1;
+export const EXPIRY_WARN_SECS_MAX = 120;
+
+/** Clamp pre-expiry warn lead time to 1..=120 seconds. */
 export function clampExpiryWarnSecs(secs: number | undefined | null): number {
   const n = Number(secs);
   if (!Number.isFinite(n)) return DEFAULT_OVERLAY.expiry_warn_secs;
-  return Math.min(30, Math.max(1, Math.round(n)));
+  return Math.min(EXPIRY_WARN_SECS_MAX, Math.max(EXPIRY_WARN_SECS_MIN, Math.round(n)));
+}
+
+/**
+ * Effective warn window in ms. Caps at half the timer so a 60s proc buff
+ * with a 30s setting does not flash for most of its life.
+ */
+export function expiryWarnThresholdMs(durationMs: number, warnSecs: number): number {
+  const warnMs = clampExpiryWarnSecs(warnSecs) * 1000;
+  if (!(durationMs > 0)) return warnMs;
+  return Math.max(1000, Math.min(warnMs, durationMs * 0.5));
 }
 
 export function formatRecentlyWoreOffLabel(secs: number): string {
@@ -175,6 +211,7 @@ export const THEME_PRESETS: ThemePreset[] = [
   {
     id: "berry",
     label: "Berry (default)",
+    group: "classic",
     appearance: {
       theme: "berry",
       text_color: "#f6ebf1",
@@ -184,11 +221,13 @@ export const THEME_PRESETS: ThemePreset[] = [
       dot_color: "#d4a05a",
       panel_opacity: 0.82,
       bar_opacity: 1.0,
+      font_family: "Segoe UI",
     },
   },
   {
     id: "parchment",
     label: "Classic parchment",
+    group: "classic",
     appearance: {
       theme: "parchment",
       text_color: "#3a2a18",
@@ -198,11 +237,13 @@ export const THEME_PRESETS: ThemePreset[] = [
       dot_color: "#b07028",
       panel_opacity: 0.92,
       bar_opacity: 1.0,
+      font_family: "Georgia",
     },
   },
   {
     id: "eq-chrome",
     label: "Dark blue EQ chrome",
+    group: "classic",
     appearance: {
       theme: "eq-chrome",
       text_color: "#d8e2f0",
@@ -212,11 +253,13 @@ export const THEME_PRESETS: ThemePreset[] = [
       dot_color: "#c9a04a",
       panel_opacity: 0.88,
       bar_opacity: 1.0,
+      font_family: "Segoe UI",
     },
   },
   {
     id: "velious",
     label: "Velious ice",
+    group: "classic",
     appearance: {
       theme: "velious",
       text_color: "#e8f4ff",
@@ -226,11 +269,13 @@ export const THEME_PRESETS: ThemePreset[] = [
       dot_color: "#a8d0e8",
       panel_opacity: 0.85,
       bar_opacity: 1.0,
+      font_family: "Segoe UI",
     },
   },
   {
     id: "kunark",
     label: "Kunark / swamp",
+    group: "classic",
     appearance: {
       theme: "kunark",
       text_color: "#e4efd4",
@@ -240,6 +285,87 @@ export const THEME_PRESETS: ThemePreset[] = [
       dot_color: "#b09040",
       panel_opacity: 0.88,
       bar_opacity: 1.0,
+      font_family: "Segoe UI",
+    },
+  },
+  {
+    id: "ironkeep",
+    label: "Ironkeep",
+    group: "fantasy",
+    appearance: {
+      theme: "ironkeep",
+      text_color: "#e6d9c4",
+      panel_color: "#14110f",
+      buff_color: "#7a9a62",
+      debuff_color: "#9c3228",
+      dot_color: "#c9a227",
+      panel_opacity: 0.92,
+      bar_opacity: 1.0,
+      font_family: "Palatino Linotype",
+    },
+  },
+  {
+    id: "grimoire",
+    label: "Grimoire",
+    group: "fantasy",
+    appearance: {
+      theme: "grimoire",
+      text_color: "#d8c9a0",
+      panel_color: "#100e0c",
+      buff_color: "#5e7d68",
+      debuff_color: "#7a2e3c",
+      dot_color: "#b8862a",
+      panel_opacity: 0.94,
+      bar_opacity: 1.0,
+      font_family: "Palatino Linotype",
+    },
+  },
+  {
+    id: "phosphor",
+    label: "Phosphor CRT",
+    group: "terminal",
+    appearance: {
+      theme: "phosphor",
+      text_color: "#8eef8e",
+      panel_color: "#071207",
+      buff_color: "#2ee56a",
+      debuff_color: "#e85a4a",
+      dot_color: "#d4e04a",
+      panel_opacity: 0.92,
+      bar_opacity: 1.0,
+      font_family: "Cascadia Mono",
+    },
+  },
+  {
+    id: "amber",
+    label: "Amber CRT",
+    group: "terminal",
+    appearance: {
+      theme: "amber",
+      text_color: "#ffb000",
+      panel_color: "#140e04",
+      buff_color: "#e89a00",
+      debuff_color: "#ff6030",
+      dot_color: "#ffd24a",
+      panel_opacity: 0.92,
+      bar_opacity: 1.0,
+      font_family: "Cascadia Mono",
+    },
+  },
+  {
+    id: "vga",
+    label: "VGA night",
+    group: "terminal",
+    appearance: {
+      theme: "vga",
+      text_color: "#c8c8c8",
+      panel_color: "#000010",
+      buff_color: "#55ffff",
+      debuff_color: "#ff55ff",
+      dot_color: "#ffff55",
+      panel_opacity: 0.92,
+      bar_opacity: 1.0,
+      font_family: "Lucida Console",
     },
   },
 ];
@@ -254,7 +380,7 @@ export function applyThemePreset(
     ...current,
     ...preset.appearance,
     timer_size: current.timer_size,
-    font_family: current.font_family,
+    font_family: preset.appearance.font_family ?? current.font_family,
     show_icons: current.show_icons,
     right_click_dismiss: current.right_click_dismiss,
     show_recently_wore_off: current.show_recently_wore_off,
@@ -281,8 +407,32 @@ export function iconUrl(spellicon: string | undefined | null): string | null {
   return `./icons/spellicon_${id}.png`;
 }
 
+/** Icon srcs that 404'd this session — skip retry so missing files don't flash. */
+const failedIconSrcs = new Set<string>();
+
 export function iconImgHtml(spellicon: string | undefined | null, className = "spell-icon"): string {
   const src = iconUrl(spellicon);
-  if (!src) return `<span class="${className} spell-icon-missing" aria-hidden="true"></span>`;
-  return `<img class="${className}" src="${src}" alt="" width="20" height="20" loading="lazy" onerror="this.classList.add('is-missing');this.removeAttribute('src')" />`;
+  if (!src || failedIconSrcs.has(src)) {
+    return `<span class="${className} spell-icon-missing" aria-hidden="true"></span>`;
+  }
+  return `<img class="${className}" src="${src}" alt="" width="20" height="20" />`;
+}
+
+/** Capture icon 404s once; later renders use a placeholder instead of retrying. */
+export function bindIconErrorHandling(root: ParentNode = document): void {
+  root.addEventListener(
+    "error",
+    (e) => {
+      const t = e.target;
+      if (!(t instanceof HTMLImageElement)) return;
+      if (!t.classList.contains("spell-icon") && !t.classList.contains("oicon")) return;
+      const src = t.getAttribute("src");
+      if (src) failedIconSrcs.add(src);
+      const span = document.createElement("span");
+      span.className = `${t.className} spell-icon-missing`;
+      span.setAttribute("aria-hidden", "true");
+      t.replaceWith(span);
+    },
+    true
+  );
 }

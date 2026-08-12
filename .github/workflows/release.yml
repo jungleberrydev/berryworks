@@ -1,0 +1,75 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to create or update (e.g. v0.1.0). Leave empty to use package version."
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Resolve release tag
+        id: meta
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "workflow_dispatch" -and "${{ inputs.tag }}") {
+            $tag = "${{ inputs.tag }}"
+          } elseif ("${{ github.ref_type }}" -eq "tag") {
+            $tag = "${{ github.ref_name }}"
+          } else {
+            $pkg = Get-Content package.json -Raw | ConvertFrom-Json
+            $tag = "v$($pkg.version)"
+          }
+          if ($tag -notmatch '^v') { $tag = "v$tag" }
+          "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          Write-Host "Release tag: $tag"
+
+      - name: Build and publish
+        uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ steps.meta.outputs.tag }}
+          releaseName: Berryworks ${{ steps.meta.outputs.tag }}
+          releaseBody: |
+            ## Install
+            1. Download the Windows NSIS installer (`Berryworks_*_x64-setup.exe`).
+            2. Run the installer (Windows SmartScreen may warn — unsigned builds are expected).
+            3. Open **Berryworks**, pick your character log, Save Settings.
+            4. In game: `/log on`.
+
+            See the README for details.
+          releaseDraft: false
+          prerelease: false
+          args: --bundles nsis
+          uploadUpdaterJson: false

@@ -1,0 +1,144 @@
+{
+  "_comment": "EverQuest Legends pet naming reference for Berryworks. Observed in Jungleberry logs and fixtures; class type lists from eqlwiki.com/Pet_Guide.",
+  "log_patterns": [
+    {
+      "id": "owner_pet_suffix",
+      "pattern": "{OwnerName} pet",
+      "notes": "Primary EQL log form for other players' and NPC pets. Not possessive (no 's). Evidence: 'Hoptor Thaggelum pet', 'Miragul pet', 'a shadowknight pet', 'Prince Bragnar pet'."
+    },
+    {
+      "id": "your_pet_wear_off",
+      "pattern": "Your pet's {Spell} spell has worn off.",
+      "notes": "Wear-off line for buffs/debuffs on YOUR pet. Land messages still use the pet's display name as the target (see my_pet_name)."
+    },
+    {
+      "id": "named_own_pet",
+      "pattern": "{PetDisplayName}",
+      "notes": "Your own pet often has a unique display name in land/combat lines (e.g. Gastik looks tranquil / Gastik says 'Sorry, Master...'). Set AppConfig.my_pet_name to that exact string so timers on your pet are kept when filtering."
+    }
+  ],
+  "suffix_rules": [
+    {
+      "ends_with": " pet",
+      "case_insensitive": true,
+      "notes": "Matches OwnerName pet / NPC pet suffix used throughout EQL combat and land lines."
+    }
+  ],
+  "classes": [
+    {
+      "class": "Magician",
+      "kind": "Elementals",
+      "type_names": [
+        "an earth elemental",
+        "a fire elemental",
+        "an air elemental",
+        "a water elemental",
+        "Earth Elemental",
+        "Fire Elemental",
+        "Air Elemental",
+        "Water Elemental"
+      ],
+      "notes": "Classic elemental display names; EQL often still shows Owner pet for other mages. Kept for detection if type names appear as targets."
+    },
+    {
+      "class": "Necromancer",
+      "kind": "Undead",
+      "type_names": [
+        "a skeleton",
+        "a decaying skeleton",
+        "a bone construct",
+        "an undead knight"
+      ],
+      "notes": "Undead pet line; other necro pets commonly appear as '{Owner} pet' in EQL logs (e.g. Hoptor Thaggelum pet)."
+    },
+    {
+      "class": "Shadow Knight",
+      "kind": "Undead",
+      "type_names": [
+        "a skeleton",
+        "a decaying skeleton"
+      ],
+      "notes": "SK pets share undead models; logs also use '{Owner} pet' (Miragul pet, Prince Bragnar pet, Dragoon Zytl pet)."
+    },
+    {
+      "class": "Beastlord",
+      "kind": "Warders",
+      "type_names": [
+        "Spirit of Sharik",
+        "Spirit of Khaliz",
+        "Spirit of Keshuval",
+        "Spirit of Herikol",
+        "Spirit of Yekan",
+        "Spirit of Kashek",
+        "a warder"
+      ],
+      "notes": "Warder summon spell names from Pet Guide. In combat logs, other BST pets usually still appear as '{Owner} pet'."
+    },
+    {
+      "class": "Enchanter",
+      "kind": "Animations",
+      "type_names": [
+        "an animation",
+        "a swirling animation",
+        "Pendril's Animation",
+        "Juli's Animation",
+        "Mircyl's Animation",
+        "Kilan's Animation",
+        "Shalee's Animation",
+        "Sisna's Animation",
+        "Sagar's Animation",
+        "Uleen's Animation",
+        "Boltran's Animation",
+        "Aanya's Animation",
+        "Yegoreff's Animation",
+        "Kintaz's Animation",
+        "Zumaik's Animation"
+      ],
+      "notes": "Animation summon line. Other enchanter pets in the wild typically log as '{Owner} pet'."
+    },
+    {
+      "class": "Shaman",
+      "kind": "Spirit Guardians",
+      "type_names": [
+        "a spirit guardian",
+        "a guardian spirit",
+        "Companion Spirit",
+        "Vigilant Spirit",
+        "Guardian Spirit",
+        "Frenzied Spirit",
+        "Spirit of the Howler"
+      ],
+      "notes": "Shaman spirit pet line (wiki: Spirit Guardians). Prefer '{Owner} pet' detection for other players."
+    }
+  ],
+  "type_names": [
+    "an earth elemental",
+    "a fire elemental",
+    "an air elemental",
+    "a water elemental",
+    "Earth Elemental",
+    "Fire Elemental",
+    "Air Elemental",
+    "Water Elemental",
+    "a skeleton",
+    "a decaying skeleton",
+    "a bone construct",
+    "an undead knight",
+    "a warder",
+    "Spirit of Sharik",
+    "Spirit of Khaliz",
+    "Spirit of Keshuval",
+    "Spirit of Herikol",
+    "Spirit of Yekan",
+    "Spirit of Kashek",
+    "an animation",
+    "a swirling animation",
+    "a spirit guardian",
+    "a guardian spirit",
+    "Companion Spirit",
+    "Vigilant Spirit",
+    "Guardian Spirit",
+    "Frenzied Spirit",
+    "Spirit of the Howler"
+  ]
+}

@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="/src/overlay.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Berryworks Overlay</title>
+    <script type="module" src="/src/overlay.ts" defer></script>
+  </head>
+  <body class="overlay-body" data-size="normal">
+    <div id="panel" class="overlay-panel">
+      <div class="overlay-titlebar" data-tauri-drag-region>
+        <div class="drag-strip" aria-hidden="true"></div>
+        <span id="role-label" class="role-label" hidden></span>
+        <select id="zone-select" class="zone-select" hidden title="Camping zone"></select>
+      </div>
+      <div id="timers" class="overlay-timers">
+        <div class="empty-state">Waiting for spells…</div>
+      </div>
+    </div>
+  </body>
+</html>

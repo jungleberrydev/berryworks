@@ -1,0 +1,100 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Berryworks",
+  "version": "0.1.0",
+  "identifier": "com.evans.berry-timers",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "Berryworks",
+        "width": 780,
+        "height": 720,
+        "resizable": true
+      },
+      {
+        "label": "overlay",
+        "title": "Berryworks Overlay",
+        "url": "overlay.html",
+        "width": 340,
+        "height": 420,
+        "decorations": false,
+        "transparent": true,
+        "shadow": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "resizable": true,
+        "visible": true
+      },
+      {
+        "label": "overlay-enemies",
+        "title": "Berryworks — Enemies",
+        "url": "overlay.html",
+        "width": 340,
+        "height": 420,
+        "x": 380,
+        "y": 80,
+        "decorations": false,
+        "transparent": true,
+        "shadow": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "resizable": true,
+        "visible": false
+      },
+      {
+        "label": "overlay-respawns",
+        "title": "Berryworks — Respawns",
+        "url": "overlay.html",
+        "width": 340,
+        "height": 420,
+        "x": 720,
+        "y": 80,
+        "decorations": false,
+        "transparent": true,
+        "shadow": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "resizable": true,
+        "visible": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "publisher": "Berryworks",
+    "category": "Utility",
+    "shortDescription": "EverQuest Legends timers and toolkit",
+    "longDescription": "Berryworks tails your EverQuest Legends character log, tracks buff/debuff timers and rare respawns, and shows them on always-on-top overlays.",
+    "licenseFile": "../LICENSE",
+    "resources": {
+      "../data/spells.json": "spells.json",
+      "../data/camps.json": "camps.json",
+      "../data/pets.json": "pets.json"
+    },
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser",
+        "displayLanguageSelector": false
+      }
+    }
+  }
+}

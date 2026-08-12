@@ -1,0 +1,28 @@
+{
+  "classHits": {
+    "Warrior": 286,
+    "Cleric": 532,
+    "Paladin": 544,
+    "Ranger": 216,
+    "Shadow_Knight": 437,
+    "Druid": 500,
+    "Monk": 305,
+    "Bard": 364,
+    "Rogue": 343,
+    "Shaman": 487,
+    "Necromancer": 334,
+    "Wizard": 424,
+    "Magician": 549,
+    "Enchanter": 494,
+    "Beastlord": 148,
+    "Berserker": 41
+  },
+  "uniqueTitles": 3952,
+  "timedSpells": 842,
+  "watchedDefaults": 25,
+  "byCategory": {
+    "buff": 479,
+    "debuff": 359,
+    "dot": 4
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "global_default_respawn_secs": 600,
+  "zones": [
+    {
+      "id": "lower-guk",
+      "names": ["Lower Guk", "The Ruins of Old Guk"],
+      "default_respawn_secs": 600,
+      "rares": []
+    }
+  ]
+}

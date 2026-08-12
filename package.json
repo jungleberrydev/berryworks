@@ -1,0 +1,30 @@
+{
+  "name": "berry-timers",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "test:rust": "cargo test --manifest-path src-tauri/Cargo.toml",
+    "release:app": "tauri build --no-bundle && node scripts/copy-release.mjs",
+    "release:installer": "tauri build --bundles nsis",
+    "release": "tauri build --bundles nsis && node scripts/copy-release.mjs"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-dialog": "^2",
+    "@tauri-apps/plugin-opener": "^2"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "@types/node": "^22.13.10",
+    "typescript": "~5.6.2",
+    "vite": "^6.0.3"
+  },
+  "allowScripts": {
+    "esbuild@0.25.12": true
+  }
+}

@@ -1,6 +1,9 @@
 import { invoke } from "@tauri-apps/api/core";
+import { getVersion } from "@tauri-apps/api/app";
 import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/plugin-dialog";
+import { check } from "@tauri-apps/plugin-updater";
+import { relaunch } from "@tauri-apps/plugin-process";
 import {
   DEFAULT_OVERLAY,
   OVERLAY_FONTS,
@@ -1112,12 +1115,84 @@ function initSettingsTabs() {
   }
 }
 
+function setUpdateStatus(message: string) {
+  const el = document.getElementById("update-status");
+  if (el) el.textContent = message;
+}
+
+async function installUpdate(update: NonNullable<Awaited<ReturnType<typeof check>>>) {
+  setUpdateStatus(`Downloading ${update.version}…`);
+  await update.downloadAndInstall((event) => {
+    switch (event.event) {
+      case "Started":
+        setUpdateStatus(`Downloading ${update.version}…`);
+        break;
+      case "Finished":
+        setUpdateStatus("Installing…");
+        break;
+      default:
+        break;
+    }
+  });
+  setUpdateStatus("Restarting…");
+  await relaunch();
+}
+
+async function runUpdateCheck(opts: { interactive: boolean }) {
+  const btn = document.getElementById("btn-check-updates") as HTMLButtonElement | null;
+  if (btn) btn.disabled = true;
+  try {
+    if (opts.interactive) setUpdateStatus("Checking…");
+    const update = await check();
+    if (!update) {
+      if (opts.interactive) setUpdateStatus("You're up to date");
+      return;
+    }
+    const notes = update.body?.trim() ? `\n\n${update.body.trim()}` : "";
+    const ok = window.confirm(
+      `Berryworks ${update.version} is available (you have ${await getVersion()}).${notes}\n\nDownload and install now?`
+    );
+    if (!ok) {
+      setUpdateStatus(`Update ${update.version} available`);
+      return;
+    }
+    await installUpdate(update);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    // Dev / unsigned local builds often have no updater endpoint payload yet.
+    if (opts.interactive) setUpdateStatus(msg || "Update check failed");
+    else console.debug("Silent update check skipped:", msg);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function initUpdaterUi() {
+  const ver = document.getElementById("app-version");
+  if (ver) {
+    try {
+      ver.textContent = await getVersion();
+    } catch {
+      ver.textContent = "unknown";
+    }
+  }
+  const btn = document.getElementById("btn-check-updates");
+  btn?.addEventListener("click", () => {
+    void runUpdateCheck({ interactive: true });
+  });
+  // Quiet check shortly after launch so users see a prompt when a release lands.
+  window.setTimeout(() => {
+    void runUpdateCheck({ interactive: false });
+  }, 2500);
+}
+
 window.addEventListener("DOMContentLoaded", async () => {
   initSectionNav();
   initSettingsTabs();
   initLootUi();
   await load();
   initVoiceSelect();
+  await initUpdaterUi();
 
   $("btn-browse").addEventListener("click", async () => {
     const selected = await open({

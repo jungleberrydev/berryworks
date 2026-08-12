@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Berryworks",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "identifier": "com.evans.berry-timers",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -73,6 +73,7 @@
   "bundle": {
     "active": true,
     "targets": ["nsis"],
+    "createUpdaterArtifacts": true,
     "publisher": "Berryworks",
     "category": "Utility",
     "shortDescription": "EverQuest Legends timers and toolkit",
@@ -94,6 +95,17 @@
       "nsis": {
         "installMode": "currentUser",
         "displayLanguageSelector": false
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDE0Qjg1MzE3RjNCMjkzN0MKUldSOGs3THpGMU80RkFKQ0l0N1Z2UHlaQytRdGtsWHV6N1RjTXhoUkRoQVRidlg5K29TRVZvUW0K",
+      "endpoints": [
+        "https://github.com/jungleberrydev/berryworks/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
       }
     }
   }

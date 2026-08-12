@@ -1151,12 +1151,12 @@
         "level": 8
       },
       {
-        "class": "Ranger",
-        "level": 17
-      },
-      {
         "class": "Wizard",
         "level": 16
+      },
+      {
+        "class": "Ranger",
+        "level": 17
       }
     ],
     "spellicon": "44"
@@ -2457,12 +2457,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Enchanter",
-        "level": 39
-      },
-      {
         "class": "Shaman",
         "level": 56
+      },
+      {
+        "class": "Enchanter",
+        "level": 39
       }
     ],
     "spellicon": "R"
@@ -2782,12 +2782,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Druid",
-        "level": 42
-      },
-      {
         "class": "Shaman",
         "level": 39
+      },
+      {
+        "class": "Druid",
+        "level": 42
       }
     ],
     "spellicon": "118"
@@ -2938,12 +2938,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Necromancer",
-        "level": 4
-      },
-      {
         "class": "Shadow Knight",
         "level": 11
+      },
+      {
+        "class": "Necromancer",
+        "level": 4
       }
     ],
     "spellicon": "160"
@@ -3153,11 +3153,11 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Enchanter",
+        "class": "Shaman",
         "level": 53
       },
       {
-        "class": "Shaman",
+        "class": "Enchanter",
         "level": 53
       }
     ],
@@ -3601,16 +3601,16 @@
     "watched_by_default": false,
     "classes": [
       {
+        "class": "Wizard",
+        "level": 40
+      },
+      {
         "class": "Necromancer",
         "level": 43
       },
       {
         "class": "Shadow Knight",
         "level": 59
-      },
-      {
-        "class": "Wizard",
-        "level": 40
       }
     ],
     "spellicon": "K"
@@ -3661,12 +3661,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Necromancer",
-        "level": 1
-      },
-      {
         "class": "Shadow Knight",
         "level": 5
+      },
+      {
+        "class": "Necromancer",
+        "level": 1
       }
     ],
     "spellicon": "41"
@@ -3698,12 +3698,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Enchanter",
-        "level": 16
-      },
-      {
         "class": "Shaman",
         "level": 12
+      },
+      {
+        "class": "Enchanter",
+        "level": 16
       }
     ],
     "spellicon": "50"
@@ -3933,12 +3933,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Necromancer",
-        "level": 27
-      },
-      {
         "class": "Shadow Knight",
         "level": 44
+      },
+      {
+        "class": "Necromancer",
+        "level": 27
       }
     ],
     "spellicon": "160"
@@ -4049,12 +4049,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Beastlord",
-        "level": 20
-      },
-      {
         "class": "Shaman",
         "level": 5
+      },
+      {
+        "class": "Beastlord",
+        "level": 20
       }
     ],
     "spellicon": "17"
@@ -4091,6 +4091,20 @@
       }
     ],
     "spellicon": "M"
+  },
+  {
+    "name": "Earth Elemental Attack",
+    "category": "debuff",
+    "duration_formula": "fixed",
+    "base_ticks": 3,
+    "max_ticks": 3,
+    "tier_duration_pct": 10,
+    "land_other": "sinks into the ground",
+    "land_you": "Your feet sink into the ground",
+    "wear_off_you": "}}",
+    "watched_by_default": false,
+    "classes": [],
+    "spellicon": "117"
   },
   {
     "name": "Earthcall",
@@ -4307,14 +4321,6 @@
         "level": 11
       },
       {
-        "class": "Druid",
-        "level": 19
-      },
-      {
-        "class": "Necromancer",
-        "level": 11
-      },
-      {
         "class": "Paladin",
         "level": 38
       },
@@ -4323,8 +4329,16 @@
         "level": 26
       },
       {
+        "class": "Druid",
+        "level": 19
+      },
+      {
         "class": "Shaman",
         "level": 8
+      },
+      {
+        "class": "Necromancer",
+        "level": 11
       }
     ],
     "spellicon": "65"
@@ -4350,12 +4364,12 @@
         "level": 8
       },
       {
-        "class": "Druid",
-        "level": 1
-      },
-      {
         "class": "Ranger",
         "level": 9
+      },
+      {
+        "class": "Druid",
+        "level": 1
       },
       {
         "class": "Shaman",
@@ -4377,28 +4391,28 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Beastlord",
-        "level": 34
-      },
-      {
         "class": "Cleric",
         "level": 16
-      },
-      {
-        "class": "Druid",
-        "level": 34
-      },
-      {
-        "class": "Enchanter",
-        "level": 17
       },
       {
         "class": "Paladin",
         "level": 29
       },
       {
+        "class": "Druid",
+        "level": 34
+      },
+      {
         "class": "Shaman",
         "level": 19
+      },
+      {
+        "class": "Enchanter",
+        "level": 17
+      },
+      {
+        "class": "Beastlord",
+        "level": 34
       }
     ],
     "spellicon": "69"
@@ -4416,24 +4430,24 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Beastlord",
-        "level": 18
-      },
-      {
         "class": "Cleric",
         "level": 6
-      },
-      {
-        "class": "Druid",
-        "level": 19
       },
       {
         "class": "Paladin",
         "level": 21
       },
       {
+        "class": "Druid",
+        "level": 19
+      },
+      {
         "class": "Shaman",
         "level": 11
+      },
+      {
+        "class": "Beastlord",
+        "level": 18
       }
     ],
     "spellicon": "61"
@@ -4451,24 +4465,24 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Beastlord",
-        "level": 25
+        "class": "Ranger",
+        "level": 20
       },
       {
         "class": "Druid",
         "level": 6
       },
       {
+        "class": "Shaman",
+        "level": 12
+      },
+      {
         "class": "Enchanter",
         "level": 12
       },
       {
-        "class": "Ranger",
-        "level": 20
-      },
-      {
-        "class": "Shaman",
-        "level": 12
+        "class": "Beastlord",
+        "level": 25
       }
     ],
     "spellicon": "20"
@@ -4538,12 +4552,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Necromancer",
-        "level": 11
-      },
-      {
         "class": "Shadow Knight",
         "level": 20
+      },
+      {
+        "class": "Necromancer",
+        "level": 11
       }
     ],
     "spellicon": "160"
@@ -4744,12 +4758,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Necromancer",
-        "level": 50
-      },
-      {
         "class": "Shaman",
         "level": 49
+      },
+      {
+        "class": "Necromancer",
+        "level": 50
       }
     ],
     "spellicon": "42"
@@ -4767,12 +4781,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Beastlord",
-        "level": 35
-      },
-      {
         "class": "Shaman",
         "level": 24
+      },
+      {
+        "class": "Beastlord",
+        "level": 35
       }
     ],
     "spellicon": "42"
@@ -4899,11 +4913,11 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Magician",
+        "class": "Wizard",
         "level": 57
       },
       {
-        "class": "Wizard",
+        "class": "Magician",
         "level": 57
       }
     ],
@@ -4968,16 +4982,16 @@
         "level": 6
       },
       {
-        "class": "Enchanter",
-        "level": 3
+        "class": "Shadow Knight",
+        "level": 12
       },
       {
         "class": "Necromancer",
         "level": 2
       },
       {
-        "class": "Shadow Knight",
-        "level": 12
+        "class": "Enchanter",
+        "level": 3
       }
     ],
     "spellicon": "G"
@@ -5061,12 +5075,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Ranger",
-        "level": 12
-      },
-      {
         "class": "Shaman",
         "level": 3
+      },
+      {
+        "class": "Ranger",
+        "level": 12
       }
     ],
     "spellicon": "9"
@@ -5117,11 +5131,11 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Enchanter",
+        "class": "Wizard",
         "level": 58
       },
       {
-        "class": "Wizard",
+        "class": "Enchanter",
         "level": 58
       }
     ],
@@ -5248,6 +5262,60 @@
       }
     ],
     "spellicon": "51"
+  },
+  {
+    "name": "Flash of Light",
+    "category": "debuff",
+    "duration_formula": "fixed",
+    "base_ticks": 2,
+    "max_ticks": 2,
+    "tier_duration_pct": 10,
+    "land_other": "is blinded by a flash of light",
+    "land_you": "You are blinded by a flash of light",
+    "wear_off_you": "Your sight returns",
+    "watched_by_default": false,
+    "classes": [
+      {
+        "class": "Beastlord",
+        "level": 5
+      },
+      {
+        "class": "Cleric",
+        "level": 1
+      },
+      {
+        "class": "Paladin",
+        "level": 2
+      },
+      {
+        "class": "Shaman",
+        "level": 1
+      }
+    ],
+    "spellicon": "23"
+  },
+  {
+    "name": "Fleeting Fury",
+    "category": "buff",
+    "duration_formula": "fixed",
+    "base_ticks": 3,
+    "max_ticks": 3,
+    "tier_duration_pct": 10,
+    "land_other": "simmers with fury",
+    "land_you": "You simmer with fury",
+    "wear_off_you": "Your fury fades",
+    "watched_by_default": false,
+    "classes": [
+      {
+        "class": "Beastlord",
+        "level": 11
+      },
+      {
+        "class": "Shaman",
+        "level": 4
+      }
+    ],
+    "spellicon": "16"
   },
   {
     "name": "Flesh Rot I",
@@ -5723,12 +5791,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Necromancer",
-        "level": 7
-      },
-      {
         "class": "Shadow Knight",
         "level": 30
+      },
+      {
+        "class": "Necromancer",
+        "level": 7
       }
     ],
     "spellicon": "18"
@@ -5814,25 +5882,6 @@
       {
         "class": "Enchanter",
         "level": 55
-      }
-    ],
-    "spellicon": "H"
-  },
-  {
-    "name": "Gift of Magic",
-    "category": "buff",
-    "duration_formula": "fixed",
-    "base_ticks": 600,
-    "max_ticks": 600,
-    "tier_duration_pct": 10,
-    "land_other": "appears to be staring into nothingness",
-    "land_you": "Your thoughts begin to race and flow faster",
-    "wear_off_you": "Your gift of magic fades",
-    "watched_by_default": true,
-    "classes": [
-      {
-        "class": "Enchanter",
-        "level": 34
       }
     ],
     "spellicon": "H"
@@ -6179,12 +6228,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Druid",
-        "level": 5
-      },
-      {
         "class": "Ranger",
         "level": 22
+      },
+      {
+        "class": "Druid",
+        "level": 5
       }
     ],
     "spellicon": "39"
@@ -6225,12 +6274,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Necromancer",
-        "level": 20
-      },
-      {
         "class": "Shadow Knight",
         "level": 50
+      },
+      {
+        "class": "Necromancer",
+        "level": 20
       }
     ],
     "spellicon": "46"
@@ -6375,12 +6424,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Necromancer",
-        "level": 10
-      },
-      {
         "class": "Shadow Knight",
         "level": 28
+      },
+      {
+        "class": "Necromancer",
+        "level": 10
       }
     ],
     "spellicon": "51"
@@ -7066,24 +7115,24 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Cleric",
-        "level": 46
-      },
-      {
         "class": "Enchanter",
         "level": 39
       },
       {
-        "class": "Necromancer",
-        "level": 58
+        "class": "Wizard",
+        "level": 39
+      },
+      {
+        "class": "Cleric",
+        "level": 46
       },
       {
         "class": "Shaman",
         "level": 51
       },
       {
-        "class": "Wizard",
-        "level": 39
+        "class": "Necromancer",
+        "level": 58
       }
     ],
     "spellicon": "Q"
@@ -7145,6 +7194,25 @@
     "spellicon": "I"
   },
   {
+    "name": "Impassivity",
+    "category": "buff",
+    "duration_formula": "fixed",
+    "base_ticks": 4,
+    "max_ticks": 4,
+    "tier_duration_pct": 10,
+    "land_other": "falls into a state of impassivity",
+    "land_you": "You fall into a state of impassivity",
+    "wear_off_you": "",
+    "watched_by_default": false,
+    "classes": [
+      {
+        "class": "Shaman",
+        "level": 16
+      }
+    ],
+    "spellicon": "118"
+  },
+  {
     "name": "Improved Invis vs Undead",
     "category": "buff",
     "duration_formula": "fixed",
@@ -7180,12 +7248,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Enchanter",
-        "level": 50
-      },
-      {
         "class": "Wizard",
         "level": 55
+      },
+      {
+        "class": "Enchanter",
+        "level": 50
       }
     ],
     "spellicon": "B"
@@ -7211,12 +7279,12 @@
         "level": 50
       },
       {
-        "class": "Paladin",
-        "level": 63
-      },
-      {
         "class": "Shadow Knight",
         "level": 61
+      },
+      {
+        "class": "Paladin",
+        "level": 63
       }
     ],
     "spellicon": "33"
@@ -7570,6 +7638,45 @@
     "spellicon": "G"
   },
   {
+    "name": "Instill",
+    "category": "debuff",
+    "duration_formula": "fixed",
+    "base_ticks": 6,
+    "max_ticks": 6,
+    "tier_duration_pct": 10,
+    "land_other": "'s feet adhere to the ground",
+    "land_you": "Your feet adhere to the ground",
+    "wear_off_you": "Your feet come free",
+    "watched_by_default": false,
+    "classes": [
+      {
+        "class": "Wizard",
+        "level": 17
+      },
+      {
+        "class": "Enchanter",
+        "level": 25
+      },
+      {
+        "class": "Cleric",
+        "level": 27
+      },
+      {
+        "class": "Shaman",
+        "level": 33
+      },
+      {
+        "class": "Necromancer",
+        "level": 53
+      },
+      {
+        "class": "Paladin",
+        "level": 54
+      }
+    ],
+    "spellicon": "117"
+  },
+  {
     "name": "Intellectual Advancement",
     "category": "buff",
     "duration_formula": "fixed",
@@ -7643,14 +7750,6 @@
         "level": 9
       },
       {
-        "class": "Druid",
-        "level": 14
-      },
-      {
-        "class": "Enchanter",
-        "level": 24
-      },
-      {
         "class": "Paladin",
         "level": 22
       },
@@ -7659,7 +7758,15 @@
         "level": 30
       },
       {
+        "class": "Druid",
+        "level": 14
+      },
+      {
         "class": "Shaman",
+        "level": 24
+      },
+      {
+        "class": "Enchanter",
         "level": 24
       }
     ],
@@ -7678,10 +7785,6 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Beastlord",
-        "level": 43
-      },
-      {
         "class": "Enchanter",
         "level": 4
       },
@@ -7690,12 +7793,16 @@
         "level": 8
       },
       {
+        "class": "Wizard",
+        "level": 16
+      },
+      {
         "class": "Shaman",
         "level": 27
       },
       {
-        "class": "Wizard",
-        "level": 16
+        "class": "Beastlord",
+        "level": 43
       }
     ],
     "spellicon": "18"
@@ -7783,6 +7890,14 @@
     "watched_by_default": false,
     "classes": [
       {
+        "class": "Necromancer",
+        "level": 1
+      },
+      {
+        "class": "Shadow Knight",
+        "level": 4
+      },
+      {
         "class": "Cleric",
         "level": 11
       },
@@ -7791,16 +7906,8 @@
         "level": 14
       },
       {
-        "class": "Necromancer",
-        "level": 1
-      },
-      {
         "class": "Paladin",
         "level": 17
-      },
-      {
-        "class": "Shadow Knight",
-        "level": 4
       }
     ],
     "spellicon": "B"
@@ -8080,12 +8187,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Beastlord",
-        "level": 35
-      },
-      {
         "class": "Enchanter",
         "level": 9
+      },
+      {
+        "class": "Beastlord",
+        "level": 35
       }
     ],
     "spellicon": "A"
@@ -8160,12 +8267,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Necromancer",
-        "level": 22
-      },
-      {
         "class": "Wizard",
         "level": 21
+      },
+      {
+        "class": "Necromancer",
+        "level": 22
       }
     ],
     "spellicon": "K"
@@ -8240,20 +8347,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Beastlord",
-        "level": 32
+        "class": "Ranger",
+        "level": 35
       },
       {
         "class": "Druid",
         "level": 14
-      },
-      {
-        "class": "Enchanter",
-        "level": 15
-      },
-      {
-        "class": "Ranger",
-        "level": 35
       },
       {
         "class": "Shaman",
@@ -8262,6 +8361,14 @@
       {
         "class": "Wizard",
         "level": 22
+      },
+      {
+        "class": "Enchanter",
+        "level": 15
+      },
+      {
+        "class": "Beastlord",
+        "level": 32
       }
     ],
     "spellicon": "80"
@@ -8302,16 +8409,16 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Beastlord",
-        "level": 44
-      },
-      {
         "class": "Enchanter",
         "level": 25
       },
       {
         "class": "Shaman",
         "level": 29
+      },
+      {
+        "class": "Beastlord",
+        "level": 44
       }
     ],
     "spellicon": "50"
@@ -8558,12 +8665,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Magician",
-        "level": 22
-      },
-      {
         "class": "Shaman",
         "level": 18
+      },
+      {
+        "class": "Magician",
+        "level": 22
       }
     ],
     "spellicon": "55"
@@ -8614,12 +8721,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Magician",
-        "level": 44
-      },
-      {
         "class": "Shaman",
         "level": 32
+      },
+      {
+        "class": "Magician",
+        "level": 44
       }
     ],
     "spellicon": "55"
@@ -8656,12 +8763,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Magician",
-        "level": 51
-      },
-      {
         "class": "Shaman",
         "level": 48
+      },
+      {
+        "class": "Magician",
+        "level": 51
       }
     ],
     "spellicon": "55"
@@ -8679,12 +8786,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Magician",
-        "level": 58
-      },
-      {
         "class": "Shaman",
         "level": 57
+      },
+      {
+        "class": "Magician",
+        "level": 58
       }
     ],
     "spellicon": "I"
@@ -9213,6 +9320,25 @@
     "spellicon": "K"
   },
   {
+    "name": "Nonchalance",
+    "category": "buff",
+    "duration_formula": "fixed",
+    "base_ticks": 4,
+    "max_ticks": 4,
+    "tier_duration_pct": 10,
+    "land_other": "falls into a state of nonchalance",
+    "land_you": "You fall into a state of nonchalance",
+    "wear_off_you": "",
+    "watched_by_default": false,
+    "classes": [
+      {
+        "class": "Shaman",
+        "level": 30
+      }
+    ],
+    "spellicon": "118"
+  },
+  {
     "name": "Null Aura",
     "category": "buff",
     "duration_formula": "level_plus_3_x30",
@@ -9423,12 +9549,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Cleric",
-        "level": 36
-      },
-      {
         "class": "Enchanter",
         "level": 35
+      },
+      {
+        "class": "Cleric",
+        "level": 36
       },
       {
         "class": "Paladin",
@@ -9488,20 +9614,20 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Beastlord",
-        "level": 44
+        "class": "Shaman",
+        "level": 34
       },
       {
         "class": "Druid",
         "level": 35
       },
       {
-        "class": "Ranger",
-        "level": 49
+        "class": "Beastlord",
+        "level": 44
       },
       {
-        "class": "Shaman",
-        "level": 34
+        "class": "Ranger",
+        "level": 49
       }
     ],
     "spellicon": "4"
@@ -9580,12 +9706,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Cleric",
-        "level": 26
-      },
-      {
         "class": "Necromancer",
         "level": 25
+      },
+      {
+        "class": "Cleric",
+        "level": 26
       },
       {
         "class": "Shadow Knight",
@@ -9607,10 +9733,6 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Cleric",
-        "level": 56
-      },
-      {
         "class": "Enchanter",
         "level": 45
       },
@@ -9619,12 +9741,16 @@
         "level": 46
       },
       {
-        "class": "Shaman",
+        "class": "Wizard",
+        "level": 48
+      },
+      {
+        "class": "Cleric",
         "level": 56
       },
       {
-        "class": "Wizard",
-        "level": 48
+        "class": "Shaman",
+        "level": 56
       }
     ],
     "spellicon": "Q"
@@ -9703,12 +9829,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Necromancer",
-        "level": 52
-      },
-      {
         "class": "Shaman",
         "level": 49
+      },
+      {
+        "class": "Necromancer",
+        "level": 52
       }
     ],
     "spellicon": "41"
@@ -9905,12 +10031,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Beastlord",
-        "level": 48
-      },
-      {
         "class": "Shaman",
         "level": 20
+      },
+      {
+        "class": "Beastlord",
+        "level": 48
       }
     ],
     "spellicon": "151"
@@ -10287,12 +10413,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Beastlord",
-        "level": 41
-      },
-      {
         "class": "Shaman",
         "level": 28
+      },
+      {
+        "class": "Beastlord",
+        "level": 41
       }
     ],
     "spellicon": "6"
@@ -10580,20 +10706,20 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Cleric",
-        "level": 33
-      },
-      {
         "class": "Druid",
         "level": 20
       },
       {
-        "class": "Ranger",
-        "level": 46
-      },
-      {
         "class": "Shaman",
         "level": 27
+      },
+      {
+        "class": "Cleric",
+        "level": 33
+      },
+      {
+        "class": "Ranger",
+        "level": 46
       }
     ],
     "spellicon": "52"
@@ -10611,7 +10737,15 @@
     "watched_by_default": false,
     "classes": [
       {
+        "class": "Enchanter",
+        "level": 37
+      },
+      {
         "class": "Cleric",
+        "level": 43
+      },
+      {
+        "class": "Shaman",
         "level": 43
       },
       {
@@ -10619,16 +10753,8 @@
         "level": 49
       },
       {
-        "class": "Enchanter",
-        "level": 37
-      },
-      {
         "class": "Paladin",
         "level": 55
-      },
-      {
-        "class": "Shaman",
-        "level": 43
       }
     ],
     "spellicon": "69"
@@ -10650,12 +10776,12 @@
         "level": 30
       },
       {
-        "class": "Druid",
-        "level": 44
-      },
-      {
         "class": "Shaman",
         "level": 35
+      },
+      {
+        "class": "Druid",
+        "level": 44
       }
     ],
     "spellicon": "61"
@@ -10842,28 +10968,28 @@
     "watched_by_default": true,
     "classes": [
       {
-        "class": "Cleric",
-        "level": 7
+        "class": "Wizard",
+        "level": 3
       },
       {
         "class": "Enchanter",
         "level": 6
       },
       {
-        "class": "Necromancer",
-        "level": 34
-      },
-      {
-        "class": "Paladin",
-        "level": 19
+        "class": "Cleric",
+        "level": 7
       },
       {
         "class": "Shaman",
         "level": 12
       },
       {
-        "class": "Wizard",
-        "level": 3
+        "class": "Paladin",
+        "level": 19
+      },
+      {
+        "class": "Necromancer",
+        "level": 34
       }
     ],
     "spellicon": "117"
@@ -11023,12 +11149,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Druid",
-        "level": 26
-      },
-      {
         "class": "Shaman",
         "level": 22
+      },
+      {
+        "class": "Druid",
+        "level": 26
       }
     ],
     "spellicon": "112"
@@ -11046,12 +11172,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Beastlord",
-        "level": 10
-      },
-      {
         "class": "Shaman",
         "level": 3
+      },
+      {
+        "class": "Beastlord",
+        "level": 10
       }
     ],
     "spellicon": "151"
@@ -11192,12 +11318,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Necromancer",
-        "level": 35
-      },
-      {
         "class": "Shaman",
         "level": 31
+      },
+      {
+        "class": "Necromancer",
+        "level": 35
       }
     ],
     "spellicon": "41"
@@ -11333,12 +11459,16 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Druid",
-        "level": 13
+        "class": "Wizard",
+        "level": 4
       },
       {
         "class": "Enchanter",
         "level": 6
+      },
+      {
+        "class": "Druid",
+        "level": 13
       },
       {
         "class": "Magician",
@@ -11347,10 +11477,6 @@
       {
         "class": "Ranger",
         "level": 32
-      },
-      {
-        "class": "Wizard",
-        "level": 4
       }
     ],
     "spellicon": "19"
@@ -11534,16 +11660,16 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Beastlord",
-        "level": 16
+        "class": "Shaman",
+        "level": 6
       },
       {
         "class": "Enchanter",
         "level": 10
       },
       {
-        "class": "Shaman",
-        "level": 6
+        "class": "Beastlord",
+        "level": 16
       }
     ],
     "spellicon": "86"
@@ -11948,7 +12074,11 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Enchanter",
+        "class": "Necromancer",
+        "level": 54
+      },
+      {
+        "class": "Wizard",
         "level": 54
       },
       {
@@ -11956,11 +12086,7 @@
         "level": 54
       },
       {
-        "class": "Necromancer",
-        "level": 54
-      },
-      {
-        "class": "Wizard",
+        "class": "Enchanter",
         "level": 54
       }
     ],
@@ -11990,7 +12116,7 @@
     "spellicon": "155"
   },
   {
-    "name": "Shield of Thorns",
+    "name": "Shield of Thorns (Spell)",
     "category": "buff",
     "duration_formula": "fixed",
     "base_ticks": 150,
@@ -12363,12 +12489,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Druid",
-        "level": 39
-      },
-      {
         "class": "Ranger",
         "level": 54
+      },
+      {
+        "class": "Druid",
+        "level": 39
       }
     ],
     "spellicon": "K"
@@ -12386,12 +12512,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Druid",
-        "level": 49
-      },
-      {
         "class": "Ranger",
         "level": 59
+      },
+      {
+        "class": "Druid",
+        "level": 49
       }
     ],
     "spellicon": "K"
@@ -12409,12 +12535,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Druid",
-        "level": 14
-      },
-      {
         "class": "Ranger",
         "level": 22
+      },
+      {
+        "class": "Druid",
+        "level": 14
       }
     ],
     "spellicon": "K"
@@ -12432,12 +12558,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Druid",
-        "level": 24
-      },
-      {
         "class": "Ranger",
         "level": 39
+      },
+      {
+        "class": "Druid",
+        "level": 24
       }
     ],
     "spellicon": "K"
@@ -12455,12 +12581,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Druid",
-        "level": 1
-      },
-      {
         "class": "Ranger",
         "level": 9
+      },
+      {
+        "class": "Druid",
+        "level": 1
       }
     ],
     "spellicon": "K"
@@ -12511,6 +12637,63 @@
     "watched_by_default": false,
     "classes": [],
     "spellicon": "E"
+  },
+  {
+    "name": "Sloths Healing",
+    "category": "buff",
+    "duration_formula": "fixed",
+    "base_ticks": 4,
+    "max_ticks": 4,
+    "tier_duration_pct": 10,
+    "land_other": "",
+    "land_you": "",
+    "wear_off_you": "",
+    "watched_by_default": false,
+    "classes": [
+      {
+        "class": "Shaman",
+        "level": 50
+      }
+    ],
+    "spellicon": "118"
+  },
+  {
+    "name": "Slugs Healing",
+    "category": "buff",
+    "duration_formula": "fixed",
+    "base_ticks": 4,
+    "max_ticks": 4,
+    "tier_duration_pct": 10,
+    "land_other": "",
+    "land_you": "",
+    "wear_off_you": "",
+    "watched_by_default": false,
+    "classes": [
+      {
+        "class": "Shaman",
+        "level": 42
+      }
+    ],
+    "spellicon": "118"
+  },
+  {
+    "name": "Snails Healing",
+    "category": "buff",
+    "duration_formula": "fixed",
+    "base_ticks": 4,
+    "max_ticks": 4,
+    "tier_duration_pct": 10,
+    "land_other": "",
+    "land_you": "",
+    "wear_off_you": "",
+    "watched_by_default": false,
+    "classes": [
+      {
+        "class": "Shaman",
+        "level": 14
+      }
+    ],
+    "spellicon": "118"
   },
   {
     "name": "Snare",
@@ -12699,7 +12882,7 @@
         "level": 50
       }
     ],
-    "spellicon": "A"
+    "spellicon": "43"
   },
   {
     "name": "Song: Occlusion of Sound",
@@ -12857,12 +13040,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Beastlord",
-        "level": 17
-      },
-      {
         "class": "Shaman",
         "level": 6
+      },
+      {
+        "class": "Beastlord",
+        "level": 17
       }
     ],
     "spellicon": "10"
@@ -12979,12 +13162,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Beastlord",
-        "level": 38
-      },
-      {
         "class": "Shaman",
         "level": 21
+      },
+      {
+        "class": "Beastlord",
+        "level": 38
       }
     ],
     "spellicon": "8"
@@ -13021,12 +13204,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Beastlord",
-        "level": 37
-      },
-      {
         "class": "Shaman",
         "level": 21
+      },
+      {
+        "class": "Beastlord",
+        "level": 37
       }
     ],
     "spellicon": "10"
@@ -13143,20 +13326,20 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Beastlord",
-        "level": 39
+        "class": "Shaman",
+        "level": 29
       },
       {
         "class": "Druid",
         "level": 30
       },
       {
-        "class": "Ranger",
-        "level": 41
+        "class": "Beastlord",
+        "level": 39
       },
       {
-        "class": "Shaman",
-        "level": 29
+        "class": "Ranger",
+        "level": 41
       }
     ],
     "spellicon": "4"
@@ -13193,20 +13376,20 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Beastlord",
-        "level": 24
+        "class": "Ranger",
+        "level": 28
       },
       {
         "class": "Druid",
         "level": 10
       },
       {
-        "class": "Ranger",
-        "level": 28
-      },
-      {
         "class": "Shaman",
         "level": 9
+      },
+      {
+        "class": "Beastlord",
+        "level": 24
       }
     ],
     "spellicon": "4"
@@ -13243,12 +13426,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Beastlord",
-        "level": 29
-      },
-      {
         "class": "Shaman",
         "level": 7
+      },
+      {
+        "class": "Beastlord",
+        "level": 29
       }
     ],
     "spellicon": "19"
@@ -13266,12 +13449,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Beastlord",
-        "level": 28
-      },
-      {
         "class": "Shaman",
         "level": 18
+      },
+      {
+        "class": "Beastlord",
+        "level": 28
       }
     ],
     "spellicon": "6"
@@ -13485,16 +13668,16 @@
     "watched_by_default": false,
     "classes": [
       {
+        "class": "Wizard",
+        "level": 30
+      },
+      {
         "class": "Necromancer",
         "level": 32
       },
       {
         "class": "Shadow Knight",
         "level": 56
-      },
-      {
-        "class": "Wizard",
-        "level": 30
       }
     ],
     "spellicon": "K"
@@ -13524,7 +13707,7 @@
   },
   {
     "name": "Stoicism",
-    "category": "debuff",
+    "category": "buff",
     "duration_formula": "fixed",
     "base_ticks": 4,
     "max_ticks": 4,
@@ -13568,12 +13751,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Druid",
-        "level": 44
-      },
-      {
         "class": "Ranger",
         "level": 53
+      },
+      {
+        "class": "Druid",
+        "level": 44
       }
     ],
     "spellicon": "R"
@@ -14101,12 +14284,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Beastlord",
-        "level": 19
-      },
-      {
         "class": "Shaman",
         "level": 8
+      },
+      {
+        "class": "Beastlord",
+        "level": 19
       }
     ],
     "spellicon": "42"
@@ -14786,11 +14969,11 @@
         "level": 57
       },
       {
-        "class": "Enchanter",
+        "class": "Necromancer",
         "level": 56
       },
       {
-        "class": "Necromancer",
+        "class": "Enchanter",
         "level": 56
       }
     ],
@@ -14899,12 +15082,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Beastlord",
-        "level": 26
-      },
-      {
         "class": "Shaman",
         "level": 11
+      },
+      {
+        "class": "Beastlord",
+        "level": 26
       }
     ],
     "spellicon": "151"
@@ -14998,12 +15181,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Enchanter",
-        "level": 27
-      },
-      {
         "class": "Shaman",
         "level": 26
+      },
+      {
+        "class": "Enchanter",
+        "level": 27
       }
     ],
     "spellicon": "87"
@@ -15115,12 +15298,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Necromancer",
-        "level": 29
-      },
-      {
         "class": "Shadow Knight",
         "level": 57
+      },
+      {
+        "class": "Necromancer",
+        "level": 29
       }
     ],
     "spellicon": "G"
@@ -15190,12 +15373,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Necromancer",
-        "level": 34
-      },
-      {
         "class": "Shaman",
         "level": 37
+      },
+      {
+        "class": "Necromancer",
+        "level": 34
       }
     ],
     "spellicon": "42"
@@ -15516,12 +15699,12 @@
     "watched_by_default": false,
     "classes": [
       {
-        "class": "Beastlord",
-        "level": 49
-      },
-      {
         "class": "Magician",
         "level": 46
+      },
+      {
+        "class": "Beastlord",
+        "level": 49
       },
       {
         "class": "Necromancer",

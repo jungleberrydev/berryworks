@@ -58,6 +58,8 @@ jobs:
         uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: ${{ steps.meta.outputs.tag }}
           releaseName: Berryworks ${{ steps.meta.outputs.tag }}
@@ -68,8 +70,11 @@ jobs:
             3. Open **Berryworks**, pick your character log, Save Settings.
             4. In game: `/log on`.
 
+            Installed copies can use **General → Check for updates**.
+
             See the README for details.
           releaseDraft: false
           prerelease: false
           args: --bundles nsis
-          uploadUpdaterJson: false
+          uploadUpdaterJson: true
+          updaterJsonPreferNsis: true

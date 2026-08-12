@@ -18,11 +18,11 @@
     "Berserker": 41
   },
   "uniqueTitles": 3952,
-  "timedSpells": 842,
-  "watchedDefaults": 25,
+  "timedSpells": 852,
+  "watchedDefaults": 30,
   "byCategory": {
-    "buff": 479,
-    "debuff": 359,
+    "buff": 486,
+    "debuff": 362,
     "dot": 4
   }
 }

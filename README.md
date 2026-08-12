@@ -89,7 +89,21 @@ git tag v0.1.0
 git push origin v0.1.0
 ```
 
-3. The [Release workflow](.github/workflows/release.yml) builds on `windows-latest` and uploads the NSIS installer to a GitHub Release for that tag. You can also run the workflow manually via **Actions → Release → Run workflow**.
+3. The [Release workflow](.github/workflows/release.yml) builds on `windows-latest`, signs updater artifacts, and uploads the NSIS installer plus `latest.json` to a GitHub Release for that tag. You can also run the workflow manually via **Actions → Release → Run workflow**.
+
+### In-app updates
+
+Installed builds can check **General → Check for updates** (also checks quietly a few seconds after launch). Updates are verified with a Tauri signing keypair.
+
+One-time setup (maintainers):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/setup-updater-keys.ps1 -SetGithubSecrets
+```
+
+That writes the **public** key into `src-tauri/tauri.conf.json` and stores the **private** key in GitHub Actions secrets `TAURI_SIGNING_PRIVATE_KEY` / `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. Back up the private key; losing it means existing installs cannot verify future updates.
+
+Local release builds that produce `.sig` files also need those env vars set in your shell before `npm run release:installer`.
 
 Validation fixture: `fixtures/sample_mez.log` covers mez land → awaken break, Clarity self-buff, Root land, interrupt/fizzle discarded, Entrance land.
 

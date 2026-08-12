@@ -1,6 +1,6 @@
 [package]
 name = "berry-timers"
-version = "0.2.0"
+version = "0.2.1"
 description = "Berryworks — EverQuest Legends toolkit"
 authors = ["you"]
 edition = "2021"
@@ -25,3 +25,5 @@ notify = "8"
 chrono = { version = "0.4", features = ["serde"] }
 reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls"] }
 uuid = { version = "1", features = ["v4", "serde"] }
+tauri-plugin-updater = "2.10.1"
+tauri-plugin-process = "2.3.1"

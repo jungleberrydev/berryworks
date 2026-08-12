@@ -174,10 +174,17 @@ function durationToTicks(duration) {
   let seconds = 0;
   const minMatch = d.match(/(\d+)\s*min(?:ute)?s?/);
   if (minMatch) seconds += Number(minMatch[1]) * 60;
-  const secMatch = d.match(/(\d+)\s*sec(?:ond)?s?/);
-  if (secMatch) seconds += Number(secMatch[1]);
-  // "16 Min" / "27 minutes 6 seconds"
-  if (!tickMatch && !minMatch && !secMatch) {
+  // Prefer "24 sec" / "24 seconds" before bare "24s" so "secs" isn't misread.
+  const secMatch = d.match(/(\d+)\s*sec(?:ond)?s?\b/);
+  if (secMatch) {
+    seconds += Number(secMatch[1]);
+  } else {
+    // Wiki often uses "24s" / "60s" (no "sec" word).
+    const bareSec = d.match(/(\d+)\s*s\b/);
+    if (bareSec) seconds += Number(bareSec[1]);
+  }
+  // "16 Min" / bare "27m" — only when nothing else parsed as time
+  if (!tickMatch && seconds === 0) {
     const bareMin = d.match(/^(\d+)\s*m(?:in)?$/);
     if (bareMin) seconds = Number(bareMin[1]) * 60;
   }
@@ -192,7 +199,16 @@ function landOtherPattern(msg) {
   let s = msg.trim().replace(/\.$/, "");
   // "Someone has been mesmerized" → "has been mesmerized"
   s = s.replace(/^Someone\s+/i, "");
+  // Wiki stubs like "Someone ." collapse to empty / "."
+  if (!s || s === ".") return "";
   // "so-and-so ..." variants aren't used; keep remainder
+  return s;
+}
+
+function cleanLandYou(msg) {
+  if (!msg) return "";
+  const s = msg.trim().replace(/\.$/, "");
+  if (!s || /^you\s*$/i.test(s)) return "";
   return s;
 }
 
@@ -200,12 +216,15 @@ function categorize(spellType, durationField, name) {
   const t = (spellType || "").toLowerCase();
   const n = name.toLowerCase();
   if (t.includes("damage over time") || /\bdot\b/.test(t)) return "dot";
+  if (t.includes("heal over time") || /\bhot\b/.test(t) || t === "heal") return "buff";
   if (t.includes("beneficial") || t.includes("buff") || t.includes("statistic")) return "buff";
   if (t.includes("detrimental") || t.includes("debuff")) return "debuff";
   // Heuristics
   if (/mesmerize|enthrall|entrance|dazzle|root|snare|fear|lull|soothe|pacify|tash|weaken|slow|drowsy/.test(n))
     return "debuff";
-  if (/shield|clarity|strengthen|haste|skin|coat|aura|blessing|regeneration|chloroplast/.test(n))
+  if (
+    /shield|clarity|strengthen|haste|skin|coat|aura|blessing|regeneration|chloroplast|healing/.test(n)
+  )
     return "buff";
   return t.includes("utility") ? "buff" : "debuff";
 }
@@ -222,9 +241,9 @@ function parseSpell(title, wikitext) {
   if (ticks == null) return null; // skip instant/permanent/unknown
 
   const spellType = parseTemplateField(wikitext, "spell_type");
-  const landYou = parseTemplateField(wikitext, "msg_cast_on_you").replace(/\.$/, "");
+  const landYou = cleanLandYou(parseTemplateField(wikitext, "msg_cast_on_you"));
   const landOtherRaw = parseTemplateField(wikitext, "msg_cast_on_other");
-  const wearOff = parseTemplateField(wikitext, "msg_wears_off").replace(/\.$/, "");
+  const wearOff = cleanLandYou(parseTemplateField(wikitext, "msg_wears_off"));
   const name = parseTemplateField(wikitext, "spellname") || title;
   const category = categorize(spellType, durationRaw, name);
   const spellicon = parseTemplateField(wikitext, "spellicon");

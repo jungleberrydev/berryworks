@@ -16,6 +16,7 @@
         "level": 53
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "24 minutes",
     "spell_type": "Beneficial"
   },
@@ -31,6 +32,7 @@
     "wear_off_you": "Your abducted strength fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "I",
     "wiki_duration": "6 minutes",
     "spell_type": "Beneficial"
   },
@@ -46,6 +48,7 @@
     "wear_off_you": "Your strength returns",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "I",
     "wiki_duration": "6 minutes",
     "spell_type": "Detrimental"
   },
@@ -61,6 +64,7 @@
     "wear_off_you": "The potion has worn off",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "R",
     "wiki_duration": "30 minutes",
     "spell_type": "Beneficial"
   },
@@ -76,6 +80,7 @@
     "wear_off_you": "}}",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "G",
     "wiki_duration": "3 minutes @L1 to 5 minutes @L2",
     "spell_type": "Detrimental"
   },
@@ -96,6 +101,7 @@
         "level": 56
       }
     ],
+    "spellicon": "B",
     "wiki_duration": "1 hour 3 minutes",
     "spell_type": "Beneficial"
   },
@@ -116,6 +122,7 @@
         "level": 46
       }
     ],
+    "spellicon": "15",
     "wiki_duration": "1 hour 12 minutes",
     "spell_type": "Beneficial"
   },
@@ -131,6 +138,7 @@
     "wear_off_you": "The potion has worn off",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "R",
     "wiki_duration": "30 minutes",
     "spell_type": "Beneficial"
   },
@@ -151,6 +159,7 @@
         "level": 57
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "2 hours 24 minutes",
     "spell_type": "Beneficial"
   },
@@ -166,6 +175,7 @@
     "wear_off_you": "The protection of Di`Zok fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "J",
     "wiki_duration": "3 minutes @L1 to 25 minutes @L9",
     "spell_type": "Beneficial"
   },
@@ -186,6 +196,7 @@
         "level": 60
       }
     ],
+    "spellicon": "O",
     "wiki_duration": "7 minutes @L60",
     "spell_type": "Beneficial"
   },
@@ -206,6 +217,7 @@
         "level": 60
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "2 hours 30 minutes",
     "spell_type": "Beneficial"
   },
@@ -226,6 +238,7 @@
         "level": 19
       }
     ],
+    "spellicon": "41",
     "wiki_duration": "1 Min 24 Sec",
     "spell_type": "Detrimental"
   },
@@ -246,6 +259,7 @@
         "level": 41
       }
     ],
+    "spellicon": "9",
     "wiki_duration": "63 minutes",
     "spell_type": "Statistic Buff"
   },
@@ -266,14 +280,15 @@
         "level": 31
       }
     ],
+    "spellicon": "M",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
   {
     "name": "Alacrity",
     "category": "buff",
-    "duration_formula": "level_x2_plus_10",
-    "base_ticks": 58,
+    "duration_formula": "fixed",
+    "base_ticks": 110,
     "max_ticks": 110,
     "tier_duration_pct": 10,
     "land_other": "feels much faster",
@@ -290,6 +305,7 @@
         "level": 42
       }
     ],
+    "spellicon": "16",
     "wiki_duration": "11 Min",
     "spell_type": "Beneficial"
   },
@@ -310,6 +326,7 @@
         "level": 46
       }
     ],
+    "spellicon": "26",
     "wiki_duration": "16 Min",
     "spell_type": "Detrimental"
   },
@@ -330,6 +347,7 @@
         "level": 43
       }
     ],
+    "spellicon": "72",
     "wiki_duration": "16 Min",
     "spell_type": "Detrimental"
   },
@@ -350,6 +368,7 @@
         "level": 28
       }
     ],
+    "spellicon": "15",
     "wiki_duration": "45 minutes",
     "spell_type": "Statistic Buff"
   },
@@ -365,6 +384,7 @@
     "wear_off_you": "You are no longer charmed",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "U",
     "wiki_duration": "1.3 minutes @L1 to 19 minutes @L60",
     "spell_type": "Detrimental"
   },
@@ -380,6 +400,7 @@
     "wear_off_you": "The aloe sweat fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "K",
     "wiki_duration": "1 ticks @L1 to 2 minutes @L40",
     "spell_type": "Beneficial"
   },
@@ -395,6 +416,7 @@
     "wear_off_you": "}}",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "3 minutes @L1 to 3 hours 15 minutes @L65",
     "spell_type": "Detrimental"
   },
@@ -415,6 +437,7 @@
         "level": 26
       }
     ],
+    "spellicon": "G",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -435,6 +458,7 @@
         "level": 60
       }
     ],
+    "spellicon": "C",
     "wiki_duration": "1 minute",
     "spell_type": "Detrimental"
   },
@@ -455,6 +479,7 @@
         "level": 10
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -475,6 +500,7 @@
         "level": 60
       }
     ],
+    "spellicon": "G",
     "wiki_duration": "19 minutes",
     "spell_type": "Beneficial"
   },
@@ -495,6 +521,7 @@
         "level": 39
       }
     ],
+    "spellicon": "D",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -519,6 +546,7 @@
         "level": 48
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "1 hour 3 minutes",
     "spell_type": "Beneficial"
   },
@@ -539,6 +567,7 @@
         "level": 59
       }
     ],
+    "spellicon": "M",
     "wiki_duration": "2 minutes",
     "spell_type": "Detrimental"
   },
@@ -559,6 +588,7 @@
         "level": 36
       }
     ],
+    "spellicon": "88",
     "wiki_duration": "150 Min",
     "spell_type": "Beneficial"
   },
@@ -583,6 +613,7 @@
         "level": 60
       }
     ],
+    "spellicon": "E",
     "wiki_duration": "42 Sec",
     "spell_type": "Detrimental"
   },
@@ -603,6 +634,7 @@
         "level": 51
       }
     ],
+    "spellicon": "A",
     "wiki_duration": "2.5 minutes",
     "spell_type": "Detrimental"
   },
@@ -623,6 +655,7 @@
         "level": 56
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "36 minutes",
     "spell_type": "Beneficial"
   },
@@ -643,6 +676,7 @@
         "level": 35
       }
     ],
+    "spellicon": "74",
     "wiki_duration": "60 Min",
     "spell_type": "Beneficial"
   },
@@ -663,6 +697,7 @@
         "level": 28
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "27 minutes",
     "spell_type": "Beneficial"
   },
@@ -683,6 +718,7 @@
         "level": 55
       }
     ],
+    "spellicon": "G",
     "wiki_duration": "17.5 minutes",
     "spell_type": "Beneficial"
   },
@@ -698,6 +734,7 @@
     "wear_off_you": "The potion has worn off",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "E",
     "wiki_duration": "30 minutes",
     "spell_type": "Beneficial"
   },
@@ -713,6 +750,7 @@
     "wear_off_you": "",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "R",
     "wiki_duration": "3 minutes @L1 to 1 hour 0 minutes @L20",
     "spell_type": "Beneficial"
   },
@@ -728,6 +766,7 @@
     "wear_off_you": "The black petals drift away",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "E",
     "wiki_duration": "3 minutes @L1 to 36 minutes @L12",
     "spell_type": "Beneficial"
   },
@@ -743,6 +782,7 @@
     "wear_off_you": "The blue petals drift away",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "K",
     "wiki_duration": "3 minutes @L1 to 36 minutes @L12",
     "spell_type": "Beneficial"
   },
@@ -758,6 +798,7 @@
     "wear_off_you": "The potion has worn off",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "S",
     "wiki_duration": "30 minutes",
     "spell_type": "Beneficial"
   },
@@ -773,6 +814,7 @@
     "wear_off_you": "The green petals drift away",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "K",
     "wiki_duration": "3 minutes @L1 to 36 minutes @L12",
     "spell_type": "Beneficial"
   },
@@ -788,6 +830,7 @@
     "wear_off_you": "The potion has worn off",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "K",
     "wiki_duration": "30 minutes",
     "spell_type": "Beneficial"
   },
@@ -803,6 +846,7 @@
     "wear_off_you": "The Aura of Marr fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "R",
     "wiki_duration": "5 minutes",
     "spell_type": "Beneficial"
   },
@@ -818,6 +862,7 @@
     "wear_off_you": "The potion has worn off",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "K",
     "wiki_duration": "30 minutes",
     "spell_type": "Beneficial"
   },
@@ -833,6 +878,7 @@
     "wear_off_you": "The red petals drift away",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "O",
     "wiki_duration": "3 minutes @L1 to 36 minutes @L12",
     "spell_type": "Beneficial"
   },
@@ -848,6 +894,7 @@
     "wear_off_you": "The white petals drift away",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "K",
     "wiki_duration": "3 minutes @L1 to 36 minutes @L12",
     "spell_type": "Beneficial"
   },
@@ -868,6 +915,7 @@
         "level": 45
       }
     ],
+    "spellicon": "140",
     "wiki_duration": "54 Sec",
     "spell_type": "Detrimental"
   },
@@ -888,6 +936,7 @@
         "level": 60
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "6 minutes",
     "spell_type": "Beneficial"
   },
@@ -908,6 +957,7 @@
         "level": 56
       }
     ],
+    "spellicon": "N",
     "wiki_duration": "7 ticks",
     "spell_type": "Detrimental"
   },
@@ -928,6 +978,7 @@
         "level": 38
       }
     ],
+    "spellicon": "157",
     "wiki_duration": "15 Min",
     "spell_type": "Beneficial"
   },
@@ -943,6 +994,7 @@
     "wear_off_you": "The maelstrom dissipates",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "K",
     "wiki_duration": "3 minutes @L1 to 1 hour 40 minutes @L34",
     "spell_type": "Beneficial"
   },
@@ -958,6 +1010,7 @@
     "wear_off_you": "Your magic batteries dim",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "B",
     "wiki_duration": "27 minutes",
     "spell_type": "Beneficial"
   },
@@ -978,6 +1031,7 @@
         "level": 58
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "6.8 minutes @L58 to 7.0 minutes @L60",
     "spell_type": "Beneficial"
   },
@@ -1002,6 +1056,7 @@
         "level": 25
       }
     ],
+    "spellicon": "72",
     "wiki_duration": "16 Min",
     "spell_type": "Detrimental"
   },
@@ -1022,6 +1077,7 @@
         "level": 23
       }
     ],
+    "spellicon": "26",
     "wiki_duration": "16 Min",
     "spell_type": "Detrimental"
   },
@@ -1042,6 +1098,7 @@
         "level": 33
       }
     ],
+    "spellicon": "72",
     "wiki_duration": "16 Min",
     "spell_type": "Detrimental"
   },
@@ -1062,6 +1119,7 @@
         "level": 28
       }
     ],
+    "spellicon": "72",
     "wiki_duration": "16 Min",
     "spell_type": "Detrimental"
   },
@@ -1082,6 +1140,7 @@
         "level": 31
       }
     ],
+    "spellicon": "D",
     "wiki_duration": "16 Min",
     "spell_type": "Detrimental"
   },
@@ -1097,6 +1156,7 @@
     "wear_off_you": "You feel dizzy",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "M",
     "wiki_duration": "1 ticks @L1 to 3 ticks @L6",
     "spell_type": "Detrimental"
   },
@@ -1112,6 +1172,7 @@
     "wear_off_you": "You become sane",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "R",
     "wiki_duration": "1 ticks @L1 to 5 ticks @L5",
     "spell_type": "Detrimental"
   },
@@ -1127,6 +1188,7 @@
     "wear_off_you": "You become sane",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "R",
     "wiki_duration": "1 ticks @L1 to 5 ticks @L5",
     "spell_type": "Detrimental"
   },
@@ -1142,6 +1204,7 @@
     "wear_off_you": "You become sane",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "R",
     "wiki_duration": "1 ticks @L1 to 5 ticks @L5",
     "spell_type": "Detrimental"
   },
@@ -1157,6 +1220,7 @@
     "wear_off_you": "You become sane",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "R",
     "wiki_duration": "1 ticks @L1 to 5 ticks @L5",
     "spell_type": "Detrimental"
   },
@@ -1177,6 +1241,7 @@
         "level": 47
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "5 Min",
     "spell_type": "Beneficial"
   },
@@ -1197,6 +1262,7 @@
         "level": 19
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "3 Min",
     "spell_type": "Beneficial"
   },
@@ -1225,6 +1291,7 @@
         "level": 17
       }
     ],
+    "spellicon": "44",
     "wiki_duration": "11 Min",
     "spell_type": "Beneficial"
   },
@@ -1245,6 +1312,7 @@
         "level": 56
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "2 hours 48 minutes @L56 to 3 hours 15 minutes @L65",
     "spell_type": "Beneficial"
   },
@@ -1260,6 +1328,7 @@
     "wear_off_you": "The aura fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "P",
     "wiki_duration": "1.1 minutes @L1 to 2 minutes @L10",
     "spell_type": "Detrimental"
   },
@@ -1280,6 +1349,7 @@
         "level": 15
       }
     ],
+    "spellicon": "138",
     "wiki_duration": "40 Min",
     "spell_type": "Beneficial"
   },
@@ -1300,6 +1370,7 @@
         "level": 45
       }
     ],
+    "spellicon": "132",
     "wiki_duration": "100 Min",
     "spell_type": "Beneficial"
   },
@@ -1315,6 +1386,7 @@
     "wear_off_you": "Your speed returns to normal",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -1335,6 +1407,7 @@
         "level": 34
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "50 Min",
     "spell_type": "Beneficial"
   },
@@ -1355,6 +1428,7 @@
         "level": 16
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "40 Min",
     "spell_type": "Beneficial"
   },
@@ -1370,6 +1444,7 @@
     "wear_off_you": "You are no longer afraid",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "B",
     "wiki_duration": "1 ticks @L1 to 4 ticks @L4",
     "spell_type": "Detrimental"
   },
@@ -1394,6 +1469,7 @@
         "level": 39
       }
     ],
+    "spellicon": "B",
     "wiki_duration": "4 ticks",
     "spell_type": "Detrimental"
   },
@@ -1409,6 +1485,7 @@
     "wear_off_you": "Your sight returns",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "B",
     "wiki_duration": "1 ticks @L1 to 7 ticks @L14",
     "spell_type": "Detrimental"
   },
@@ -1424,6 +1501,7 @@
     "wear_off_you": "Your sight returns",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "B",
     "wiki_duration": "1 ticks @L1 to 1.2 minutes @L24",
     "spell_type": "Detrimental"
   },
@@ -1439,6 +1517,7 @@
     "wear_off_you": "Your sight returns",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "B",
     "wiki_duration": "1 ticks @L1 to 1.7 minutes @L34",
     "spell_type": "Detrimental"
   },
@@ -1454,6 +1533,7 @@
     "wear_off_you": "}}",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "V",
     "wiki_duration": "1 minute",
     "spell_type": "Beneficial"
   },
@@ -1469,6 +1549,7 @@
     "wear_off_you": "The poison wears off",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "G",
     "wiki_duration": "2 ticks",
     "spell_type": "Detrimental"
   },
@@ -1484,6 +1565,7 @@
     "wear_off_you": "The poison subsides",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "1",
     "wiki_duration": "36 Sec",
     "spell_type": "Detrimental"
   },
@@ -1504,6 +1586,7 @@
         "level": 41
       }
     ],
+    "spellicon": "63",
     "wiki_duration": "36 Sec",
     "spell_type": "Detrimental"
   },
@@ -1519,6 +1602,7 @@
     "wear_off_you": "The poison subsides",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "1",
     "wiki_duration": "36 Sec",
     "spell_type": "Detrimental"
   },
@@ -1539,6 +1623,7 @@
         "level": 30
       }
     ],
+    "spellicon": "635",
     "wiki_duration": "24 seconds",
     "spell_type": "Beneficial"
   },
@@ -1559,6 +1644,7 @@
         "level": 40
       }
     ],
+    "spellicon": "636",
     "wiki_duration": "24 seconds",
     "spell_type": "Beneficial"
   },
@@ -1579,6 +1665,7 @@
         "level": 55
       }
     ],
+    "spellicon": "G",
     "wiki_duration": "1 hour 3 minutes",
     "spell_type": "Beneficial"
   },
@@ -1603,6 +1690,7 @@
         "level": 53
       }
     ],
+    "spellicon": "O",
     "wiki_duration": "42 Sec",
     "spell_type": "Detrimental"
   },
@@ -1618,6 +1706,7 @@
     "wear_off_you": "Your blood cools",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "O",
     "wiki_duration": "1 ticks @L1 to 1.8 minutes @L36",
     "spell_type": "Detrimental"
   },
@@ -1638,6 +1727,7 @@
         "level": 53
       }
     ],
+    "spellicon": "D",
     "wiki_duration": "6.3 minutes @L53 to 7.0 minutes @L60",
     "spell_type": "Detrimental"
   },
@@ -1658,6 +1748,7 @@
         "level": 49
       }
     ],
+    "spellicon": "G",
     "wiki_duration": "9 ticks",
     "spell_type": "Detrimental"
   },
@@ -1678,6 +1769,7 @@
         "level": 27
       }
     ],
+    "spellicon": "A",
     "wiki_duration": "2 Min",
     "spell_type": "Detrimental"
   },
@@ -1698,6 +1790,7 @@
         "level": 57
       }
     ],
+    "spellicon": "P",
     "wiki_duration": "1.8 minutes",
     "spell_type": "Detrimental"
   },
@@ -1713,6 +1806,7 @@
     "wear_off_you": "}}",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -1733,6 +1827,7 @@
         "level": 53
       }
     ],
+    "spellicon": "O",
     "wiki_duration": "6.3 minutes @L53 to 7.5 minutes @L65",
     "spell_type": "Beneficial"
   },
@@ -1753,6 +1848,7 @@
         "level": 42
       }
     ],
+    "spellicon": "H",
     "wiki_duration": "27 minutes",
     "spell_type": "Beneficial"
   },
@@ -1773,6 +1869,7 @@
         "level": 40
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "4.4 minutes @L44 to 6.0 minutes @L60",
     "spell_type": "Beneficial"
   },
@@ -1805,6 +1902,7 @@
         "level": 44
       }
     ],
+    "spellicon": "82",
     "wiki_duration": "12 seconds",
     "spell_type": "Beneficial"
   },
@@ -1825,6 +1923,7 @@
         "level": 22
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "45 minutes",
     "spell_type": "Beneficial"
   },
@@ -1845,6 +1944,7 @@
         "level": 52
       }
     ],
+    "spellicon": "O",
     "wiki_duration": "1 minute",
     "spell_type": "Detrimental"
   },
@@ -1860,6 +1960,7 @@
     "wear_off_you": "The mist melts away",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "H",
     "wiki_duration": "1 minute",
     "spell_type": "Detrimental"
   },
@@ -1880,6 +1981,7 @@
         "level": 14
       }
     ],
+    "spellicon": "H",
     "wiki_duration": "27 minutes 6 seconds",
     "spell_type": "Beneficial"
   },
@@ -1900,6 +2002,7 @@
         "level": 49
       }
     ],
+    "spellicon": "90",
     "wiki_duration": "150 Min",
     "spell_type": "Beneficial"
   },
@@ -1920,6 +2023,7 @@
         "level": 41
       }
     ],
+    "spellicon": "H",
     "wiki_duration": "40 minutes",
     "spell_type": "Beneficial"
   },
@@ -1935,6 +2039,7 @@
     "wear_off_you": "You return to normal",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "R",
     "wiki_duration": "1 ticks @L1 to 1 minute @L10",
     "spell_type": "Detrimental"
   },
@@ -1950,6 +2055,7 @@
     "wear_off_you": "You return to normal",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "R",
     "wiki_duration": "1 ticks @L1 to 1.2 minutes @L12",
     "spell_type": "Detrimental"
   },
@@ -1965,6 +2071,7 @@
     "wear_off_you": "You return to normal",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "R",
     "wiki_duration": "1 ticks @L1 to 1.4 minutes @L14",
     "spell_type": "Detrimental"
   },
@@ -1980,6 +2087,7 @@
     "wear_off_you": "You return to normal",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "R",
     "wiki_duration": "1 ticks @L1 to 1.6 minutes @L16",
     "spell_type": "Detrimental"
   },
@@ -2000,6 +2108,7 @@
         "level": 4
       }
     ],
+    "spellicon": "632",
     "wiki_duration": "24 seconds",
     "spell_type": "Beneficial"
   },
@@ -2020,6 +2129,7 @@
         "level": 57
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "1 hour 21 minutes",
     "spell_type": "Beneficial"
   },
@@ -2040,6 +2150,7 @@
         "level": 36
       }
     ],
+    "spellicon": "51",
     "wiki_duration": "6 Sec",
     "spell_type": "Detrimental"
   },
@@ -2060,6 +2171,7 @@
         "level": 11
       }
     ],
+    "spellicon": "53",
     "wiki_duration": "60 minutes",
     "spell_type": "Haste"
   },
@@ -2080,6 +2192,7 @@
         "level": 29
       }
     ],
+    "spellicon": "53",
     "wiki_duration": "60 minutes",
     "spell_type": "Haste"
   },
@@ -2100,6 +2213,7 @@
         "level": 47
       }
     ],
+    "spellicon": "53",
     "wiki_duration": "60 minutes",
     "spell_type": "Haste"
   },
@@ -2120,6 +2234,7 @@
         "level": 55
       }
     ],
+    "spellicon": "O",
     "wiki_duration": "15 minutes",
     "spell_type": "Beneficial"
   },
@@ -2135,6 +2250,7 @@
     "wear_off_you": "The scarab dies",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "1 ticks @L1 to 3.2 minutes @L65",
     "spell_type": "Detrimental"
   },
@@ -2155,6 +2271,7 @@
         "level": 11
       }
     ],
+    "spellicon": "16",
     "wiki_duration": "3 ticks",
     "spell_type": "Statistic Buff"
   },
@@ -2170,6 +2287,7 @@
     "wear_off_you": "}}",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -2190,6 +2308,7 @@
         "level": 56
       }
     ],
+    "spellicon": "O",
     "wiki_duration": "6.6 minutes @L56 to 7.0 minutes @L60",
     "spell_type": "Beneficial"
   },
@@ -2210,6 +2329,7 @@
         "level": 47
       }
     ],
+    "spellicon": "D",
     "wiki_duration": "16 Min",
     "spell_type": "Detrimental"
   },
@@ -2230,6 +2350,7 @@
         "level": 37
       }
     ],
+    "spellicon": "26",
     "wiki_duration": "16 Min",
     "spell_type": "Detrimental"
   },
@@ -2245,6 +2366,7 @@
     "wear_off_you": "You regain feeling",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "6 minutes",
     "spell_type": "Beneficial"
   },
@@ -2265,6 +2387,7 @@
         "level": 55
       }
     ],
+    "spellicon": "D",
     "wiki_duration": "10 minutes",
     "spell_type": "Beneficial"
   },
@@ -2285,6 +2408,7 @@
         "level": 52
       }
     ],
+    "spellicon": "D",
     "wiki_duration": "16.6 minutes @L52 to 19 minutes @L60",
     "spell_type": "Detrimental"
   },
@@ -2305,6 +2429,7 @@
         "level": 60
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "1 hour 15 minutes 24 seconds",
     "spell_type": "Beneficial"
   },
@@ -2333,6 +2458,7 @@
         "level": 43
       }
     ],
+    "spellicon": "D",
     "wiki_duration": "42 Sec",
     "spell_type": "Beneficial"
   },
@@ -2357,6 +2483,7 @@
         "level": 31
       }
     ],
+    "spellicon": "39",
     "wiki_duration": "42 Sec",
     "spell_type": "Beneficial"
   },
@@ -2377,6 +2504,7 @@
         "level": 36
       }
     ],
+    "spellicon": "D",
     "wiki_duration": "36 seconds",
     "spell_type": "Beneficial"
   },
@@ -2401,6 +2529,7 @@
         "level": 14
       }
     ],
+    "spellicon": "18",
     "wiki_duration": "20 Min",
     "spell_type": "Beneficial"
   },
@@ -2416,6 +2545,7 @@
     "wear_off_you": "Your can is empty",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "R",
     "wiki_duration": "1 minute",
     "spell_type": "Beneficial"
   },
@@ -2440,6 +2570,7 @@
         "level": 18
       }
     ],
+    "spellicon": "877",
     "wiki_duration": "1 Min",
     "spell_type": "Detrimental"
   },
@@ -2460,6 +2591,7 @@
         "level": 55
       }
     ],
+    "spellicon": "H",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -2480,6 +2612,7 @@
         "level": 34
       }
     ],
+    "spellicon": "99",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -2495,6 +2628,7 @@
     "wear_off_you": "The quickening spirit departs",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "R",
     "wiki_duration": "1.2 minutes @L1 to 10 minutes @L45",
     "spell_type": "Beneficial"
   },
@@ -2519,6 +2653,7 @@
         "level": 59
       }
     ],
+    "spellicon": "160",
     "wiki_duration": "1.6 minutes",
     "spell_type": "Detrimental"
   },
@@ -2539,6 +2674,7 @@
         "level": 44
       }
     ],
+    "spellicon": "H",
     "wiki_duration": "2 ticks",
     "spell_type": "Beneficial"
   },
@@ -2559,6 +2695,7 @@
         "level": 57
       }
     ],
+    "spellicon": "D",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -2579,14 +2716,15 @@
         "level": 32
       }
     ],
+    "spellicon": "B",
     "wiki_duration": "150 Min",
     "spell_type": "Beneficial"
   },
   {
     "name": "Celerity",
     "category": "buff",
-    "duration_formula": "level_x3_plus_10",
-    "base_ticks": 127,
+    "duration_formula": "fixed",
+    "base_ticks": 160,
     "max_ticks": 160,
     "tier_duration_pct": 10,
     "land_other": "feels much faster",
@@ -2603,6 +2741,7 @@
         "level": 39
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "16 Min",
     "spell_type": "Beneficial"
   },
@@ -2623,6 +2762,7 @@
         "level": 59
       }
     ],
+    "spellicon": "J",
     "wiki_duration": "4 ticks",
     "spell_type": "Beneficial"
   },
@@ -2643,6 +2783,7 @@
         "level": 59
       }
     ],
+    "spellicon": "J",
     "wiki_duration": "4 ticks",
     "spell_type": "Beneficial"
   },
@@ -2663,6 +2804,7 @@
         "level": 44
       }
     ],
+    "spellicon": "J",
     "wiki_duration": "4-5 ticks",
     "spell_type": "Beneficial"
   },
@@ -2683,6 +2825,7 @@
         "level": 29
       }
     ],
+    "spellicon": "118",
     "wiki_duration": "24 Sec",
     "spell_type": "Beneficial"
   },
@@ -2703,6 +2846,7 @@
         "level": 19
       }
     ],
+    "spellicon": "118",
     "wiki_duration": "24 Sec",
     "spell_type": "Beneficial"
   },
@@ -2718,6 +2862,7 @@
     "wear_off_you": "}}",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "R",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -2742,6 +2887,7 @@
         "level": 20
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "27 minutes",
     "spell_type": "Beneficial"
   },
@@ -2762,6 +2908,7 @@
         "level": 37
       }
     ],
+    "spellicon": "877",
     "wiki_duration": "1 Min 36 Sec",
     "spell_type": "Detrimental"
   },
@@ -2782,6 +2929,7 @@
         "level": 1
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -2802,6 +2950,7 @@
         "level": 47
       }
     ],
+    "spellicon": "15",
     "wiki_duration": "63 minutes",
     "spell_type": "Statistic Buff"
   },
@@ -2822,6 +2971,7 @@
         "level": 11
       }
     ],
+    "spellicon": "26",
     "wiki_duration": "16 Min",
     "spell_type": "Detrimental"
   },
@@ -2846,6 +2996,7 @@
         "level": 32
       }
     ],
+    "spellicon": "72",
     "wiki_duration": "16 Min",
     "spell_type": "Detrimental"
   },
@@ -2866,6 +3017,7 @@
         "level": 16
       }
     ],
+    "spellicon": "G",
     "wiki_duration": "6 ticks",
     "spell_type": "Detrimental"
   },
@@ -2886,6 +3038,7 @@
         "level": 55
       }
     ],
+    "spellicon": "G",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -2901,6 +3054,7 @@
     "wear_off_you": "The chill subsides",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "G",
     "wiki_duration": "1 ticks @L1 to 1.5 minutes @L15",
     "spell_type": "Detrimental"
   },
@@ -2921,15 +3075,16 @@
         "level": 36
       }
     ],
+    "spellicon": "N",
     "wiki_duration": "36 Sec",
     "spell_type": "Detrimental"
   },
   {
     "name": "Chloroplast",
     "category": "buff",
-    "duration_formula": "level_x3_plus_10",
-    "base_ticks": 127,
-    "max_ticks": 205,
+    "duration_formula": "fixed",
+    "base_ticks": 160,
+    "max_ticks": 160,
     "tier_duration_pct": 10,
     "land_other": "begins to regenerate",
     "land_you": "You begin to regenerate",
@@ -2945,6 +3100,7 @@
         "level": 42
       }
     ],
+    "spellicon": "118",
     "wiki_duration": "16 Min",
     "spell_type": "Beneficial"
   },
@@ -2965,6 +3121,7 @@
         "level": 11
       }
     ],
+    "spellicon": "M",
     "wiki_duration": "48 Sec",
     "spell_type": "Detrimental"
   },
@@ -2985,6 +3142,7 @@
         "level": 2
       }
     ],
+    "spellicon": "C",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -3005,6 +3163,7 @@
         "level": 11
       }
     ],
+    "spellicon": "30",
     "wiki_duration": "12 Sec",
     "spell_type": "Beneficial"
   },
@@ -3025,6 +3184,7 @@
         "level": 52
       }
     ],
+    "spellicon": "O",
     "wiki_duration": "36 minutes",
     "spell_type": "Beneficial"
   },
@@ -3045,6 +3205,7 @@
         "level": 51
       }
     ],
+    "spellicon": "S",
     "wiki_duration": "36 minutes",
     "spell_type": "Beneficial"
   },
@@ -3065,6 +3226,7 @@
         "level": 26
       }
     ],
+    "spellicon": "H",
     "wiki_duration": "27 minutes",
     "spell_type": "Beneficial"
   },
@@ -3085,6 +3247,7 @@
         "level": 54
       }
     ],
+    "spellicon": "H",
     "wiki_duration": "35 minutes",
     "spell_type": "Beneficial"
   },
@@ -3109,6 +3272,7 @@
         "level": 4
       }
     ],
+    "spellicon": "160",
     "wiki_duration": "48 Sec",
     "spell_type": "Detrimental"
   },
@@ -3124,6 +3288,7 @@
     "wear_off_you": "You no longer feel dizzy",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -3144,6 +3309,7 @@
         "level": 17
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "36 minutes",
     "spell_type": "Beneficial"
   },
@@ -3159,6 +3325,7 @@
     "wear_off_you": "}}",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "I",
     "wiki_duration": "1 minute",
     "spell_type": "Detrimental"
   },
@@ -3174,6 +3341,7 @@
     "wear_off_you": "You are no longer afraid",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "G",
     "wiki_duration": "1 ticks @L1 to 2 ticks @L2",
     "spell_type": "Detrimental"
   },
@@ -3189,6 +3357,7 @@
     "wear_off_you": "}}",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "I",
     "wiki_duration": "3 minutes @L1 to 10 minutes @L4",
     "spell_type": "Detrimental"
   },
@@ -3204,6 +3373,7 @@
     "wear_off_you": "The poison subsides",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "1",
     "wiki_duration": "3 Min 30 Sec",
     "spell_type": "Detrimental"
   },
@@ -3219,6 +3389,7 @@
     "wear_off_you": "Your cogs squeal and slow",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "1.3 minutes @L1 to 19 minutes @L60",
     "spell_type": "Beneficial"
   },
@@ -3234,6 +3405,7 @@
     "wear_off_you": "The potion has worn off",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "R",
     "wiki_duration": "30 minutes",
     "spell_type": "Beneficial"
   },
@@ -3249,14 +3421,15 @@
     "wear_off_you": "}}",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "J",
     "wiki_duration": "3 minutes @L1 to 7.5 minutes @L3",
     "spell_type": "Beneficial"
   },
   {
     "name": "Courage",
     "category": "buff",
-    "duration_formula": "level_plus_3_x30",
-    "base_ticks": 120,
+    "duration_formula": "fixed",
+    "base_ticks": 270,
     "max_ticks": 270,
     "tier_duration_pct": 10,
     "land_other": "looks courageous",
@@ -3273,6 +3446,7 @@
         "level": 8
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "27 Min",
     "spell_type": "Beneficial"
   },
@@ -3293,6 +3467,7 @@
         "level": 24
       }
     ],
+    "spellicon": "T",
     "wiki_duration": "48 Sec",
     "spell_type": "Detrimental"
   },
@@ -3313,6 +3488,7 @@
         "level": 20
       }
     ],
+    "spellicon": "88",
     "wiki_duration": "1 minute",
     "spell_type": "Beneficial"
   },
@@ -3337,6 +3513,7 @@
         "level": 53
       }
     ],
+    "spellicon": "I",
     "wiki_duration": "6.3 minutes @L53 to 7.0 minutes @L60",
     "spell_type": "Detrimental"
   },
@@ -3357,6 +3534,7 @@
         "level": 28
       }
     ],
+    "spellicon": "35",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -3377,6 +3555,7 @@
         "level": 34
       }
     ],
+    "spellicon": "165",
     "wiki_duration": "30 seconds",
     "spell_type": "Curse"
   },
@@ -3397,6 +3576,7 @@
         "level": 26
       }
     ],
+    "spellicon": "D",
     "wiki_duration": "6 Min",
     "spell_type": "Detrimental"
   },
@@ -3412,6 +3592,7 @@
     "wear_off_you": "The spirits have subsided",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "D",
     "wiki_duration": "1 ticks @L1 to 1.5 minutes @L60",
     "spell_type": "Detrimental"
   },
@@ -3427,6 +3608,7 @@
     "wear_off_you": "Your combat prowess lessens",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "R",
     "wiki_duration": "2.5 minutes",
     "spell_type": "Beneficial"
   },
@@ -3451,6 +3633,7 @@
         "level": 37
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "36 minutes",
     "spell_type": "Beneficial"
   },
@@ -3466,6 +3649,7 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "N",
     "wiki_duration": "1.3 minutes @L1 to 2.5 minutes @L5",
     "spell_type": "Detrimental"
   },
@@ -3486,6 +3670,7 @@
         "level": 39
       }
     ],
+    "spellicon": "164",
     "wiki_duration": "30 Sec",
     "spell_type": "Detrimental"
   },
@@ -3501,6 +3686,7 @@
     "wear_off_you": "The light of dawn retreats",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "6 ticks",
     "spell_type": "Detrimental"
   },
@@ -3521,6 +3707,7 @@
         "level": 47
       }
     ],
+    "spellicon": "35",
     "wiki_duration": "1.6 minutes",
     "spell_type": "Detrimental"
   },
@@ -3541,6 +3728,7 @@
         "level": 41
       }
     ],
+    "spellicon": "137",
     "wiki_duration": "1 hour 12 minutes",
     "spell_type": "Beneficial"
   },
@@ -3561,6 +3749,7 @@
         "level": 45
       }
     ],
+    "spellicon": "137",
     "wiki_duration": "1 hour 12 minutes",
     "spell_type": "Beneficial"
   },
@@ -3576,6 +3765,7 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "N",
     "wiki_duration": "1.3 minutes @L1 to 3.7 minutes @L9",
     "spell_type": "Detrimental"
   },
@@ -3591,6 +3781,7 @@
     "wear_off_you": "The poison leaves",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "N",
     "wiki_duration": "2 minutes",
     "spell_type": "Detrimental"
   },
@@ -3611,6 +3802,7 @@
         "level": 51
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "60 minutes (1 hour)",
     "spell_type": "Beneficial"
   },
@@ -3631,6 +3823,7 @@
         "level": 39
       }
     ],
+    "spellicon": "8",
     "wiki_duration": "54 minutes",
     "spell_type": "Statistic Buff"
   },
@@ -3651,6 +3844,7 @@
         "level": 53
       }
     ],
+    "spellicon": "A",
     "wiki_duration": "1 hour 12 minutes",
     "spell_type": "Beneficial"
   },
@@ -3671,6 +3865,7 @@
         "level": 59
       }
     ],
+    "spellicon": "N",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -3691,6 +3886,7 @@
         "level": 18
       }
     ],
+    "spellicon": "161",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -3711,6 +3907,7 @@
         "level": 9
       }
     ],
+    "spellicon": "3",
     "wiki_duration": "6 Min",
     "spell_type": "Detrimental"
   },
@@ -3726,6 +3923,7 @@
     "wear_off_you": "The shield fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "K",
     "wiki_duration": "3 minutes @L1 to 36 minutes @L12",
     "spell_type": "Beneficial"
   },
@@ -3746,6 +3944,7 @@
         "level": 59
       }
     ],
+    "spellicon": "G",
     "wiki_duration": "1.3 minutes",
     "spell_type": "Detrimental"
   },
@@ -3766,14 +3965,15 @@
         "level": 48
       }
     ],
+    "spellicon": "8",
     "wiki_duration": "63 minutes",
     "spell_type": "Statistic Buff"
   },
   {
     "name": "Dexterous Aura",
     "category": "buff",
-    "duration_formula": "level_plus_3_x30",
-    "base_ticks": 120,
+    "duration_formula": "fixed",
+    "base_ticks": 270,
     "max_ticks": 270,
     "tier_duration_pct": 10,
     "land_other": "looks more dexterous",
@@ -3786,6 +3986,7 @@
         "level": 1
       }
     ],
+    "spellicon": "8",
     "wiki_duration": "27 minutes",
     "spell_type": "Statistic Buff"
   },
@@ -3814,6 +4015,7 @@
         "level": 59
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "1 hour 30 minutes",
     "spell_type": "Beneficial"
   },
@@ -3834,6 +4036,7 @@
         "level": 60
       }
     ],
+    "spellicon": "D",
     "wiki_duration": "8 ticks",
     "spell_type": "Detrimental"
   },
@@ -3849,6 +4052,7 @@
     "wear_off_you": "You are no longer diseased",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "E",
     "wiki_duration": "15 minutes",
     "spell_type": "Detrimental"
   },
@@ -3873,6 +4077,7 @@
         "level": 1
       }
     ],
+    "spellicon": "41",
     "wiki_duration": "6 minutes",
     "spell_type": "Detrimental"
   },
@@ -3888,6 +4093,7 @@
     "wear_off_you": "}}",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "E",
     "wiki_duration": "1 ticks @L1 to 3.2 minutes @L65",
     "spell_type": "Detrimental"
   },
@@ -3912,6 +4118,7 @@
         "level": 16
       }
     ],
+    "spellicon": "50",
     "wiki_duration": "2 Min",
     "spell_type": "Detrimental"
   },
@@ -3936,6 +4143,7 @@
         "level": 48
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "3-4 ticks",
     "spell_type": "Beneficial"
   },
@@ -3956,6 +4164,7 @@
         "level": 29
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -3976,6 +4185,7 @@
         "level": 55
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "5 minutes",
     "spell_type": "Beneficial"
   },
@@ -3996,6 +4206,7 @@
         "level": 53
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "50 minutes",
     "spell_type": "Beneficial"
   },
@@ -4016,6 +4227,7 @@
         "level": 60
       }
     ],
+    "spellicon": "J",
     "wiki_duration": "10 minutes",
     "spell_type": "Beneficial"
   },
@@ -4036,6 +4248,7 @@
         "level": 60
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "50 minutes",
     "spell_type": "Beneficial"
   },
@@ -4056,6 +4269,7 @@
         "level": 35
       }
     ],
+    "spellicon": "90",
     "wiki_duration": "50 Min",
     "spell_type": "Beneficial"
   },
@@ -4071,6 +4285,7 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "N",
     "wiki_duration": "1 ticks @L1 to 3 minutes @L30",
     "spell_type": "Detrimental"
   },
@@ -4086,6 +4301,7 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "M",
     "wiki_duration": "1 ticks @L1 to 3 minutes @L30",
     "spell_type": "Detrimental"
   },
@@ -4101,6 +4317,7 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "M",
     "wiki_duration": "1 ticks @L1 to 3 minutes @L30",
     "spell_type": "Detrimental"
   },
@@ -4116,6 +4333,7 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "M",
     "wiki_duration": "1 ticks @L1 to 3 minutes @L30",
     "spell_type": "Detrimental"
   },
@@ -4136,6 +4354,7 @@
         "level": 18
       }
     ],
+    "spellicon": "D",
     "wiki_duration": "16 Min",
     "spell_type": "Detrimental"
   },
@@ -4160,6 +4379,7 @@
         "level": 27
       }
     ],
+    "spellicon": "160",
     "wiki_duration": "1 Min 30 Sec",
     "spell_type": "Detrimental"
   },
@@ -4175,6 +4395,7 @@
     "wear_off_you": "}}",
     "watched_by_default": true,
     "classes": [],
+    "spellicon": "D",
     "wiki_duration": "1.3 minutes @L1 to 20.5 minutes @L65",
     "spell_type": "Detrimental"
   },
@@ -4190,6 +4411,7 @@
     "wear_off_you": "You are no longer afraid",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "G",
     "wiki_duration": "1 ticks @L1 to 3 ticks @L3",
     "spell_type": "Detrimental"
   },
@@ -4214,6 +4436,7 @@
         "level": 51
       }
     ],
+    "spellicon": "G",
     "wiki_duration": "8 ticks",
     "spell_type": "Detrimental"
   },
@@ -4234,6 +4457,7 @@
         "level": 40
       }
     ],
+    "spellicon": "T",
     "wiki_duration": "1 minute",
     "spell_type": "Detrimental"
   },
@@ -4258,6 +4482,7 @@
         "level": 54
       }
     ],
+    "spellicon": "T",
     "wiki_duration": "48 Sec",
     "spell_type": "Detrimental"
   },
@@ -4282,6 +4507,7 @@
         "level": 20
       }
     ],
+    "spellicon": "17",
     "wiki_duration": "2 Min 30 Sec",
     "spell_type": "Slow"
   },
@@ -4297,6 +4523,7 @@
     "wear_off_you": "Your adrenaline fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "J",
     "wiki_duration": "3 minutes",
     "spell_type": "Beneficial"
   },
@@ -4317,8 +4544,25 @@
         "level": 28
       }
     ],
+    "spellicon": "M",
     "wiki_duration": "2 Ticks",
     "spell_type": "Detrimental"
+  },
+  {
+    "name": "Earth Elemental Attack",
+    "category": "debuff",
+    "duration_formula": "fixed",
+    "base_ticks": 3,
+    "max_ticks": 3,
+    "tier_duration_pct": 10,
+    "land_other": "sinks into the ground",
+    "land_you": "Your feet sink into the ground",
+    "wear_off_you": "}}",
+    "watched_by_default": false,
+    "classes": [],
+    "spellicon": "117",
+    "wiki_duration": "18s",
+    "spell_type": "Root"
   },
   {
     "name": "Earthcall",
@@ -4332,6 +4576,7 @@
     "wear_off_you": "The call of earth recedes",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "A",
     "wiki_duration": "1 ticks @L1 to 2.5 minutes @L50",
     "spell_type": "Detrimental"
   },
@@ -4347,6 +4592,7 @@
     "wear_off_you": "Your feet come free",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "Q",
     "wiki_duration": "1-3 ticks",
     "spell_type": "Detrimental"
   },
@@ -4367,6 +4613,7 @@
         "level": 9
       }
     ],
+    "spellicon": "I",
     "wiki_duration": "6 Min",
     "spell_type": "Detrimental"
   },
@@ -4382,6 +4629,7 @@
     "wear_off_you": "Your Echinacea infusion fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "K",
     "wiki_duration": "1 ticks @L1 to 2 minutes @L40",
     "spell_type": "Beneficial"
   },
@@ -4402,6 +4650,7 @@
         "level": 48
       }
     ],
+    "spellicon": "631",
     "wiki_duration": "24 seconds",
     "spell_type": "Beneficial"
   },
@@ -4422,6 +4671,7 @@
         "level": 43
       }
     ],
+    "spellicon": "162",
     "wiki_duration": "6 ticks",
     "spell_type": "Detrimental"
   },
@@ -4442,6 +4692,7 @@
         "level": 9
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -4462,6 +4713,7 @@
         "level": 35
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "24 seconds (4 ticks)",
     "spell_type": "Detrimental"
   },
@@ -4477,14 +4729,15 @@
     "wear_off_you": "You break free of the kelp",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "1 ticks @L1 to 3.9 minutes @L65",
     "spell_type": "Detrimental"
   },
   {
     "name": "Endure Cold",
     "category": "buff",
-    "duration_formula": "level_x30",
-    "base_ticks": 30,
+    "duration_formula": "fixed",
+    "base_ticks": 270,
     "max_ticks": 270,
     "tier_duration_pct": 10,
     "land_other": "is protected from cold",
@@ -4521,6 +4774,7 @@
         "level": 1
       }
     ],
+    "spellicon": "57",
     "wiki_duration": "27 minutes",
     "spell_type": "Resist Buff"
   },
@@ -4565,14 +4819,15 @@
         "level": 11
       }
     ],
+    "spellicon": "65",
     "wiki_duration": "27 minutes",
     "spell_type": "Resist Buff"
   },
   {
     "name": "Endure Fire",
     "category": "buff",
-    "duration_formula": "level_x30",
-    "base_ticks": 30,
+    "duration_formula": "fixed",
+    "base_ticks": 270,
     "max_ticks": 270,
     "tier_duration_pct": 10,
     "land_other": "is protected from fire",
@@ -4601,6 +4856,7 @@
         "level": 5
       }
     ],
+    "spellicon": "52",
     "wiki_duration": "27 minutes",
     "spell_type": "Resist Buff"
   },
@@ -4641,6 +4897,7 @@
         "level": 34
       }
     ],
+    "spellicon": "69",
     "wiki_duration": "27 minutes",
     "spell_type": "Resist Buff"
   },
@@ -4677,6 +4934,7 @@
         "level": 18
       }
     ],
+    "spellicon": "61",
     "wiki_duration": "27 minutes",
     "spell_type": "Resist Buff"
   },
@@ -4713,6 +4971,7 @@
         "level": 25
       }
     ],
+    "spellicon": "20",
     "wiki_duration": "27 minutes",
     "spell_type": "Utility Beneficial"
   },
@@ -4728,6 +4987,7 @@
     "wear_off_you": "You feel less tired",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "1 ticks @L1 to 6.5 minutes @L65",
     "spell_type": "Detrimental"
   },
@@ -4748,6 +5008,7 @@
         "level": 4
       }
     ],
+    "spellicon": "I",
     "wiki_duration": "6 Min",
     "spell_type": "Detrimental"
   },
@@ -4768,6 +5029,7 @@
         "level": 56
       }
     ],
+    "spellicon": "P",
     "wiki_duration": "3 minutes",
     "spell_type": "Detrimental"
   },
@@ -4792,6 +5054,7 @@
         "level": 11
       }
     ],
+    "spellicon": "160",
     "wiki_duration": "1 Min",
     "spell_type": "Detrimental"
   },
@@ -4812,6 +5075,7 @@
         "level": 45
       }
     ],
+    "spellicon": "117",
     "wiki_duration": "3 minutes",
     "spell_type": "Detrimental"
   },
@@ -4832,15 +5096,16 @@
         "level": 60
       }
     ],
+    "spellicon": "D",
     "wiki_duration": "5 ticks",
     "spell_type": "Detrimental"
   },
   {
     "name": "Ensnare",
     "category": "debuff",
-    "duration_formula": "level_x2_plus_10",
-    "base_ticks": 62,
-    "max_ticks": 140,
+    "duration_formula": "fixed",
+    "base_ticks": 110,
+    "max_ticks": 110,
     "tier_duration_pct": 10,
     "land_other": "has been ensnared",
     "land_you": "You are ensnared",
@@ -4856,6 +5121,7 @@
         "level": 51
       }
     ],
+    "spellicon": "5",
     "wiki_duration": "11 Min",
     "spell_type": "Detrimental"
   },
@@ -4880,6 +5146,7 @@
         "level": 45
       }
     ],
+    "spellicon": "117",
     "wiki_duration": "1 Min 36 Sec",
     "spell_type": "Detrimental"
   },
@@ -4900,6 +5167,7 @@
         "level": 13
       }
     ],
+    "spellicon": "35",
     "wiki_duration": "8 ticks",
     "spell_type": "Detrimental"
   },
@@ -4920,6 +5188,7 @@
         "level": 30
       }
     ],
+    "spellicon": "35",
     "wiki_duration": "1.2 minutes",
     "spell_type": "Detrimental"
   },
@@ -4940,6 +5209,7 @@
         "level": 30
       }
     ],
+    "spellicon": "D",
     "wiki_duration": "6 seconds",
     "spell_type": "Detrimental"
   },
@@ -4960,6 +5230,7 @@
         "level": 60
       }
     ],
+    "spellicon": "P",
     "wiki_duration": "3 minutes",
     "spell_type": "Detrimental"
   },
@@ -4984,6 +5255,7 @@
         "level": 60
       }
     ],
+    "spellicon": "117",
     "wiki_duration": "1 minute",
     "spell_type": "Detrimental"
   },
@@ -5008,6 +5280,7 @@
         "level": 50
       }
     ],
+    "spellicon": "42",
     "wiki_duration": "36 Sec",
     "spell_type": "Detrimental"
   },
@@ -5032,6 +5305,7 @@
         "level": 35
       }
     ],
+    "spellicon": "42",
     "wiki_duration": "7 ticks",
     "spell_type": "Damage Over Time"
   },
@@ -5052,6 +5326,7 @@
         "level": 27
       }
     ],
+    "spellicon": "161",
     "wiki_duration": "2 Min 6 Sec",
     "spell_type": "Detrimental"
   },
@@ -5072,6 +5347,7 @@
         "level": 44
       }
     ],
+    "spellicon": "118",
     "wiki_duration": "24 Sec",
     "spell_type": "Beneficial"
   },
@@ -5092,6 +5368,7 @@
         "level": 50
       }
     ],
+    "spellicon": "F",
     "wiki_duration": "27 minutes 6 seconds",
     "spell_type": "Beneficial"
   },
@@ -5112,6 +5389,7 @@
         "level": 27
       }
     ],
+    "spellicon": "4",
     "wiki_duration": "12 minutes",
     "spell_type": "Beneficial"
   },
@@ -5127,6 +5405,7 @@
     "wear_off_you": "You have stopped regenerating",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "Q",
     "wiki_duration": "30 seconds @L1 to 60 seconds @L9",
     "spell_type": "Beneficial"
   },
@@ -5147,6 +5426,7 @@
         "level": 5
       }
     ],
+    "spellicon": "B",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -5171,6 +5451,7 @@
         "level": 57
       }
     ],
+    "spellicon": "B",
     "wiki_duration": "1 minute",
     "spell_type": "Beneficial"
   },
@@ -5195,6 +5476,7 @@
         "level": 8
       }
     ],
+    "spellicon": "88",
     "wiki_duration": "5 ticks",
     "spell_type": "Beneficial"
   },
@@ -5215,6 +5497,7 @@
         "level": 52
       }
     ],
+    "spellicon": "D",
     "wiki_duration": "6 ticks",
     "spell_type": "Detrimental"
   },
@@ -5247,6 +5530,7 @@
         "level": 3
       }
     ],
+    "spellicon": "G",
     "wiki_duration": "18 seconds",
     "spell_type": "Detrimental"
   },
@@ -5262,6 +5546,7 @@
     "wear_off_you": "}}",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "G",
     "wiki_duration": "1 ticks @L1 to 3 ticks @L6",
     "spell_type": "Detrimental"
   },
@@ -5282,6 +5567,7 @@
         "level": 19
       }
     ],
+    "spellicon": "I",
     "wiki_duration": "5 Min",
     "spell_type": "Detrimental"
   },
@@ -5297,6 +5583,7 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "N",
     "wiki_duration": "1.1 minutes @L1 to 1.5 minutes @L5",
     "spell_type": "Detrimental"
   },
@@ -5317,14 +5604,15 @@
         "level": 25
       }
     ],
+    "spellicon": "M",
     "wiki_duration": "15 Min",
     "spell_type": "Beneficial"
   },
   {
     "name": "Feet like Cat",
     "category": "buff",
-    "duration_formula": "level_plus_3_x30",
-    "base_ticks": 180,
+    "duration_formula": "fixed",
+    "base_ticks": 360,
     "max_ticks": 360,
     "tier_duration_pct": 10,
     "land_other": "looks more agile",
@@ -5341,6 +5629,7 @@
         "level": 12
       }
     ],
+    "spellicon": "9",
     "wiki_duration": "36 minutes",
     "spell_type": "Statistic Buff"
   },
@@ -5356,6 +5645,7 @@
     "wear_off_you": "The fellspine cracks",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "A",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -5376,6 +5666,7 @@
         "level": 18
       }
     ],
+    "spellicon": "T",
     "wiki_duration": "60 Min",
     "spell_type": "Beneficial"
   },
@@ -5400,6 +5691,7 @@
         "level": 58
       }
     ],
+    "spellicon": "Q",
     "wiki_duration": "3 minutes",
     "spell_type": "Detrimental"
   },
@@ -5415,6 +5707,7 @@
     "wear_off_you": "The aura leaves you",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "O",
     "wiki_duration": "3 minutes @L1 to 1 hour 0 minutes @L20",
     "spell_type": "Beneficial"
   },
@@ -5435,6 +5728,7 @@
         "level": 48
       }
     ],
+    "spellicon": "O",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -5450,6 +5744,7 @@
     "wear_off_you": "}}",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "A",
     "wiki_duration": "1 ticks @L1 to 1.5 minutes @L15",
     "spell_type": "Detrimental"
   },
@@ -5470,6 +5765,7 @@
         "level": 42
       }
     ],
+    "spellicon": "O",
     "wiki_duration": "10 Min",
     "spell_type": "Detrimental"
   },
@@ -5494,6 +5790,7 @@
         "level": 3
       }
     ],
+    "spellicon": "51",
     "wiki_duration": "36 Sec",
     "spell_type": "Detrimental"
   },
@@ -5509,6 +5806,7 @@
     "wear_off_you": "}}",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "O",
     "wiki_duration": "1 Tick",
     "spell_type": "Detrimental"
   },
@@ -5529,8 +5827,67 @@
         "level": 26
       }
     ],
+    "spellicon": "51",
     "wiki_duration": "6 Sec",
     "spell_type": "Detrimental"
+  },
+  {
+    "name": "Flash of Light",
+    "category": "debuff",
+    "duration_formula": "fixed",
+    "base_ticks": 2,
+    "max_ticks": 2,
+    "tier_duration_pct": 10,
+    "land_other": "is blinded by a flash of light",
+    "land_you": "You are blinded by a flash of light",
+    "wear_off_you": "Your sight returns",
+    "watched_by_default": false,
+    "classes": [
+      {
+        "class": "Beastlord",
+        "level": 5
+      },
+      {
+        "class": "Cleric",
+        "level": 1
+      },
+      {
+        "class": "Paladin",
+        "level": 2
+      },
+      {
+        "class": "Shaman",
+        "level": 1
+      }
+    ],
+    "spellicon": "23",
+    "wiki_duration": "12s",
+    "spell_type": "Utility Detrimental"
+  },
+  {
+    "name": "Fleeting Fury",
+    "category": "buff",
+    "duration_formula": "fixed",
+    "base_ticks": 3,
+    "max_ticks": 3,
+    "tier_duration_pct": 10,
+    "land_other": "simmers with fury",
+    "land_you": "You simmer with fury",
+    "wear_off_you": "Your fury fades",
+    "watched_by_default": false,
+    "classes": [
+      {
+        "class": "Beastlord",
+        "level": 11
+      },
+      {
+        "class": "Shaman",
+        "level": 4
+      }
+    ],
+    "spellicon": "16",
+    "wiki_duration": "18s",
+    "spell_type": "Statistic Buff"
   },
   {
     "name": "Flesh Rot I",
@@ -5544,6 +5901,7 @@
     "wear_off_you": "You no longer feel rotten",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "E",
     "wiki_duration": "1 ticks @L1 to 3.8 minutes @L38",
     "spell_type": "Detrimental"
   },
@@ -5559,6 +5917,7 @@
     "wear_off_you": "You no longer feel rotten",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "E",
     "wiki_duration": "1 ticks @L1 to 4.6 minutes @L46",
     "spell_type": "Detrimental"
   },
@@ -5574,6 +5933,7 @@
     "wear_off_you": "You no longer feel rotten",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "E",
     "wiki_duration": "1 ticks @L1 to 5.8 minutes @L58",
     "spell_type": "Detrimental"
   },
@@ -5594,6 +5954,7 @@
         "level": 20
       }
     ],
+    "spellicon": "634",
     "wiki_duration": "24 seconds",
     "spell_type": "Beneficial"
   },
@@ -5609,6 +5970,7 @@
     "wear_off_you": "The cool breeze fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "H",
     "wiki_duration": "3 minutes @L1 to 27 minutes @L9",
     "spell_type": "Beneficial"
   },
@@ -5624,6 +5986,7 @@
     "wear_off_you": "The cool breeze fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "H",
     "wiki_duration": "3 minutes @L1 to 27 minutes @L9",
     "spell_type": "Beneficial"
   },
@@ -5639,6 +6002,7 @@
     "wear_off_you": "The cool breeze fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "H",
     "wiki_duration": "3 minutes @L1 to 27 minutes @L9",
     "spell_type": "Beneficial"
   },
@@ -5654,6 +6018,7 @@
     "wear_off_you": "The cool breeze fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "H",
     "wiki_duration": "3 minutes @L1 to 27 minutes @L9",
     "spell_type": "Beneficial"
   },
@@ -5669,6 +6034,7 @@
     "wear_off_you": "Your speed returns to normal",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "R",
     "wiki_duration": "1.2 minutes @L1 to 5 minutes @L20",
     "spell_type": "Beneficial"
   },
@@ -5689,6 +6055,7 @@
         "level": 11
       }
     ],
+    "spellicon": "74",
     "wiki_duration": "60 Min",
     "spell_type": "Beneficial"
   },
@@ -5709,6 +6076,7 @@
         "level": 60
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "1 hour 40 minutes",
     "spell_type": "Beneficial"
   },
@@ -5729,6 +6097,7 @@
         "level": 57
       }
     ],
+    "spellicon": "A",
     "wiki_duration": "2.9 minutes @L57 to 3.0 minutes @L60",
     "spell_type": "Detrimental"
   },
@@ -5749,6 +6118,7 @@
         "level": 44
       }
     ],
+    "spellicon": "163",
     "wiki_duration": "120 Min",
     "spell_type": "Beneficial"
   },
@@ -5769,6 +6139,7 @@
         "level": 16
       }
     ],
+    "spellicon": "163",
     "wiki_duration": "120 Min",
     "spell_type": "Beneficial"
   },
@@ -5789,6 +6160,7 @@
         "level": 55
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "2 hours 24 minutes",
     "spell_type": "Beneficial"
   },
@@ -5809,6 +6181,7 @@
         "level": 54
       }
     ],
+    "spellicon": "T",
     "wiki_duration": "2 hours 24 minutes",
     "spell_type": "Beneficial"
   },
@@ -5829,6 +6202,7 @@
         "level": 55
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "2 hours 24 minutes",
     "spell_type": "Beneficial"
   },
@@ -5844,6 +6218,7 @@
     "wear_off_you": "}}",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "S",
     "wiki_duration": "1 ticks @L1 to 5 minutes @L50",
     "spell_type": "Detrimental"
   },
@@ -5868,6 +6243,7 @@
         "level": 52
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "3 minutes",
     "spell_type": "Beneficial"
   },
@@ -5883,6 +6259,7 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "N",
     "wiki_duration": "1 ticks @L1 to 4 ticks @L8",
     "spell_type": "Detrimental"
   },
@@ -5898,6 +6275,7 @@
     "wear_off_you": "}}",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "S",
     "wiki_duration": "1 ticks @L1 to 1 minute @L20",
     "spell_type": "Detrimental"
   },
@@ -5913,6 +6291,7 @@
     "wear_off_you": "The blessing leaves",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "S",
     "wiki_duration": "3 minutes @L1 to 1 hour 0 minutes @L20",
     "spell_type": "Beneficial"
   },
@@ -5933,6 +6312,7 @@
         "level": 30
       }
     ],
+    "spellicon": "161",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -5948,6 +6328,7 @@
     "wear_off_you": "",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "J",
     "wiki_duration": "1.2 minutes @L1 to 5 minutes @L20",
     "spell_type": "Beneficial"
   },
@@ -5963,6 +6344,7 @@
     "wear_off_you": "Your fungus frenzy fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "E",
     "wiki_duration": "5 minutes",
     "spell_type": "Beneficial"
   },
@@ -5983,6 +6365,7 @@
         "level": 39
       }
     ],
+    "spellicon": "6",
     "wiki_duration": "54 minutes",
     "spell_type": "Statistic Buff"
   },
@@ -5998,6 +6381,7 @@
     "wear_off_you": "The ethereal mist disperses",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "U",
     "wiki_duration": "1 ticks @L1 to 8 ticks @L16",
     "spell_type": "Detrimental"
   },
@@ -6018,6 +6402,7 @@
         "level": 47
       }
     ],
+    "spellicon": "M",
     "wiki_duration": "48 Sec",
     "spell_type": "Detrimental"
   },
@@ -6042,6 +6427,7 @@
         "level": 7
       }
     ],
+    "spellicon": "18",
     "wiki_duration": "20 minutes",
     "spell_type": "Beneficial"
   },
@@ -6062,6 +6448,7 @@
         "level": 11
       }
     ],
+    "spellicon": "B",
     "wiki_duration": "2 Min 30 Sec",
     "spell_type": "Beneficial"
   },
@@ -6077,6 +6464,7 @@
     "wear_off_you": "You can feel your legs again",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "1 ticks @L1 to 3.2 minutes @L65",
     "spell_type": "Detrimental"
   },
@@ -6092,6 +6480,7 @@
     "wear_off_you": "Strength returns to your legs",
     "watched_by_default": true,
     "classes": [],
+    "spellicon": "Q",
     "wiki_duration": "6 ticks",
     "spell_type": "Detrimental"
   },
@@ -6112,6 +6501,7 @@
         "level": 60
       }
     ],
+    "spellicon": "H",
     "wiki_duration": "1 hour 40 minutes",
     "spell_type": "Beneficial"
   },
@@ -6132,6 +6522,7 @@
         "level": 55
       }
     ],
+    "spellicon": "H",
     "wiki_duration": "1 hour 15 minutes",
     "spell_type": "Beneficial"
   },
@@ -6152,6 +6543,7 @@
         "level": 59
       }
     ],
+    "spellicon": "H",
     "wiki_duration": "33 minutes",
     "spell_type": "Beneficial"
   },
@@ -6172,6 +6564,7 @@
         "level": 55
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "1 hour 12 minutes",
     "spell_type": "Beneficial"
   },
@@ -6192,6 +6585,7 @@
         "level": 37
       }
     ],
+    "spellicon": "15",
     "wiki_duration": "54 minutes",
     "spell_type": "Statistic Buff"
   },
@@ -6212,6 +6606,7 @@
         "level": 54
       }
     ],
+    "spellicon": "D",
     "wiki_duration": "5 ticks",
     "spell_type": "Detrimental"
   },
@@ -6232,6 +6627,7 @@
         "level": 53
       }
     ],
+    "spellicon": "T",
     "wiki_duration": "16.9 minutes @L53 to 19 minutes @L60",
     "spell_type": "Detrimental"
   },
@@ -6256,6 +6652,7 @@
         "level": 2
       }
     ],
+    "spellicon": "106",
     "wiki_duration": "13 seconds",
     "spell_type": "Beneficial"
   },
@@ -6271,6 +6668,7 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "N",
     "wiki_duration": "2 minutes",
     "spell_type": "Detrimental"
   },
@@ -6295,6 +6693,7 @@
         "level": 15
       }
     ],
+    "spellicon": "117",
     "wiki_duration": "48 Sec",
     "spell_type": "Detrimental"
   },
@@ -6310,6 +6709,7 @@
     "wear_off_you": "Your adrenaline fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "I",
     "wiki_duration": "1.8 minutes",
     "spell_type": "Beneficial"
   },
@@ -6325,6 +6725,7 @@
     "wear_off_you": "Your armor slows",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "A",
     "wiki_duration": "3 minutes @L1 to 18 minutes @L6",
     "spell_type": "Beneficial"
   },
@@ -6340,6 +6741,7 @@
     "wear_off_you": "The green mist disperses",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "M",
     "wiki_duration": "8 ticks",
     "spell_type": "Detrimental"
   },
@@ -6355,6 +6757,7 @@
     "wear_off_you": "The poison subsides",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "1",
     "wiki_duration": "1 Min",
     "spell_type": "Detrimental"
   },
@@ -6375,6 +6778,7 @@
         "level": 48
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "36 minutes",
     "spell_type": "Beneficial"
   },
@@ -6399,6 +6803,7 @@
         "level": 39
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "45 minutes",
     "spell_type": "Beneficial"
   },
@@ -6419,6 +6824,7 @@
         "level": 44
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "36 Min",
     "spell_type": "Beneficial"
   },
@@ -6439,6 +6845,7 @@
         "level": 40
       }
     ],
+    "spellicon": "128",
     "wiki_duration": "36 Min",
     "spell_type": "Beneficial"
   },
@@ -6459,6 +6866,7 @@
         "level": 42
       }
     ],
+    "spellicon": "151",
     "wiki_duration": "1 hour 3 minutes",
     "spell_type": "Beneficial"
   },
@@ -6479,6 +6887,7 @@
         "level": 17
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -6503,6 +6912,7 @@
         "level": 5
       }
     ],
+    "spellicon": "39",
     "wiki_duration": "2 Min",
     "spell_type": "Beneficial"
   },
@@ -6527,6 +6937,7 @@
         "level": 39
       }
     ],
+    "spellicon": "39",
     "wiki_duration": "42 seconds",
     "spell_type": "Beneficial"
   },
@@ -6551,6 +6962,7 @@
         "level": 20
       }
     ],
+    "spellicon": "46",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -6571,6 +6983,7 @@
         "level": 46
       }
     ],
+    "spellicon": "130",
     "wiki_duration": "1 hour 12 minutes",
     "spell_type": "Beneficial"
   },
@@ -6586,6 +6999,7 @@
     "wear_off_you": "You regain your will to fight",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "D",
     "wiki_duration": "2 ticks",
     "spell_type": "Detrimental"
   },
@@ -6601,6 +7015,7 @@
     "wear_off_you": "",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "R",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -6621,6 +7036,7 @@
         "level": 26
       }
     ],
+    "spellicon": "G",
     "wiki_duration": "36 seconds",
     "spell_type": "Beneficial"
   },
@@ -6641,6 +7057,7 @@
         "level": 3
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "27 Min",
     "spell_type": "Beneficial"
   },
@@ -6661,6 +7078,7 @@
         "level": 30
       }
     ],
+    "spellicon": "10",
     "wiki_duration": "54 Min",
     "spell_type": "Statistic Buff"
   },
@@ -6685,6 +7103,7 @@
         "level": 36
       }
     ],
+    "spellicon": "E",
     "wiki_duration": "36 Sec",
     "spell_type": "Detrimental"
   },
@@ -6709,6 +7128,7 @@
         "level": 10
       }
     ],
+    "spellicon": "51",
     "wiki_duration": "36 Sec",
     "spell_type": "Detrimental"
   },
@@ -6729,6 +7149,7 @@
         "level": 16
       }
     ],
+    "spellicon": "B",
     "wiki_duration": "27 minutes",
     "spell_type": "Beneficial"
   },
@@ -6749,6 +7170,7 @@
         "level": 52
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "1 hour 12 minutes",
     "spell_type": "Beneficial"
   },
@@ -6769,6 +7191,7 @@
         "level": 52
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "1 hour 12 minutes",
     "spell_type": "Beneficial"
   },
@@ -6784,14 +7207,15 @@
     "wear_off_you": "The poison subsides",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "1",
     "wiki_duration": "3 Min",
     "spell_type": "Detrimental"
   },
   {
     "name": "Holy Armor",
     "category": "buff",
-    "duration_formula": "level_x30",
-    "base_ticks": 30,
+    "duration_formula": "fixed",
+    "base_ticks": 270,
     "max_ticks": 270,
     "tier_duration_pct": 10,
     "land_other": "feels the favor of the gods upon them",
@@ -6808,6 +7232,7 @@
         "level": 15
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "27 Min",
     "spell_type": "Beneficial"
   },
@@ -6823,6 +7248,7 @@
     "wear_off_you": "Your doll has forgotten you",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "J",
     "wiki_duration": "5 minutes",
     "spell_type": "Beneficial"
   },
@@ -6843,6 +7269,7 @@
         "level": 16
       }
     ],
+    "spellicon": "Q",
     "wiki_duration": "8 ticks",
     "spell_type": "Detrimental"
   },
@@ -6863,6 +7290,7 @@
         "level": 6
       }
     ],
+    "spellicon": "J",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -6883,6 +7311,7 @@
         "level": 47
       }
     ],
+    "spellicon": "S",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -6898,6 +7327,7 @@
     "wear_off_you": "The shards depart",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "S",
     "wiki_duration": "1 minute",
     "spell_type": "Detrimental"
   },
@@ -6918,6 +7348,7 @@
         "level": 47
       }
     ],
+    "spellicon": "O",
     "wiki_duration": "42 Sec",
     "spell_type": "Detrimental"
   },
@@ -6938,6 +7369,7 @@
         "level": 42
       }
     ],
+    "spellicon": "O",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -6953,6 +7385,7 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "N",
     "wiki_duration": "6 ticks @L1 to 2 ticks @L4",
     "spell_type": "Detrimental"
   },
@@ -6973,6 +7406,7 @@
         "level": 29
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "36 minutes",
     "spell_type": "Beneficial"
   },
@@ -6993,6 +7427,7 @@
         "level": 15
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "36 minutes 6 seconds",
     "spell_type": "Beneficial"
   },
@@ -7013,6 +7448,7 @@
         "level": 10
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "36 minutes 6 seconds",
     "spell_type": "Beneficial"
   },
@@ -7033,6 +7469,7 @@
         "level": 37
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "36 minutes",
     "spell_type": "Beneficial"
   },
@@ -7053,6 +7490,7 @@
         "level": 13
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "36 minutes 6 seconds",
     "spell_type": "Beneficial"
   },
@@ -7073,6 +7511,7 @@
         "level": 21
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "36 minutes",
     "spell_type": "Beneficial"
   },
@@ -7093,6 +7532,7 @@
         "level": 12
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "36 minutes 6 seconds",
     "spell_type": "Beneficial"
   },
@@ -7113,6 +7553,7 @@
         "level": 33
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "36 minutes",
     "spell_type": "Beneficial"
   },
@@ -7133,6 +7574,7 @@
         "level": 8
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "36 minutes 6 seconds",
     "spell_type": "Beneficial"
   },
@@ -7153,6 +7595,7 @@
         "level": 3
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "36 minutes 6 seconds",
     "spell_type": "Beneficial"
   },
@@ -7173,6 +7616,7 @@
         "level": 12
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "36 minutes 6 seconds",
     "spell_type": "Beneficial"
   },
@@ -7193,6 +7637,7 @@
         "level": 11
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "36 minutes 6 seconds",
     "spell_type": "Beneficial"
   },
@@ -7213,6 +7658,7 @@
         "level": 2
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "36 Min",
     "spell_type": "Beneficial"
   },
@@ -7233,6 +7679,7 @@
         "level": 20
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "36 minutes 6 seconds",
     "spell_type": "Beneficial"
   },
@@ -7253,6 +7700,7 @@
         "level": 17
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "36 minutes 6 seconds",
     "spell_type": "Beneficial"
   },
@@ -7273,6 +7721,7 @@
         "level": 44
       }
     ],
+    "spellicon": "T",
     "wiki_duration": "72 Min",
     "spell_type": "Beneficial"
   },
@@ -7293,6 +7742,7 @@
         "level": 24
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "36 minutes",
     "spell_type": "Beneficial"
   },
@@ -7313,6 +7763,7 @@
         "level": 38
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "36 minutes",
     "spell_type": "Beneficial"
   },
@@ -7333,6 +7784,7 @@
         "level": 15
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "36 minutes 6 seconds",
     "spell_type": "Beneficial"
   },
@@ -7353,6 +7805,7 @@
         "level": 18
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "36 minutes 6 seconds",
     "spell_type": "Beneficial"
   },
@@ -7373,6 +7826,7 @@
         "level": 28
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "36 minutes",
     "spell_type": "Beneficial"
   },
@@ -7393,6 +7847,7 @@
         "level": 42
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "36 minutes",
     "spell_type": "Beneficial"
   },
@@ -7413,6 +7868,7 @@
         "level": 5
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "36 minutes 6 seconds",
     "spell_type": "Beneficial"
   },
@@ -7449,6 +7905,7 @@
         "level": 58
       }
     ],
+    "spellicon": "Q",
     "wiki_duration": "1 minute",
     "spell_type": "Detrimental"
   },
@@ -7473,6 +7930,7 @@
         "level": 44
       }
     ],
+    "spellicon": "51",
     "wiki_duration": "48 Sec",
     "spell_type": "Detrimental"
   },
@@ -7488,6 +7946,7 @@
     "wear_off_you": "}}",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "O",
     "wiki_duration": "1 ticks @L1 to 5 minutes @L50",
     "spell_type": "Detrimental"
   },
@@ -7508,8 +7967,30 @@
         "level": 8
       }
     ],
+    "spellicon": "I",
     "wiki_duration": "6 minutes",
     "spell_type": "Beneficial"
+  },
+  {
+    "name": "Impassivity",
+    "category": "buff",
+    "duration_formula": "fixed",
+    "base_ticks": 4,
+    "max_ticks": 4,
+    "tier_duration_pct": 10,
+    "land_other": "falls into a state of impassivity",
+    "land_you": "You fall into a state of impassivity",
+    "wear_off_you": "",
+    "watched_by_default": false,
+    "classes": [
+      {
+        "class": "Shaman",
+        "level": 16
+      }
+    ],
+    "spellicon": "118",
+    "wiki_duration": "24s",
+    "spell_type": "Heal Over Time"
   },
   {
     "name": "Improved Invis vs Undead",
@@ -7532,6 +8013,7 @@
         "level": 50
       }
     ],
+    "spellicon": "B",
     "wiki_duration": "10 minutes",
     "spell_type": "Beneficial"
   },
@@ -7556,6 +8038,7 @@
         "level": 50
       }
     ],
+    "spellicon": "B",
     "wiki_duration": "10 minutes",
     "spell_type": "Beneficial"
   },
@@ -7588,6 +8071,7 @@
         "level": 63
       }
     ],
+    "spellicon": "33",
     "wiki_duration": "10 Min",
     "spell_type": "Beneficial"
   },
@@ -7608,6 +8092,7 @@
         "level": 48
       }
     ],
+    "spellicon": "B",
     "wiki_duration": "10 minutes",
     "spell_type": "Beneficial"
   },
@@ -7628,6 +8113,7 @@
         "level": 50
       }
     ],
+    "spellicon": "B",
     "wiki_duration": "10 minutes",
     "spell_type": "Beneficial"
   },
@@ -7652,6 +8138,7 @@
         "level": 41
       }
     ],
+    "spellicon": "50",
     "wiki_duration": "5 Min",
     "spell_type": "Detrimental"
   },
@@ -7676,6 +8163,7 @@
         "level": 15
       }
     ],
+    "spellicon": "41",
     "wiki_duration": "2.1 minutes",
     "spell_type": "Detrimental"
   },
@@ -7696,6 +8184,7 @@
         "level": 28
       }
     ],
+    "spellicon": "157",
     "wiki_duration": "15 Min",
     "spell_type": "Beneficial"
   },
@@ -7716,6 +8205,7 @@
         "level": 49
       }
     ],
+    "spellicon": "130",
     "wiki_duration": "72 Min",
     "spell_type": "Beneficial"
   },
@@ -7731,6 +8221,7 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "N",
     "wiki_duration": "1 ticks @L1 to 5 ticks @L5",
     "spell_type": "Detrimental"
   },
@@ -7746,6 +8237,7 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "N",
     "wiki_duration": "1 ticks @L1 to 5 ticks @L5",
     "spell_type": "Detrimental"
   },
@@ -7761,6 +8253,7 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "N",
     "wiki_duration": "1 ticks @L1 to 5 ticks @L5",
     "spell_type": "Detrimental"
   },
@@ -7776,6 +8269,7 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "N",
     "wiki_duration": "1 ticks @L1 to 5 ticks @L5",
     "spell_type": "Detrimental"
   },
@@ -7791,14 +8285,15 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "R",
     "wiki_duration": "1 ticks @L1 to 5 ticks @L5",
     "spell_type": "Detrimental"
   },
   {
     "name": "Inner Fire",
     "category": "buff",
-    "duration_formula": "level_plus_3_x30",
-    "base_ticks": 120,
+    "duration_formula": "fixed",
+    "base_ticks": 270,
     "max_ticks": 270,
     "tier_duration_pct": 10,
     "land_other": "'s body pulses with energy",
@@ -7815,6 +8310,7 @@
         "level": 1
       }
     ],
+    "spellicon": "130",
     "wiki_duration": "27 minutes",
     "spell_type": "Statistic Buff"
   },
@@ -7835,6 +8331,7 @@
         "level": 52
       }
     ],
+    "spellicon": "E",
     "wiki_duration": "11.4 minutes @L52 to 14 minutes @L65",
     "spell_type": "Detrimental"
   },
@@ -7855,6 +8352,7 @@
         "level": 17
       }
     ],
+    "spellicon": "41",
     "wiki_duration": "11 Min",
     "spell_type": "Detrimental"
   },
@@ -7875,6 +8373,7 @@
         "level": 38
       }
     ],
+    "spellicon": "41",
     "wiki_duration": "11 Min",
     "spell_type": "Detrimental"
   },
@@ -7895,6 +8394,7 @@
         "level": 46
       }
     ],
+    "spellicon": "145",
     "wiki_duration": "1 Min 36 Sec",
     "spell_type": "Detrimental"
   },
@@ -7915,6 +8415,7 @@
         "level": 35
       }
     ],
+    "spellicon": "H",
     "wiki_duration": "40 minutes",
     "spell_type": "Beneficial"
   },
@@ -7935,6 +8436,7 @@
         "level": 34
       }
     ],
+    "spellicon": "I",
     "wiki_duration": "3 Min",
     "spell_type": "Detrimental"
   },
@@ -7955,7 +8457,49 @@
         "level": 21
       }
     ],
+    "spellicon": "G",
     "wiki_duration": "5 ticks",
+    "spell_type": "Detrimental"
+  },
+  {
+    "name": "Instill",
+    "category": "debuff",
+    "duration_formula": "fixed",
+    "base_ticks": 6,
+    "max_ticks": 6,
+    "tier_duration_pct": 10,
+    "land_other": "'s feet adhere to the ground",
+    "land_you": "Your feet adhere to the ground",
+    "wear_off_you": "Your feet come free",
+    "watched_by_default": false,
+    "classes": [
+      {
+        "class": "Wizard",
+        "level": 17
+      },
+      {
+        "class": "Enchanter",
+        "level": 25
+      },
+      {
+        "class": "Cleric",
+        "level": 27
+      },
+      {
+        "class": "Shaman",
+        "level": 33
+      },
+      {
+        "class": "Necromancer",
+        "level": 53
+      },
+      {
+        "class": "Paladin",
+        "level": 54
+      }
+    ],
+    "spellicon": "117",
+    "wiki_duration": "1m 36s",
     "spell_type": "Detrimental"
   },
   {
@@ -7975,6 +8519,7 @@
         "level": 11
       }
     ],
+    "spellicon": "H",
     "wiki_duration": "27 minutes",
     "spell_type": "Beneficial"
   },
@@ -7995,6 +8540,7 @@
         "level": 17
       }
     ],
+    "spellicon": "H",
     "wiki_duration": "27 minutes",
     "spell_type": "Beneficial"
   },
@@ -8015,6 +8561,7 @@
         "level": 23
       }
     ],
+    "spellicon": "74",
     "wiki_duration": "60 Min",
     "spell_type": "Beneficial"
   },
@@ -8055,6 +8602,7 @@
         "level": 24
       }
     ],
+    "spellicon": "A",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -8091,6 +8639,7 @@
         "level": 43
       }
     ],
+    "spellicon": "18",
     "wiki_duration": "20 minutes",
     "spell_type": "Invisibility"
   },
@@ -8106,6 +8655,7 @@
     "wear_off_you": "You appear",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "B",
     "wiki_duration": "3 minutes @L1 to 20 minutes @L7",
     "spell_type": "Beneficial"
   },
@@ -8126,6 +8676,7 @@
         "level": 39
       }
     ],
+    "spellicon": "B",
     "wiki_duration": "5 minutes",
     "spell_type": "Beneficial"
   },
@@ -8141,6 +8692,7 @@
     "wear_off_you": "Your image returns",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "B",
     "wiki_duration": "3 minutes @L1 to 18 minutes @L6",
     "spell_type": "Beneficial"
   },
@@ -8165,6 +8717,7 @@
         "level": 10
       }
     ],
+    "spellicon": "B",
     "wiki_duration": "27 minutes @L9 to 36 minutes @L12",
     "spell_type": "Beneficial"
   },
@@ -8201,6 +8754,7 @@
         "level": 17
       }
     ],
+    "spellicon": "B",
     "wiki_duration": "27 minutes",
     "spell_type": "Beneficial"
   },
@@ -8233,6 +8787,7 @@
         "level": 43
       }
     ],
+    "spellicon": "154",
     "wiki_duration": "42 seconds",
     "spell_type": "Detrimental"
   },
@@ -8253,6 +8808,7 @@
         "level": 3
       }
     ],
+    "spellicon": "A",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -8268,6 +8824,7 @@
     "wear_off_you": "",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "161",
     "wiki_duration": "195min",
     "spell_type": "Beneficial"
   },
@@ -8283,6 +8840,7 @@
     "wear_off_you": "",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "161",
     "wiki_duration": "195min",
     "spell_type": "Beneficial"
   },
@@ -8298,6 +8856,7 @@
     "wear_off_you": "",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "161",
     "wiki_duration": "195min",
     "spell_type": "Beneficial"
   },
@@ -8313,6 +8872,7 @@
     "wear_off_you": "",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "161",
     "wiki_duration": "195min",
     "spell_type": "Beneficial"
   },
@@ -8333,6 +8893,7 @@
         "level": 58
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -8353,6 +8914,7 @@
         "level": 45
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -8373,6 +8935,7 @@
         "level": 7
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "2 ticks",
     "spell_type": "Beneficial"
   },
@@ -8388,6 +8951,7 @@
     "wear_off_you": "Your feet slow down",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "A",
     "wiki_duration": "3 minutes @L1 to 18 minutes @L6",
     "spell_type": "Beneficial"
   },
@@ -8408,6 +8972,7 @@
         "level": 60
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -8428,6 +8993,7 @@
         "level": 15
       }
     ],
+    "spellicon": "35",
     "wiki_duration": "18 Sec",
     "spell_type": "Detrimental"
   },
@@ -8448,6 +9014,7 @@
         "level": 8
       }
     ],
+    "spellicon": "D",
     "wiki_duration": "30 Sec",
     "spell_type": "Beneficial"
   },
@@ -8463,6 +9030,7 @@
     "wear_off_you": "Your skin cools down",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "1.2 minutes @L1 to 13 minutes @L60",
     "spell_type": "Beneficial"
   },
@@ -8478,6 +9046,7 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "N",
     "wiki_duration": "1 ticks @L1 to 1 minute @L20",
     "spell_type": "Detrimental"
   },
@@ -8502,6 +9071,7 @@
         "level": 35
       }
     ],
+    "spellicon": "A",
     "wiki_duration": "2 Min 30 Sec",
     "spell_type": "Detrimental"
   },
@@ -8522,6 +9092,7 @@
         "level": 51
       }
     ],
+    "spellicon": "A",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -8542,6 +9113,7 @@
         "level": 20
       }
     ],
+    "spellicon": "A",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -8562,6 +9134,7 @@
         "level": 12
       }
     ],
+    "spellicon": "G",
     "wiki_duration": "7 ticks @L12 to 9 ticks @L15",
     "spell_type": "Detrimental"
   },
@@ -8586,6 +9159,7 @@
         "level": 22
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "54 minutes",
     "spell_type": "Beneficial"
   },
@@ -8606,6 +9180,7 @@
         "level": 49
       }
     ],
+    "spellicon": "P",
     "wiki_duration": "15 Min",
     "spell_type": "Beneficial"
   },
@@ -8626,6 +9201,7 @@
         "level": 59
       }
     ],
+    "spellicon": "P",
     "wiki_duration": "5.9 minutes @L59 to 6.5 minutes @L65",
     "spell_type": "Beneficial"
   },
@@ -8646,15 +9222,16 @@
         "level": 44
       }
     ],
+    "spellicon": "B",
     "wiki_duration": "36 minutes",
     "spell_type": "Beneficial"
   },
   {
     "name": "Levitate",
     "category": "buff",
-    "duration_formula": "level_x3_plus_10",
-    "base_ticks": 40,
-    "max_ticks": 205,
+    "duration_formula": "fixed",
+    "base_ticks": 160,
+    "max_ticks": 160,
     "tier_duration_pct": 10,
     "land_other": "Someone's feet leave the ground",
     "land_you": "Your feet leave the ground",
@@ -8686,6 +9263,7 @@
         "level": 32
       }
     ],
+    "spellicon": "80",
     "wiki_duration": "16 Min",
     "spell_type": "Utility Beneficial"
   },
@@ -8710,6 +9288,7 @@
         "level": 50
       }
     ],
+    "spellicon": "M",
     "wiki_duration": "16 Min",
     "spell_type": "Beneficial"
   },
@@ -8738,6 +9317,7 @@
         "level": 44
       }
     ],
+    "spellicon": "50",
     "wiki_duration": "5 Min",
     "spell_type": "Statistic Debuff"
   },
@@ -8753,6 +9333,7 @@
     "wear_off_you": "Your vulnerability fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "U",
     "wiki_duration": "5 minutes",
     "spell_type": "Detrimental"
   },
@@ -8768,6 +9349,7 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "1 ticks @L1 to 3 minutes @L30",
     "spell_type": "Detrimental"
   },
@@ -8783,6 +9365,7 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "1 ticks @L1 to 3 minutes @L30",
     "spell_type": "Detrimental"
   },
@@ -8798,6 +9381,7 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "1 ticks @L1 to 3 minutes @L30",
     "spell_type": "Detrimental"
   },
@@ -8813,6 +9397,7 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "1 ticks @L1 to 3 minutes @L30",
     "spell_type": "Detrimental"
   },
@@ -8841,6 +9426,7 @@
         "level": 10
       }
     ],
+    "spellicon": "D",
     "wiki_duration": "2 Min",
     "spell_type": "Beneficial"
   },
@@ -8865,6 +9451,7 @@
         "level": 4
       }
     ],
+    "spellicon": "39",
     "wiki_duration": "2 Min",
     "spell_type": "Beneficial"
   },
@@ -8885,6 +9472,7 @@
         "level": 34
       }
     ],
+    "spellicon": "B",
     "wiki_duration": "4 ticks",
     "spell_type": "Beneficial"
   },
@@ -8905,6 +9493,7 @@
         "level": 24
       }
     ],
+    "spellicon": "B",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -8920,6 +9509,7 @@
     "wear_off_you": "}}",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "M",
     "wiki_duration": "1 ticks @L1 to 1 minute @L20",
     "spell_type": "Beneficial"
   },
@@ -8940,6 +9530,7 @@
         "level": 9
       }
     ],
+    "spellicon": "104",
     "wiki_duration": "18 Sec",
     "spell_type": "Beneficial"
   },
@@ -8960,6 +9551,7 @@
         "level": 29
       }
     ],
+    "spellicon": "B",
     "wiki_duration": "2 Min 30 Sec",
     "spell_type": "Beneficial"
   },
@@ -8980,15 +9572,16 @@
         "level": 60
       }
     ],
+    "spellicon": "I",
     "wiki_duration": "13 minutes @L60",
     "spell_type": "Detrimental"
   },
   {
     "name": "Malaise",
     "category": "debuff",
-    "duration_formula": "level_x2_plus_10",
-    "base_ticks": 46,
-    "max_ticks": 140,
+    "duration_formula": "fixed",
+    "base_ticks": 110,
+    "max_ticks": 110,
     "tier_duration_pct": 10,
     "land_other": "looks somewhat uncomfortable",
     "land_you": "You feel somewhat vulnerable",
@@ -9004,6 +9597,7 @@
         "level": 22
       }
     ],
+    "spellicon": "55",
     "wiki_duration": "11 Min",
     "spell_type": "Detrimental"
   },
@@ -9024,6 +9618,7 @@
         "level": 40
       }
     ],
+    "spellicon": "41",
     "wiki_duration": "12 ticks",
     "spell_type": "Damage Over Time"
   },
@@ -9039,6 +9634,7 @@
     "wear_off_you": "The malevolent grasp fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "1 ticks @L1 to 9 ticks @L15",
     "spell_type": "Detrimental"
   },
@@ -9063,6 +9659,7 @@
         "level": 44
       }
     ],
+    "spellicon": "55",
     "wiki_duration": "11 Min",
     "spell_type": "Detrimental"
   },
@@ -9083,6 +9680,7 @@
         "level": 60
       }
     ],
+    "spellicon": "G",
     "wiki_duration": "13 minutes @L60",
     "spell_type": "Detrimental"
   },
@@ -9107,6 +9705,7 @@
         "level": 51
       }
     ],
+    "spellicon": "55",
     "wiki_duration": "11 Min",
     "spell_type": "Detrimental"
   },
@@ -9131,6 +9730,7 @@
         "level": 58
       }
     ],
+    "spellicon": "I",
     "wiki_duration": "18.1 minutes @L57 to 20.5 minutes @L65",
     "spell_type": "Detrimental"
   },
@@ -9146,6 +9746,7 @@
     "wear_off_you": "The manaflare subsides",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "1 ticks @L1 to 4 ticks @L8",
     "spell_type": "Beneficial"
   },
@@ -9161,6 +9762,7 @@
     "wear_off_you": "}}",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -9181,6 +9783,7 @@
         "level": 58
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "1 hour 12 minutes",
     "spell_type": "Beneficial"
   },
@@ -9201,6 +9804,7 @@
         "level": 57
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "2 hours 24 minutes @L57",
     "spell_type": "Beneficial"
   },
@@ -9216,6 +9820,7 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "N",
     "wiki_duration": "1.3 minutes @L1 to 2.5 minutes @L5",
     "spell_type": "Detrimental"
   },
@@ -9236,6 +9841,7 @@
         "level": 56
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "3.5 minutes",
     "spell_type": "Detrimental"
   },
@@ -9256,6 +9862,7 @@
         "level": 42
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -9276,6 +9883,7 @@
         "level": 57
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -9291,6 +9899,7 @@
     "wear_off_you": "You are no longer mesmerized",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "D",
     "wiki_duration": "1 ticks",
     "spell_type": "Detrimental"
   },
@@ -9311,6 +9920,7 @@
         "level": 16
       }
     ],
+    "spellicon": "35",
     "wiki_duration": "4 ticks",
     "spell_type": "Detrimental"
   },
@@ -9331,6 +9941,7 @@
         "level": 2
       }
     ],
+    "spellicon": "35",
     "wiki_duration": "4 ticks",
     "spell_type": "Detrimental"
   },
@@ -9346,6 +9957,7 @@
     "wear_off_you": "}}",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -9361,6 +9973,7 @@
     "wear_off_you": "The cloud departs",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "D",
     "wiki_duration": "1 minute",
     "spell_type": "Detrimental"
   },
@@ -9381,6 +9994,7 @@
         "level": 1
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "36 minutes 6 seconds",
     "spell_type": "Beneficial"
   },
@@ -9401,6 +10015,7 @@
         "level": 10
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "27 minutes",
     "spell_type": "Beneficial"
   },
@@ -9416,6 +10031,7 @@
     "wear_off_you": "You are no longer stunned",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "D",
     "wiki_duration": "20 seconds",
     "spell_type": "Detrimental"
   },
@@ -9436,6 +10052,7 @@
         "level": 58
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "1 hour 12 minutes",
     "spell_type": "Beneficial"
   },
@@ -9451,6 +10068,7 @@
     "wear_off_you": "You wipe the mud away",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "G",
     "wiki_duration": "2 ticks",
     "spell_type": "Detrimental"
   },
@@ -9466,6 +10084,7 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "1 ticks @L1 to 3.9 minutes @L65",
     "spell_type": "Detrimental"
   },
@@ -9481,6 +10100,7 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "1 ticks @L1 to 3.9 minutes @L65",
     "spell_type": "Detrimental"
   },
@@ -9496,6 +10116,7 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "1 ticks @L1 to 3.9 minutes @L65",
     "spell_type": "Detrimental"
   },
@@ -9511,6 +10132,7 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "1 ticks @L1 to 3.9 minutes @L65",
     "spell_type": "Detrimental"
   },
@@ -9526,6 +10148,7 @@
     "wear_off_you": "The mana infusion fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "M",
     "wiki_duration": "3 minutes @L1 to 1 hour 3 minutes @L21",
     "spell_type": "Beneficial"
   },
@@ -9546,6 +10169,7 @@
         "level": 58
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "54 minutes",
     "spell_type": "Beneficial"
   },
@@ -9561,6 +10185,7 @@
     "wear_off_you": "The melody of nature leaves your arms",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "A",
     "wiki_duration": "2.5 minutes",
     "spell_type": "Beneficial"
   },
@@ -9581,6 +10206,7 @@
         "level": 57
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "1 hour 21 minutes",
     "spell_type": "Beneficial"
   },
@@ -9605,6 +10231,7 @@
         "level": 31
       }
     ],
+    "spellicon": "877",
     "wiki_duration": "1 Min 30 Sec",
     "spell_type": "Detrimental"
   },
@@ -9625,6 +10252,7 @@
         "level": 52
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -9645,6 +10273,7 @@
         "level": 31
       }
     ],
+    "spellicon": "9",
     "wiki_duration": "54 minutes",
     "spell_type": "Statistic Buff"
   },
@@ -9665,6 +10294,7 @@
         "level": 58
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -9685,8 +10315,30 @@
         "level": 47
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
+  },
+  {
+    "name": "Nonchalance",
+    "category": "buff",
+    "duration_formula": "fixed",
+    "base_ticks": 4,
+    "max_ticks": 4,
+    "tier_duration_pct": 10,
+    "land_other": "falls into a state of nonchalance",
+    "land_you": "You fall into a state of nonchalance",
+    "wear_off_you": "",
+    "watched_by_default": false,
+    "classes": [
+      {
+        "class": "Shaman",
+        "level": 30
+      }
+    ],
+    "spellicon": "118",
+    "wiki_duration": "24s",
+    "spell_type": "Heal Over Time"
   },
   {
     "name": "Null Aura",
@@ -9700,6 +10352,7 @@
     "wear_off_you": "The potion has worn off",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "K",
     "wiki_duration": "30 minutes",
     "spell_type": "Beneficial"
   },
@@ -9724,6 +10377,7 @@
         "level": 9
       }
     ],
+    "spellicon": "40",
     "wiki_duration": "2 minutes",
     "spell_type": "Beneficial"
   },
@@ -9744,6 +10398,7 @@
         "level": 4
       }
     ],
+    "spellicon": "O",
     "wiki_duration": "2 ticks @L4 to 3.9 minutes @L65",
     "spell_type": "Beneficial"
   },
@@ -9764,6 +10419,7 @@
         "level": 10
       }
     ],
+    "spellicon": "O",
     "wiki_duration": "3 Min",
     "spell_type": "Beneficial"
   },
@@ -9784,6 +10440,7 @@
         "level": 31
       }
     ],
+    "spellicon": "O",
     "wiki_duration": "5 Min",
     "spell_type": "Beneficial"
   },
@@ -9804,6 +10461,7 @@
         "level": 34
       }
     ],
+    "spellicon": "O",
     "wiki_duration": "5 minutes",
     "spell_type": "Beneficial"
   },
@@ -9824,6 +10482,7 @@
         "level": 27
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "45 minutes",
     "spell_type": "Beneficial"
   },
@@ -9839,6 +10498,7 @@
     "wear_off_you": "The flames die down",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "O",
     "wiki_duration": "1 minute",
     "spell_type": "Detrimental"
   },
@@ -9859,6 +10519,7 @@
         "level": 43
       }
     ],
+    "spellicon": "165",
     "wiki_duration": "30 seconds",
     "spell_type": "Curse"
   },
@@ -9874,6 +10535,7 @@
     "wear_off_you": "You feel dazed",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "G",
     "wiki_duration": "1 ticks @L1 to 2 ticks @L4",
     "spell_type": "Detrimental"
   },
@@ -9894,6 +10556,7 @@
         "level": 56
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "1 hour 21 minutes",
     "spell_type": "Beneficial"
   },
@@ -9922,6 +10585,7 @@
         "level": 49
       }
     ],
+    "spellicon": "D",
     "wiki_duration": "42 Sec",
     "spell_type": "Beneficial"
   },
@@ -9942,6 +10606,7 @@
         "level": 45
       }
     ],
+    "spellicon": "J",
     "wiki_duration": "11 Min",
     "spell_type": "Beneficial"
   },
@@ -9962,6 +10627,7 @@
         "level": 39
       }
     ],
+    "spellicon": "J",
     "wiki_duration": "11 Min",
     "spell_type": "Beneficial"
   },
@@ -9994,6 +10660,7 @@
         "level": 49
       }
     ],
+    "spellicon": "4",
     "wiki_duration": "36 minutes",
     "spell_type": "Movement Buff"
   },
@@ -10014,6 +10681,7 @@
         "level": 35
       }
     ],
+    "spellicon": "A",
     "wiki_duration": "36 minutes",
     "spell_type": "Beneficial"
   },
@@ -10034,6 +10702,7 @@
         "level": 44
       }
     ],
+    "spellicon": "G",
     "wiki_duration": "4 ticks",
     "spell_type": "Beneficial"
   },
@@ -10058,6 +10727,7 @@
         "level": 16
       }
     ],
+    "spellicon": "165",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -10086,6 +10756,7 @@
         "level": 54
       }
     ],
+    "spellicon": "G",
     "wiki_duration": "9 ticks",
     "spell_type": "Detrimental"
   },
@@ -10122,6 +10793,7 @@
         "level": 56
       }
     ],
+    "spellicon": "Q",
     "wiki_duration": "3 minutes",
     "spell_type": "Detrimental"
   },
@@ -10137,6 +10809,7 @@
     "wear_off_you": "Your feet come free",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "N",
     "wiki_duration": "1 ticks @L1 to 7 ticks @L14",
     "spell_type": "Detrimental"
   },
@@ -10152,6 +10825,7 @@
     "wear_off_you": "Your feet come free",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "N",
     "wiki_duration": "1 ticks @L1 to 1.2 minutes @L24",
     "spell_type": "Detrimental"
   },
@@ -10167,6 +10841,7 @@
     "wear_off_you": "Your feet come free",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "N",
     "wiki_duration": "1 ticks @L1 to 1.7 minutes @L34",
     "spell_type": "Detrimental"
   },
@@ -10187,6 +10862,7 @@
         "level": 52
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "1 hour 30 minutes",
     "spell_type": "Beneficial"
   },
@@ -10211,6 +10887,7 @@
         "level": 52
       }
     ],
+    "spellicon": "41",
     "wiki_duration": "1 Min 18 Sec",
     "spell_type": "Detrimental"
   },
@@ -10226,6 +10903,7 @@
     "wear_off_you": "You are no longer diseased",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "E",
     "wiki_duration": "3 minutes @L1 to 10 minutes @L4",
     "spell_type": "Detrimental"
   },
@@ -10246,6 +10924,7 @@
         "level": 55
       }
     ],
+    "spellicon": "87",
     "wiki_duration": "1 hour 12 minutes",
     "spell_type": "Beneficial"
   },
@@ -10261,6 +10940,7 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "N",
     "wiki_duration": "1.2 minutes @L1 to 1.5 minutes @L3",
     "spell_type": "Detrimental"
   },
@@ -10281,6 +10961,7 @@
         "level": 4
       }
     ],
+    "spellicon": "N",
     "wiki_duration": "24 Sec",
     "spell_type": "Detrimental"
   },
@@ -10296,6 +10977,7 @@
     "wear_off_you": "",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "N",
     "wiki_duration": "8 hours 20 minutes",
     "spell_type": "Detrimental"
   },
@@ -10311,6 +10993,7 @@
     "wear_off_you": "The potion has worn off",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "R",
     "wiki_duration": "30 minutes",
     "spell_type": "Beneficial"
   },
@@ -10331,6 +11014,7 @@
         "level": 59
       }
     ],
+    "spellicon": "E",
     "wiki_duration": "1.8 minutes",
     "spell_type": "Detrimental"
   },
@@ -10351,6 +11035,7 @@
         "level": 60
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "6 minutes @L60",
     "spell_type": "Beneficial"
   },
@@ -10366,6 +11051,7 @@
     "wear_off_you": "Your primal essence fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "R",
     "wiki_duration": "1 hour 3 minutes",
     "spell_type": "Beneficial"
   },
@@ -10386,6 +11072,7 @@
         "level": 44
       }
     ],
+    "spellicon": "99",
     "wiki_duration": "30 Sec",
     "spell_type": "Beneficial"
   },
@@ -10401,6 +11088,7 @@
     "wear_off_you": "The blue light fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "J",
     "wiki_duration": "1.2 minutes @L1 to 5 minutes @L20",
     "spell_type": "Beneficial"
   },
@@ -10425,6 +11113,7 @@
         "level": 48
       }
     ],
+    "spellicon": "151",
     "wiki_duration": "36 minutes",
     "spell_type": "Statistic Buff"
   },
@@ -10445,6 +11134,7 @@
         "level": 39
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "54 minutes",
     "spell_type": "Beneficial"
   },
@@ -10465,6 +11155,7 @@
         "level": 19
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "27 minutes",
     "spell_type": "Beneficial"
   },
@@ -10485,6 +11176,7 @@
         "level": 27
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "36 Min",
     "spell_type": "Beneficial"
   },
@@ -10505,6 +11197,7 @@
         "level": 60
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "1 hour 40 minutes",
     "spell_type": "Beneficial"
   },
@@ -10525,6 +11218,7 @@
         "level": 9
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "27 minutes",
     "spell_type": "Beneficial"
   },
@@ -10545,6 +11239,7 @@
         "level": 33
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -10565,6 +11260,7 @@
         "level": 41
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -10585,6 +11281,7 @@
         "level": 37
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -10605,6 +11302,7 @@
         "level": 29
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -10625,6 +11323,7 @@
         "level": 25
       }
     ],
+    "spellicon": "157",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -10645,6 +11344,7 @@
         "level": 13
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -10660,6 +11360,7 @@
     "wear_off_you": "}}",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "E",
     "wiki_duration": "1 ticks @L1 to 8 ticks @L16",
     "spell_type": "Detrimental"
   },
@@ -10680,14 +11381,15 @@
         "level": 58
       }
     ],
+    "spellicon": "O",
     "wiki_duration": "1.9 minutes",
     "spell_type": "Detrimental"
   },
   {
     "name": "Quickness",
     "category": "buff",
-    "duration_formula": "level_x2_plus_10",
-    "base_ticks": 42,
+    "duration_formula": "fixed",
+    "base_ticks": 110,
     "max_ticks": 110,
     "tier_duration_pct": 10,
     "land_other": "feels much faster",
@@ -10704,6 +11406,7 @@
         "level": 26
       }
     ],
+    "spellicon": "16",
     "wiki_duration": "11 Min",
     "spell_type": "Beneficial"
   },
@@ -10724,6 +11427,7 @@
         "level": 58
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -10739,6 +11443,7 @@
     "wear_off_you": "You are no longer diseased",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "E",
     "wiki_duration": "5 minutes 14 seconds",
     "spell_type": "Detrimental"
   },
@@ -10759,6 +11464,7 @@
         "level": 31
       }
     ],
+    "spellicon": "15",
     "wiki_duration": "36 minutes",
     "spell_type": "Beneficial"
   },
@@ -10774,6 +11480,7 @@
     "wear_off_you": "Tallon's Rage departs",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "O",
     "wiki_duration": "1 ticks @L1 to 2 minutes @L40",
     "spell_type": "Beneficial"
   },
@@ -10789,6 +11496,7 @@
     "wear_off_you": "You regain your strength",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "O",
     "wiki_duration": "1 ticks @L1 to 2 minutes @L40",
     "spell_type": "Detrimental"
   },
@@ -10804,6 +11512,7 @@
     "wear_off_you": "}}",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "O",
     "wiki_duration": "1 ticks @L1 to 3 minutes @L60",
     "spell_type": "Detrimental"
   },
@@ -10828,6 +11537,7 @@
         "level": 41
       }
     ],
+    "spellicon": "6",
     "wiki_duration": "45 minutes",
     "spell_type": "Statistic Buff"
   },
@@ -10848,6 +11558,7 @@
         "level": 38
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "5 Min",
     "spell_type": "Beneficial"
   },
@@ -10868,6 +11579,7 @@
         "level": 59
       }
     ],
+    "spellicon": "D",
     "wiki_duration": "4 ticks",
     "spell_type": "Detrimental"
   },
@@ -10883,6 +11595,7 @@
     "wear_off_you": "Your sapping vitality fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "R",
     "wiki_duration": "3 minutes",
     "spell_type": "Beneficial"
   },
@@ -10907,15 +11620,16 @@
         "level": 18
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "3 minutes",
     "spell_type": "Beneficial"
   },
   {
     "name": "Regeneration",
     "category": "buff",
-    "duration_formula": "level_x3_plus_10",
-    "base_ticks": 79,
-    "max_ticks": 205,
+    "duration_formula": "fixed",
+    "base_ticks": 160,
+    "max_ticks": 160,
     "tier_duration_pct": 10,
     "land_other": "begins to regenerate",
     "land_you": "You begin to regenerate",
@@ -10931,6 +11645,7 @@
         "level": 23
       }
     ],
+    "spellicon": "118",
     "wiki_duration": "16 Min",
     "spell_type": "Beneficial"
   },
@@ -10955,6 +11670,7 @@
         "level": 52
       }
     ],
+    "spellicon": "J",
     "wiki_duration": "16.6 minutes @L52 to 19 minutes @L60",
     "spell_type": "Beneficial"
   },
@@ -10975,6 +11691,7 @@
         "level": 58
       }
     ],
+    "spellicon": "J",
     "wiki_duration": "18.4 minutes @L58 to 19 minutes @L60",
     "spell_type": "Beneficial"
   },
@@ -10990,6 +11707,7 @@
     "wear_off_you": "You speed back up",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "J",
     "wiki_duration": "2 minutes",
     "spell_type": "Beneficial"
   },
@@ -11010,6 +11728,7 @@
         "level": 45
       }
     ],
+    "spellicon": "39",
     "wiki_duration": "24 Sec",
     "spell_type": "Beneficial"
   },
@@ -11030,6 +11749,7 @@
         "level": 51
       }
     ],
+    "spellicon": "G",
     "wiki_duration": "8 ticks",
     "spell_type": "Detrimental"
   },
@@ -11070,6 +11790,7 @@
         "level": 24
       }
     ],
+    "spellicon": "57",
     "wiki_duration": "36 minutes",
     "spell_type": "Resist Buff"
   },
@@ -11110,6 +11831,7 @@
         "level": 30
       }
     ],
+    "spellicon": "65",
     "wiki_duration": "36 minutes",
     "spell_type": "Resist Buff"
   },
@@ -11142,6 +11864,7 @@
         "level": 46
       }
     ],
+    "spellicon": "52",
     "wiki_duration": "36 minutes",
     "spell_type": "Resist Buff"
   },
@@ -11178,6 +11901,7 @@
         "level": 55
       }
     ],
+    "spellicon": "69",
     "wiki_duration": "36 minutes",
     "spell_type": "Resist Buff"
   },
@@ -11206,6 +11930,7 @@
         "level": 44
       }
     ],
+    "spellicon": "61",
     "wiki_duration": "36 minutes",
     "spell_type": "Resist Buff"
   },
@@ -11230,6 +11955,7 @@
         "level": 60
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "1 hour 3 minutes",
     "spell_type": "Beneficial"
   },
@@ -11254,6 +11980,7 @@
         "level": 52
       }
     ],
+    "spellicon": "D",
     "wiki_duration": "3 minutes",
     "spell_type": "Beneficial"
   },
@@ -11269,6 +11996,7 @@
     "wear_off_you": "You feel your strength return",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "G",
     "wiki_duration": "5 minutes",
     "spell_type": "Detrimental"
   },
@@ -11289,6 +12017,7 @@
         "level": 29
       }
     ],
+    "spellicon": "158",
     "wiki_duration": "60 Min",
     "spell_type": "Beneficial"
   },
@@ -11309,6 +12038,7 @@
         "level": 54
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "1 hour 12 minutes",
     "spell_type": "Beneficial"
   },
@@ -11329,6 +12059,7 @@
         "level": 25
       }
     ],
+    "spellicon": "8",
     "wiki_duration": "45 minutes",
     "spell_type": "Statistic Buff"
   },
@@ -11349,6 +12080,7 @@
         "level": 45
       }
     ],
+    "spellicon": "C",
     "wiki_duration": "2 ticks",
     "spell_type": "Beneficial"
   },
@@ -11369,6 +12101,7 @@
         "level": 39
       }
     ],
+    "spellicon": "O",
     "wiki_duration": "1.9 minutes @L39 to 3 minutes @L60",
     "spell_type": "Detrimental"
   },
@@ -11384,6 +12117,7 @@
     "wear_off_you": "}}",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "1 ticks @L1 to 1 ticks @L60",
     "spell_type": "Detrimental"
   },
@@ -11424,6 +12158,7 @@
         "level": 34
       }
     ],
+    "spellicon": "117",
     "wiki_duration": "48 Sec",
     "spell_type": "Detrimental"
   },
@@ -11439,6 +12174,7 @@
     "wear_off_you": "}}",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "E",
     "wiki_duration": "1 ticks @L1 to 8 ticks @L16",
     "spell_type": "Detrimental"
   },
@@ -11454,6 +12190,7 @@
     "wear_off_you": "Your increased healing fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "1.3 minutes @L1 to 20.5 minutes @L65",
     "spell_type": "Beneficial"
   },
@@ -11474,6 +12211,7 @@
         "level": 13
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "36 minutes",
     "spell_type": "Beneficial"
   },
@@ -11494,6 +12232,7 @@
         "level": 22
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "54 minutes",
     "spell_type": "Beneficial"
   },
@@ -11514,6 +12253,7 @@
         "level": 33
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "1 hour 12 minutes",
     "spell_type": "Beneficial"
   },
@@ -11534,6 +12274,7 @@
         "level": 40
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "1 hour 30 minutes",
     "spell_type": "Beneficial"
   },
@@ -11554,6 +12295,7 @@
         "level": 52
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "1 hour 50 minutes",
     "spell_type": "Beneficial"
   },
@@ -11574,6 +12316,7 @@
         "level": 41
       }
     ],
+    "spellicon": "T",
     "wiki_duration": "60 Min",
     "spell_type": "Beneficial"
   },
@@ -11598,6 +12341,7 @@
         "level": 26
       }
     ],
+    "spellicon": "112",
     "wiki_duration": "45 minutes",
     "spell_type": "Beneficial"
   },
@@ -11622,6 +12366,7 @@
         "level": 10
       }
     ],
+    "spellicon": "151",
     "wiki_duration": "27 minutes",
     "spell_type": "Statistic Buff"
   },
@@ -11637,6 +12382,7 @@
     "wear_off_you": "The scarabs die",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "1 ticks @L1 to 3.2 minutes @L65",
     "spell_type": "Detrimental"
   },
@@ -11657,6 +12403,7 @@
         "level": 37
       }
     ],
+    "spellicon": "160",
     "wiki_duration": "11 Min",
     "spell_type": "Detrimental"
   },
@@ -11677,15 +12424,16 @@
         "level": 10
       }
     ],
+    "spellicon": "160",
     "wiki_duration": "11 Min",
     "spell_type": "Detrimental"
   },
   {
     "name": "Scent of Shadow",
     "category": "debuff",
-    "duration_formula": "level_x2_plus_10",
-    "base_ticks": 52,
-    "max_ticks": 140,
+    "duration_formula": "fixed",
+    "base_ticks": 110,
+    "max_ticks": 110,
     "tier_duration_pct": 10,
     "land_other": "is surrounded by a dim haze",
     "land_you": "You smell the faint scent of shadow",
@@ -11697,6 +12445,7 @@
         "level": 21
       }
     ],
+    "spellicon": "160",
     "wiki_duration": "11 Min",
     "spell_type": "Detrimental"
   },
@@ -11717,6 +12466,7 @@
         "level": 52
       }
     ],
+    "spellicon": "G",
     "wiki_duration": "11.4 minutes @L52 to 13 minutes @L60",
     "spell_type": "Detrimental"
   },
@@ -11737,6 +12487,7 @@
         "level": 46
       }
     ],
+    "spellicon": "51",
     "wiki_duration": "6 Sec",
     "spell_type": "Detrimental"
   },
@@ -11752,6 +12503,7 @@
     "wear_off_you": "Your skin cools down",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "1.2 minutes @L1 to 13 minutes @L60",
     "spell_type": "Beneficial"
   },
@@ -11776,6 +12528,7 @@
         "level": 35
       }
     ],
+    "spellicon": "41",
     "wiki_duration": "1 Min 12 Sec",
     "spell_type": "Detrimental"
   },
@@ -11796,6 +12549,7 @@
         "level": 15
       }
     ],
+    "spellicon": "3",
     "wiki_duration": "10 Min",
     "spell_type": "Detrimental"
   },
@@ -11816,6 +12570,7 @@
         "level": 23
       }
     ],
+    "spellicon": "1",
     "wiki_duration": "10 Min",
     "spell_type": "Detrimental"
   },
@@ -11831,6 +12586,7 @@
     "wear_off_you": "Your surge of strength fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "R",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -11851,6 +12607,7 @@
         "level": 22
       }
     ],
+    "spellicon": "G",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -11866,6 +12623,7 @@
     "wear_off_you": "The blistering stops",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "O",
     "wiki_duration": "1 ticks @L1 to 5 ticks @L9",
     "spell_type": "Detrimental"
   },
@@ -11886,6 +12644,7 @@
         "level": 15
       }
     ],
+    "spellicon": "51",
     "wiki_duration": "6 Sec",
     "spell_type": "Detrimental"
   },
@@ -11901,6 +12660,7 @@
     "wear_off_you": "Your fever has broken",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "E",
     "wiki_duration": "1.3 minutes @L1 to 2.1 minutes @L4",
     "spell_type": "Detrimental"
   },
@@ -11937,6 +12697,7 @@
         "level": 32
       }
     ],
+    "spellicon": "19",
     "wiki_duration": "27 minutes",
     "spell_type": "Beneficial"
   },
@@ -11952,6 +12713,7 @@
     "wear_off_you": "The fury fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "J",
     "wiki_duration": "3 minutes @L1 to 7.5 minutes @L3",
     "spell_type": "Beneficial"
   },
@@ -11972,6 +12734,7 @@
         "level": 5
       }
     ],
+    "spellicon": "A",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -11992,6 +12755,7 @@
         "level": 49
       }
     ],
+    "spellicon": "A",
     "wiki_duration": "2 minutes, 30 seconds",
     "spell_type": "Beneficial"
   },
@@ -12012,6 +12776,7 @@
         "level": 54
       }
     ],
+    "spellicon": "A",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -12032,6 +12797,7 @@
         "level": 48
       }
     ],
+    "spellicon": "143",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -12052,6 +12818,7 @@
         "level": 23
       }
     ],
+    "spellicon": "A",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -12072,6 +12839,7 @@
         "level": 51
       }
     ],
+    "spellicon": "A",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -12092,6 +12860,7 @@
         "level": 5
       }
     ],
+    "spellicon": "L",
     "wiki_duration": "6 minutes",
     "spell_type": "Beneficial"
   },
@@ -12112,6 +12881,7 @@
         "level": 25
       }
     ],
+    "spellicon": "153",
     "wiki_duration": "30 Sec",
     "spell_type": "Detrimental"
   },
@@ -12140,6 +12910,7 @@
         "level": 16
       }
     ],
+    "spellicon": "86",
     "wiki_duration": "27 minutes",
     "spell_type": "Vision"
   },
@@ -12160,6 +12931,7 @@
         "level": 50
       }
     ],
+    "spellicon": "17",
     "wiki_duration": "2 Min 30 Sec",
     "spell_type": "Slow"
   },
@@ -12180,6 +12952,7 @@
         "level": 17
       }
     ],
+    "spellicon": "17",
     "wiki_duration": "2 Min 30 Sec",
     "spell_type": "Detrimental"
   },
@@ -12200,6 +12973,7 @@
         "level": 38
       }
     ],
+    "spellicon": "17",
     "wiki_duration": "2 Min 30 Sec",
     "spell_type": "Detrimental"
   },
@@ -12220,6 +12994,7 @@
         "level": 37
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "1 hour 12 minutes",
     "spell_type": "Beneficial"
   },
@@ -12240,6 +13015,7 @@
         "level": 48
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "1 hour 30 minutes",
     "spell_type": "Beneficial"
   },
@@ -12260,6 +13036,7 @@
         "level": 17
       }
     ],
+    "spellicon": "140",
     "wiki_duration": "24 seconds",
     "spell_type": "Beneficial"
   },
@@ -12284,6 +13061,7 @@
         "level": 37
       }
     ],
+    "spellicon": "1",
     "wiki_duration": "6 Min",
     "spell_type": "Detrimental"
   },
@@ -12304,6 +13082,7 @@
         "level": 54
       }
     ],
+    "spellicon": "G",
     "wiki_duration": "4 ticks",
     "spell_type": "Beneficial"
   },
@@ -12324,6 +13103,7 @@
         "level": 1
       }
     ],
+    "spellicon": "M",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -12344,6 +13124,7 @@
         "level": 35
       }
     ],
+    "spellicon": "T",
     "wiki_duration": "36 minutes",
     "spell_type": "Beneficial"
   },
@@ -12364,6 +13145,7 @@
         "level": 19
       }
     ],
+    "spellicon": "B",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -12384,6 +13166,7 @@
         "level": 17
       }
     ],
+    "spellicon": "P",
     "wiki_duration": "15 Min",
     "spell_type": "Beneficial"
   },
@@ -12404,6 +13187,7 @@
         "level": 58
       }
     ],
+    "spellicon": "P",
     "wiki_duration": "6.8 minutes @L58 to 7 minutes @L60",
     "spell_type": "Beneficial"
   },
@@ -12428,14 +13212,15 @@
         "level": 43
       }
     ],
+    "spellicon": "155",
     "wiki_duration": "15 Min",
     "spell_type": "Beneficial"
   },
   {
     "name": "Shield of Fire",
     "category": "buff",
-    "duration_formula": "level_x3_plus_10",
-    "base_ticks": 31,
+    "duration_formula": "fixed",
+    "base_ticks": 150,
     "max_ticks": 150,
     "tier_duration_pct": 10,
     "land_other": "is enveloped by flame",
@@ -12448,6 +13233,7 @@
         "level": 7
       }
     ],
+    "spellicon": "157",
     "wiki_duration": "15 Min",
     "spell_type": "Beneficial"
   },
@@ -12468,6 +13254,7 @@
         "level": 19
       }
     ],
+    "spellicon": "O",
     "wiki_duration": "15 Min",
     "spell_type": "Beneficial"
   },
@@ -12488,6 +13275,7 @@
         "level": 45
       }
     ],
+    "spellicon": "157",
     "wiki_duration": "15 Min",
     "spell_type": "Beneficial"
   },
@@ -12508,6 +13296,7 @@
         "level": 49
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -12532,6 +13321,7 @@
         "level": 58
       }
     ],
+    "spellicon": "P",
     "wiki_duration": "15 Min",
     "spell_type": "Beneficial"
   },
@@ -12547,6 +13337,7 @@
     "wear_off_you": "The maelstrom fades away",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "S",
     "wiki_duration": "3 minutes @L1 to 1 hour 0 minutes @L20",
     "spell_type": "Beneficial"
   },
@@ -12579,14 +13370,15 @@
         "level": 54
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "1 hour 30 minutes",
     "spell_type": "Beneficial"
   },
   {
     "name": "Shield of Thistles",
     "category": "buff",
-    "duration_formula": "level_x3_plus_10",
-    "base_ticks": 31,
+    "duration_formula": "fixed",
+    "base_ticks": 150,
     "max_ticks": 150,
     "tier_duration_pct": 10,
     "land_other": "is surrounded by a thorny barrier",
@@ -12603,6 +13395,7 @@
         "level": 24
       }
     ],
+    "spellicon": "155",
     "wiki_duration": "15 Min",
     "spell_type": "Beneficial"
   },
@@ -12623,6 +13416,7 @@
         "level": 47
       }
     ],
+    "spellicon": "P",
     "wiki_duration": "15 Min",
     "spell_type": "Beneficial"
   },
@@ -12647,6 +13441,7 @@
         "level": 60
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "1 hour 12 minutes",
     "spell_type": "Beneficial"
   },
@@ -12675,6 +13470,7 @@
         "level": 13
       }
     ],
+    "spellicon": "77",
     "wiki_duration": "36 minutes",
     "spell_type": "Beneficial"
   },
@@ -12695,6 +13491,7 @@
         "level": 31
       }
     ],
+    "spellicon": "151",
     "wiki_duration": "45 minutes",
     "spell_type": "Beneficial"
   },
@@ -12719,6 +13516,7 @@
         "level": 38
       }
     ],
+    "spellicon": "B",
     "wiki_duration": "16 Min",
     "spell_type": "Beneficial"
   },
@@ -12739,6 +13537,7 @@
         "level": 41
       }
     ],
+    "spellicon": "A",
     "wiki_duration": "2 Min 30 Sec",
     "spell_type": "Detrimental"
   },
@@ -12759,6 +13558,7 @@
         "level": 55
       }
     ],
+    "spellicon": "G",
     "wiki_duration": "20 minutes",
     "spell_type": "Beneficial"
   },
@@ -12779,6 +13579,7 @@
         "level": 35
       }
     ],
+    "spellicon": "3",
     "wiki_duration": "10 minutes",
     "spell_type": "Detrimental"
   },
@@ -12799,6 +13600,7 @@
         "level": 50
       }
     ],
+    "spellicon": "1",
     "wiki_duration": "10 minutes",
     "spell_type": "Detrimental"
   },
@@ -12819,6 +13621,7 @@
         "level": 54
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "1 hour 12 minutes",
     "spell_type": "Beneficial"
   },
@@ -12839,6 +13642,7 @@
         "level": 55
       }
     ],
+    "spellicon": "G",
     "wiki_duration": "20 minutes",
     "spell_type": "Beneficial"
   },
@@ -12846,8 +13650,8 @@
     "name": "Sicken",
     "category": "dot",
     "duration_formula": "fixed",
-    "base_ticks": 10,
-    "max_ticks": 10,
+    "base_ticks": 14,
+    "max_ticks": 14,
     "tier_duration_pct": 5,
     "land_other": "sweats and shivers, looking feverish",
     "land_you": "You feel feverish",
@@ -12863,6 +13667,7 @@
         "level": 4
       }
     ],
+    "spellicon": "41",
     "wiki_duration": "1 min 24s",
     "spell_type": "Damage Over Time"
   },
@@ -12883,6 +13688,7 @@
         "level": 19
       }
     ],
+    "spellicon": "B",
     "wiki_duration": "2 Min 30 Sec",
     "spell_type": "Beneficial"
   },
@@ -12903,6 +13709,7 @@
         "level": 9
       }
     ],
+    "spellicon": "B",
     "wiki_duration": "27 minutes",
     "spell_type": "Beneficial"
   },
@@ -12918,6 +13725,7 @@
     "wear_off_you": "The silvery hue fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "K",
     "wiki_duration": "3 minutes @L1 to 36 minutes @L12",
     "spell_type": "Beneficial"
   },
@@ -12938,6 +13746,7 @@
         "level": 40
       }
     ],
+    "spellicon": "H",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -12962,6 +13771,7 @@
         "level": 6
       }
     ],
+    "spellicon": "7",
     "wiki_duration": "6 minutes",
     "spell_type": "Detrimental"
   },
@@ -12982,6 +13792,7 @@
         "level": 39
       }
     ],
+    "spellicon": "M",
     "wiki_duration": "10 minutes",
     "spell_type": "Beneficial"
   },
@@ -13006,6 +13817,7 @@
         "level": 39
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "54 minutes",
     "spell_type": "Beneficial"
   },
@@ -13030,6 +13842,7 @@
         "level": 49
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "1 hour 12 minutes 24 seconds",
     "spell_type": "Beneficial"
   },
@@ -13054,6 +13867,7 @@
         "level": 14
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "27 minutes",
     "spell_type": "Beneficial"
   },
@@ -13078,14 +13892,15 @@
         "level": 24
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "36 minutes",
     "spell_type": "Beneficial"
   },
   {
     "name": "Skin Like Wood",
     "category": "buff",
-    "duration_formula": "level_plus_3_x30",
-    "base_ticks": 120,
+    "duration_formula": "fixed",
+    "base_ticks": 270,
     "max_ticks": 270,
     "tier_duration_pct": 10,
     "land_other": "'s skin turns hard as wood",
@@ -13102,6 +13917,7 @@
         "level": 1
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "27 minutes",
     "spell_type": "Beneficial"
   },
@@ -13122,6 +13938,7 @@
         "level": 55
       }
     ],
+    "spellicon": "B",
     "wiki_duration": "17.5 minutes @L55 to 20.5 minutes @L65",
     "spell_type": "Beneficial"
   },
@@ -13137,6 +13954,7 @@
     "wear_off_you": "You no longer smell of skunk",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "E",
     "wiki_duration": "3 minutes @L1 to 27 minutes @L9",
     "spell_type": "Detrimental"
   },
@@ -13152,15 +13970,79 @@
     "wear_off_you": "}}",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "E",
     "wiki_duration": "1 ticks @L1 to 6.5 minutes @L65",
     "spell_type": "Detrimental"
   },
   {
+    "name": "Sloths Healing",
+    "category": "buff",
+    "duration_formula": "fixed",
+    "base_ticks": 4,
+    "max_ticks": 4,
+    "tier_duration_pct": 10,
+    "land_other": "",
+    "land_you": "",
+    "wear_off_you": "",
+    "watched_by_default": false,
+    "classes": [
+      {
+        "class": "Shaman",
+        "level": 50
+      }
+    ],
+    "spellicon": "118",
+    "wiki_duration": "24s",
+    "spell_type": "Heal Over Time"
+  },
+  {
+    "name": "Slugs Healing",
+    "category": "buff",
+    "duration_formula": "fixed",
+    "base_ticks": 4,
+    "max_ticks": 4,
+    "tier_duration_pct": 10,
+    "land_other": "",
+    "land_you": "",
+    "wear_off_you": "",
+    "watched_by_default": false,
+    "classes": [
+      {
+        "class": "Shaman",
+        "level": 42
+      }
+    ],
+    "spellicon": "118",
+    "wiki_duration": "24s",
+    "spell_type": "Heal Over Time"
+  },
+  {
+    "name": "Snails Healing",
+    "category": "buff",
+    "duration_formula": "fixed",
+    "base_ticks": 4,
+    "max_ticks": 4,
+    "tier_duration_pct": 10,
+    "land_other": "",
+    "land_you": "",
+    "wear_off_you": "",
+    "watched_by_default": false,
+    "classes": [
+      {
+        "class": "Shaman",
+        "level": 14
+      }
+    ],
+    "spellicon": "118",
+    "wiki_duration": "24s",
+    "spell_type": "Heal Over Time"
+  },
+  {
     "name": "Snare",
     "category": "debuff",
-    "duration_formula": "level_div_2_plus_5",
-    "base_ticks": 6,
-    "max_ticks": 39,
+    "duration_formula": "fixed",
+    "base_ticks": 30,
+    "max_ticks": 30,
     "tier_duration_pct": 10,
     "land_other": "has been ensnared",
     "land_you": "You are ensnared",
@@ -13176,6 +14058,7 @@
         "level": 6
       }
     ],
+    "spellicon": "5",
     "wiki_duration": "3 Min",
     "spell_type": "Detrimental"
   },
@@ -13196,6 +14079,7 @@
         "level": 39
       }
     ],
+    "spellicon": "D",
     "wiki_duration": "1 Min",
     "spell_type": "Detrimental"
   },
@@ -13216,6 +14100,7 @@
         "level": 59
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -13236,6 +14121,7 @@
         "level": 27
       }
     ],
+    "spellicon": "D",
     "wiki_duration": "4 ticks",
     "spell_type": "Detrimental"
   },
@@ -13256,6 +14142,7 @@
         "level": 56
       }
     ],
+    "spellicon": "G",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -13276,6 +14163,7 @@
         "level": 15
       }
     ],
+    "spellicon": "A",
     "wiki_duration": "1 minute, 30 seconds",
     "spell_type": "Beneficial"
   },
@@ -13291,6 +14179,7 @@
     "wear_off_you": "The battle fury fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "F",
     "wiki_duration": "2.5 minutes",
     "spell_type": "Beneficial"
   },
@@ -13311,6 +14200,7 @@
         "level": 53
       }
     ],
+    "spellicon": "C",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -13331,6 +14221,7 @@
         "level": 60
       }
     ],
+    "spellicon": "A",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -13351,6 +14242,7 @@
         "level": 50
       }
     ],
+    "spellicon": "43",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -13371,6 +14263,7 @@
         "level": 55
       }
     ],
+    "spellicon": "G",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -13399,6 +14292,7 @@
         "level": 25
       }
     ],
+    "spellicon": "D",
     "wiki_duration": "2 Min 30 Sec",
     "spell_type": "Beneficial"
   },
@@ -13414,6 +14308,7 @@
     "wear_off_you": "The bond fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "G",
     "wiki_duration": "1 ticks @L1 to 5 ticks @L9",
     "spell_type": "Detrimental"
   },
@@ -13429,6 +14324,7 @@
     "wear_off_you": "The bond fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "U",
     "wiki_duration": "1 ticks @L1 to 5 ticks @L9",
     "spell_type": "Detrimental"
   },
@@ -13444,6 +14340,7 @@
     "wear_off_you": "The bond fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "G",
     "wiki_duration": "1 ticks @L1 to 1 minute @L17",
     "spell_type": "Detrimental"
   },
@@ -13459,6 +14356,7 @@
     "wear_off_you": "Your body slows",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "R",
     "wiki_duration": "30 minutes",
     "spell_type": "Beneficial"
   },
@@ -13474,6 +14372,7 @@
     "wear_off_you": "You feel dizzy",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "M",
     "wiki_duration": "1 ticks @L1 to 2 ticks @L4",
     "spell_type": "Beneficial"
   },
@@ -13502,6 +14401,7 @@
         "level": 30
       }
     ],
+    "spellicon": "151",
     "wiki_duration": "36 minutes",
     "spell_type": "Beneficial"
   },
@@ -13526,6 +14426,7 @@
         "level": 17
       }
     ],
+    "spellicon": "10",
     "wiki_duration": "36 minutes",
     "spell_type": "Statistic Buff"
   },
@@ -13546,6 +14447,7 @@
         "level": 36
       }
     ],
+    "spellicon": "4",
     "wiki_duration": "36 minutes",
     "spell_type": "Buff"
   },
@@ -13566,6 +14468,7 @@
         "level": 18
       }
     ],
+    "spellicon": "9",
     "wiki_duration": "45 minutes",
     "spell_type": "Statistic Buff"
   },
@@ -13590,6 +14493,7 @@
         "level": 21
       }
     ],
+    "spellicon": "4",
     "wiki_duration": "8 ticks",
     "spell_type": "Beneficial"
   },
@@ -13610,6 +14514,7 @@
         "level": 28
       }
     ],
+    "spellicon": "2001",
     "wiki_duration": "44 minutes",
     "spell_type": "Pet Buff"
   },
@@ -13630,6 +14535,7 @@
         "level": 13
       }
     ],
+    "spellicon": "2001",
     "wiki_duration": "40 minutes",
     "spell_type": "Pet Buff"
   },
@@ -13654,6 +14560,7 @@
         "level": 38
       }
     ],
+    "spellicon": "8",
     "wiki_duration": "36 minutes",
     "spell_type": "Statistic Buff"
   },
@@ -13674,6 +14581,7 @@
         "level": 59
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "36 minutes",
     "spell_type": "Beneficial"
   },
@@ -13698,6 +14606,7 @@
         "level": 37
       }
     ],
+    "spellicon": "10",
     "wiki_duration": "45 minutes",
     "spell_type": "Statistic Buff"
   },
@@ -13722,6 +14631,7 @@
         "level": 52
       }
     ],
+    "spellicon": "A",
     "wiki_duration": "1 hour 12 minutes",
     "spell_type": "Beneficial"
   },
@@ -13742,6 +14652,7 @@
         "level": 10
       }
     ],
+    "spellicon": "15",
     "wiki_duration": "36 minutes",
     "spell_type": "Statistic Buff"
   },
@@ -13762,6 +14673,7 @@
         "level": 18
       }
     ],
+    "spellicon": "2001",
     "wiki_duration": "42 minutes",
     "spell_type": "Pet Buff"
   },
@@ -13772,7 +14684,7 @@
     "base_ticks": 10,
     "max_ticks": 10,
     "tier_duration_pct": 10,
-    "land_other": "growls with the spirit of the puma",
+    "land_other": "Target growls with the spirit of the puma",
     "land_you": "You begin to snarl as your features become feline",
     "wear_off_you": "The spirit of the puma departs",
     "watched_by_default": false,
@@ -13782,9 +14694,9 @@
         "level": 50
       }
     ],
+    "spellicon": "2",
     "wiki_duration": "60s",
-    "spell_type": "Proc Buff",
-    "spellicon": "2"
+    "spell_type": "Proc Buff"
   },
   {
     "name": "Spirit of the Scorpion",
@@ -13803,6 +14715,7 @@
         "level": 38
       }
     ],
+    "spellicon": "2001",
     "wiki_duration": "46 minutes",
     "spell_type": "Pet Buff"
   },
@@ -13835,6 +14748,7 @@
         "level": 41
       }
     ],
+    "spellicon": "4",
     "wiki_duration": "36 minutes",
     "spell_type": "Movement Buff"
   },
@@ -13855,14 +14769,15 @@
         "level": 46
       }
     ],
+    "spellicon": "2001",
     "wiki_duration": "48 minutes",
     "spell_type": "Pet Buff"
   },
   {
     "name": "Spirit of Wolf",
     "category": "buff",
-    "duration_formula": "level_x30",
-    "base_ticks": 270,
+    "duration_formula": "fixed",
+    "base_ticks": 360,
     "max_ticks": 360,
     "tier_duration_pct": 10,
     "land_other": "is surrounded by a brief lupine aura",
@@ -13887,6 +14802,7 @@
         "level": 24
       }
     ],
+    "spellicon": "4",
     "wiki_duration": "36 minutes",
     "spell_type": "Movement Buff"
   },
@@ -13907,6 +14823,7 @@
         "level": 50
       }
     ],
+    "spellicon": "16",
     "wiki_duration": "60 Min",
     "spell_type": "Beneficial"
   },
@@ -13931,6 +14848,7 @@
         "level": 29
       }
     ],
+    "spellicon": "19",
     "wiki_duration": "27 minutes",
     "spell_type": "Vision"
   },
@@ -13955,6 +14873,7 @@
         "level": 28
       }
     ],
+    "spellicon": "6",
     "wiki_duration": "36 minutes",
     "spell_type": "Statistic Buff"
   },
@@ -13975,6 +14894,7 @@
         "level": 42
       }
     ],
+    "spellicon": "1",
     "wiki_duration": "72 minutes",
     "spell_type": "Statistic Buff"
   },
@@ -13995,6 +14915,7 @@
         "level": 41
       }
     ],
+    "spellicon": "72",
     "wiki_duration": "45 minutes",
     "spell_type": "Regen"
   },
@@ -14015,6 +14936,7 @@
         "level": 51
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "1.7 minutes",
     "spell_type": "Detrimental"
   },
@@ -14047,6 +14969,7 @@
         "level": 20
       }
     ],
+    "spellicon": "164",
     "wiki_duration": "18 Sec",
     "spell_type": "Detrimental"
   },
@@ -14067,6 +14990,7 @@
         "level": 10
       }
     ],
+    "spellicon": "633",
     "wiki_duration": "24 seconds",
     "spell_type": "Beneficial"
   },
@@ -14082,6 +15006,7 @@
     "wear_off_you": "The potion has worn off",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "R",
     "wiki_duration": "30 minutes",
     "spell_type": "Beneficial"
   },
@@ -14097,6 +15022,7 @@
     "wear_off_you": "Your stalking probe stops",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "B",
     "wiki_duration": "1 ticks @L1 to 5 ticks @L5",
     "spell_type": "Beneficial"
   },
@@ -14112,6 +15038,7 @@
     "wear_off_you": "You have stopped regenerating",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "Q",
     "wiki_duration": "1 minute",
     "spell_type": "Beneficial"
   },
@@ -14132,6 +15059,7 @@
         "level": 43
       }
     ],
+    "spellicon": "10",
     "wiki_duration": "63 minutes",
     "spell_type": "Statistic Buff"
   },
@@ -14147,6 +15075,7 @@
     "wear_off_you": "}}",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "3 minutes @L1 to 9 minutes @L3",
     "spell_type": "Detrimental"
   },
@@ -14162,6 +15091,7 @@
     "wear_off_you": "Your steam overload dies out",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "M",
     "wiki_duration": "3 minutes @L1 to 1 hour 3 minutes @L21",
     "spell_type": "Beneficial"
   },
@@ -14190,6 +15120,7 @@
         "level": 56
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "1 hour 12 minutes",
     "spell_type": "Beneficial"
   },
@@ -14214,12 +15145,13 @@
         "level": 25
       }
     ],
+    "spellicon": "159",
     "wiki_duration": "54 Sec",
     "spell_type": "Detrimental"
   },
   {
     "name": "Stoicism",
-    "category": "debuff",
+    "category": "buff",
     "duration_formula": "fixed",
     "base_ticks": 4,
     "max_ticks": 4,
@@ -14234,6 +15166,7 @@
         "level": 44
       }
     ],
+    "spellicon": "118",
     "wiki_duration": "4 ticks",
     "spell_type": "Heal Over Time"
   },
@@ -14249,6 +15182,7 @@
     "wear_off_you": "You burst through the stone",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "20 Seconds",
     "spell_type": "Detrimental"
   },
@@ -14273,6 +15207,7 @@
         "level": 44
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "54 minutes 6 seconds",
     "spell_type": "Beneficial"
   },
@@ -14288,6 +15223,7 @@
     "wear_off_you": "}}",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "O",
     "wiki_duration": "1 ticks @L1 to 2 minutes @L20",
     "spell_type": "Detrimental"
   },
@@ -14308,6 +15244,7 @@
         "level": 46
       }
     ],
+    "spellicon": "6",
     "wiki_duration": "63 Min",
     "spell_type": "Statistic Buff"
   },
@@ -14332,6 +15269,7 @@
         "level": 26
       }
     ],
+    "spellicon": "6",
     "wiki_duration": "27 minutes",
     "spell_type": "Beneficial"
   },
@@ -14352,6 +15290,7 @@
         "level": 34
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "36 minutes",
     "spell_type": "Beneficial"
   },
@@ -14367,14 +15306,15 @@
     "wear_off_you": "Your strength fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "R",
     "wiki_duration": "3 minutes @L1 to 36 minutes @L12",
     "spell_type": "Beneficial"
   },
   {
     "name": "Strengthen",
     "category": "buff",
-    "duration_formula": "level_plus_3_x30",
-    "base_ticks": 120,
+    "duration_formula": "fixed",
+    "base_ticks": 270,
     "max_ticks": 270,
     "tier_duration_pct": 10,
     "land_other": "looks stronger",
@@ -14395,6 +15335,7 @@
         "level": 1
       }
     ],
+    "spellicon": "6",
     "wiki_duration": "27 minutes",
     "spell_type": "Statistic Buff"
   },
@@ -14415,6 +15356,7 @@
         "level": 29
       }
     ],
+    "spellicon": "74",
     "wiki_duration": "60 Min",
     "spell_type": "Beneficial"
   },
@@ -14430,6 +15372,7 @@
     "wear_off_you": "}}",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "M",
     "wiki_duration": "1 ticks @L1 to 3 ticks @L3",
     "spell_type": "Detrimental"
   },
@@ -14445,6 +15388,7 @@
     "wear_off_you": "You are no longer diseased",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "E",
     "wiki_duration": "15 minutes",
     "spell_type": "Detrimental"
   },
@@ -14465,6 +15409,7 @@
         "level": 26
       }
     ],
+    "spellicon": "M",
     "wiki_duration": "48 Sec",
     "spell_type": "Detrimental"
   },
@@ -14485,6 +15430,7 @@
         "level": 4
       }
     ],
+    "spellicon": "M",
     "wiki_duration": "42 Sec",
     "spell_type": "Detrimental"
   },
@@ -14505,6 +15451,7 @@
         "level": 22
       }
     ],
+    "spellicon": "B",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -14525,6 +15472,7 @@
         "level": 51
       }
     ],
+    "spellicon": "B",
     "wiki_duration": "27 minutes",
     "spell_type": "Beneficial"
   },
@@ -14549,6 +15497,7 @@
         "level": 47
       }
     ],
+    "spellicon": "34",
     "wiki_duration": "24 minutes",
     "spell_type": "Beneficial"
   },
@@ -14569,6 +15518,7 @@
         "level": 32
       }
     ],
+    "spellicon": "I",
     "wiki_duration": "6 minutes",
     "spell_type": "Detrimental"
   },
@@ -14589,6 +15539,7 @@
         "level": 40
       }
     ],
+    "spellicon": "159",
     "wiki_duration": "1 Min",
     "spell_type": "Detrimental"
   },
@@ -14604,6 +15555,7 @@
     "wear_off_you": "The swarm departs",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "T",
     "wiki_duration": "3 minutes @L1 to 10 minutes @L4",
     "spell_type": "Detrimental"
   },
@@ -14619,15 +15571,16 @@
     "wear_off_you": "The swarm departs",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "T",
     "wiki_duration": "1 ticks @L1 to 4 ticks @L8",
     "spell_type": "Detrimental"
   },
   {
     "name": "Swift Like The Wind",
     "category": "buff",
-    "duration_formula": "level_x3_plus_10",
-    "base_ticks": 157,
-    "max_ticks": 160,
+    "duration_formula": "fixed",
+    "base_ticks": 70,
+    "max_ticks": 70,
     "tier_duration_pct": 10,
     "land_other": "feels much faster",
     "land_you": "You feel much faster",
@@ -14639,6 +15592,7 @@
         "level": 49
       }
     ],
+    "spellicon": "A",
     "wiki_duration": "15.7 minutes @L49 to 16 minutes @L50",
     "spell_type": "Beneficial"
   },
@@ -14654,6 +15608,7 @@
     "wear_off_you": "Your speed returns to normal",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -14674,6 +15629,7 @@
         "level": 54
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "1 hour 3 minutes",
     "spell_type": "Beneficial"
   },
@@ -14698,6 +15654,7 @@
         "level": 58
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "54 minutes",
     "spell_type": "Beneficial"
   },
@@ -14722,6 +15679,7 @@
         "level": 46
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "45 minutes",
     "spell_type": "Beneficial"
   },
@@ -14746,6 +15704,7 @@
         "level": 33
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "36 minutes",
     "spell_type": "Beneficial"
   },
@@ -14770,6 +15729,7 @@
         "level": 24
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "27 minutes",
     "spell_type": "Beneficial"
   },
@@ -14790,6 +15750,7 @@
         "level": 18
       }
     ],
+    "spellicon": "15",
     "wiki_duration": "36 minutes",
     "spell_type": "Beneficial"
   },
@@ -14810,6 +15771,7 @@
         "level": 27
       }
     ],
+    "spellicon": "17",
     "wiki_duration": "2 Min 30 Sec",
     "spell_type": "Detrimental"
   },
@@ -14834,6 +15796,7 @@
         "level": 19
       }
     ],
+    "spellicon": "42",
     "wiki_duration": "7 ticks",
     "spell_type": "Damage Over Time"
   },
@@ -14854,6 +15817,7 @@
         "level": 40
       }
     ],
+    "spellicon": "130",
     "wiki_duration": "1 hour 12 minutes",
     "spell_type": "Statistic Buff"
   },
@@ -14874,6 +15838,7 @@
         "level": 50
       }
     ],
+    "spellicon": "68",
     "wiki_duration": "36 minutes",
     "spell_type": "Resist Buff"
   },
@@ -14894,6 +15859,7 @@
         "level": 55
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "1 hour 12 minutes",
     "spell_type": "Beneficial"
   },
@@ -14914,6 +15880,7 @@
         "level": 53
       }
     ],
+    "spellicon": "N",
     "wiki_duration": "36 minutes",
     "spell_type": "Beneficial"
   },
@@ -14934,6 +15901,7 @@
         "level": 8
       }
     ],
+    "spellicon": "6",
     "wiki_duration": "27 minutes",
     "spell_type": "Beneficial"
   },
@@ -14954,6 +15922,7 @@
         "level": 57
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "1 hour 3 minutes",
     "spell_type": "Beneficial"
   },
@@ -14974,6 +15943,7 @@
         "level": 57
       }
     ],
+    "spellicon": "A",
     "wiki_duration": "1 hour 3 minutes",
     "spell_type": "Beneficial"
   },
@@ -14994,6 +15964,7 @@
         "level": 59
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "1 hour 3 minutes",
     "spell_type": "Beneficial"
   },
@@ -15014,6 +15985,7 @@
         "level": 58
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "1 hour 3 minutes",
     "spell_type": "Beneficial"
   },
@@ -15034,6 +16006,7 @@
         "level": 58
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "1 hour 3 minutes",
     "spell_type": "Beneficial"
   },
@@ -15054,6 +16027,7 @@
         "level": 32
       }
     ],
+    "spellicon": "130",
     "wiki_duration": "1 hour 12 minutes",
     "spell_type": "Statistic Buff"
   },
@@ -15078,6 +16052,7 @@
         "level": 5
       }
     ],
+    "spellicon": "5",
     "wiki_duration": "18 seconds",
     "spell_type": "Detrimental"
   },
@@ -15098,6 +16073,7 @@
         "level": 16
       }
     ],
+    "spellicon": "F",
     "wiki_duration": "4 ticks",
     "spell_type": "Beneficial"
   },
@@ -15118,15 +16094,16 @@
         "level": 4
       }
     ],
+    "spellicon": "T",
     "wiki_duration": "1.8 minutes @L4 to 13 minutes @L60",
     "spell_type": "Detrimental"
   },
   {
     "name": "Tashani",
     "category": "debuff",
-    "duration_formula": "level_x2_plus_10",
-    "base_ticks": 46,
-    "max_ticks": 140,
+    "duration_formula": "fixed",
+    "base_ticks": 110,
+    "max_ticks": 110,
     "tier_duration_pct": 10,
     "land_other": "glances nervously about",
     "land_you": "You hear the barking of the Tashani",
@@ -15138,15 +16115,16 @@
         "level": 18
       }
     ],
+    "spellicon": "T",
     "wiki_duration": "11 Min",
     "spell_type": "Detrimental"
   },
   {
     "name": "Tashania",
     "category": "debuff",
-    "duration_formula": "level_x2_plus_10",
-    "base_ticks": 92,
-    "max_ticks": 140,
+    "duration_formula": "fixed",
+    "base_ticks": 110,
+    "max_ticks": 110,
     "tier_duration_pct": 10,
     "land_other": "glances nervously about",
     "land_you": "You hear the barking of Tashania",
@@ -15158,6 +16136,7 @@
         "level": 41
       }
     ],
+    "spellicon": "T",
     "wiki_duration": "11 Min",
     "spell_type": "Detrimental"
   },
@@ -15178,6 +16157,7 @@
         "level": 57
       }
     ],
+    "spellicon": "T",
     "wiki_duration": "12.4 minutes @L57 to 13 minutes @L60",
     "spell_type": "Detrimental"
   },
@@ -15198,6 +16178,7 @@
         "level": 2
       }
     ],
+    "spellicon": "T",
     "wiki_duration": "11 Min",
     "spell_type": "Detrimental"
   },
@@ -15213,6 +16194,7 @@
     "wear_off_you": "You put the telescope down",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "B",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -15233,6 +16215,7 @@
         "level": 40
       }
     ],
+    "spellicon": "132",
     "wiki_duration": "100 Min",
     "spell_type": "Beneficial"
   },
@@ -15253,6 +16236,7 @@
         "level": 23
       }
     ],
+    "spellicon": "A",
     "wiki_duration": "2 Min 30 Sec",
     "spell_type": "Detrimental"
   },
@@ -15273,6 +16257,7 @@
         "level": 15
       }
     ],
+    "spellicon": "G",
     "wiki_duration": "9 ticks",
     "spell_type": "Detrimental"
   },
@@ -15293,6 +16278,7 @@
         "level": 59
       }
     ],
+    "spellicon": "C",
     "wiki_duration": "1 ticks",
     "spell_type": "Detrimental"
   },
@@ -15308,6 +16294,7 @@
     "wear_off_you": "The brambles fall away",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "P",
     "wiki_duration": "1 ticks @L1 to 6.5 minutes @L65",
     "spell_type": "Beneficial"
   },
@@ -15328,6 +16315,7 @@
         "level": 54
       }
     ],
+    "spellicon": "D",
     "wiki_duration": "17.2 minutes @L54 to 20.5 minutes @L65",
     "spell_type": "Detrimental"
   },
@@ -15343,6 +16331,7 @@
     "wear_off_you": "}}",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "1 ticks @L1 to 6.5 minutes @L65",
     "spell_type": "Detrimental"
   },
@@ -15363,6 +16352,7 @@
         "level": 58
       }
     ],
+    "spellicon": "A",
     "wiki_duration": "2.9 minutes @L58 to 3.2 minutes @L65",
     "spell_type": "Detrimental"
   },
@@ -15383,6 +16373,7 @@
         "level": 38
       }
     ],
+    "spellicon": "17",
     "wiki_duration": "2 Min 30 Sec",
     "spell_type": "Detrimental"
   },
@@ -15398,6 +16389,7 @@
     "wear_off_you": "Your wounds stop burning",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "1 ticks @L1 to 5 ticks @L10",
     "spell_type": "Detrimental"
   },
@@ -15418,6 +16410,7 @@
         "level": 56
       }
     ],
+    "spellicon": "D",
     "wiki_duration": "2 minutes",
     "spell_type": "Detrimental"
   },
@@ -15433,6 +16426,7 @@
     "wear_off_you": "The shadows release your mind",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "1 ticks @L1 to 1.6 minutes @L32",
     "spell_type": "Detrimental"
   },
@@ -15453,6 +16447,7 @@
         "level": 60
       }
     ],
+    "spellicon": "J",
     "wiki_duration": "4-5 ticks",
     "spell_type": "Beneficial"
   },
@@ -15473,6 +16468,7 @@
         "level": 28
       }
     ],
+    "spellicon": "118",
     "wiki_duration": "24 Sec",
     "spell_type": "Beneficial"
   },
@@ -15493,6 +16489,7 @@
         "level": 20
       }
     ],
+    "spellicon": "B",
     "wiki_duration": "12 minutes",
     "spell_type": "Beneficial"
   },
@@ -15508,6 +16505,7 @@
     "wear_off_you": "Your feet slow down",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "A",
     "wiki_duration": "3 minutes @L1 to 18 minutes @L6",
     "spell_type": "Beneficial"
   },
@@ -15528,6 +16526,7 @@
         "level": 6
       }
     ],
+    "spellicon": "163",
     "wiki_duration": "36 Min",
     "spell_type": "Beneficial"
   },
@@ -15556,6 +16555,7 @@
         "level": 56
       }
     ],
+    "spellicon": "G",
     "wiki_duration": "6 ticks (36 seconds)",
     "spell_type": "Detrimental"
   },
@@ -15571,6 +16571,7 @@
     "wear_off_you": "Your ultravision fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "B",
     "wiki_duration": "3 minutes @L1 to 36 minutes @L12",
     "spell_type": "Beneficial"
   },
@@ -15591,6 +16592,7 @@
         "level": 35
       }
     ],
+    "spellicon": "6",
     "wiki_duration": "46 minutes",
     "spell_type": "Beneficial"
   },
@@ -15611,6 +16613,7 @@
         "level": 55
       }
     ],
+    "spellicon": "D",
     "wiki_duration": "2 hours 45 minutes @L55 to 3 hours 15 minutes @L65",
     "spell_type": "Detrimental"
   },
@@ -15631,6 +16634,7 @@
         "level": 51
       }
     ],
+    "spellicon": "A",
     "wiki_duration": "5.1 minutes @L51 to 6.5 minutes @L65",
     "spell_type": "Detrimental"
   },
@@ -15651,6 +16655,7 @@
         "level": 37
       }
     ],
+    "spellicon": "C",
     "wiki_duration": "30 Sec",
     "spell_type": "Detrimental"
   },
@@ -15675,6 +16680,7 @@
         "level": 26
       }
     ],
+    "spellicon": "151",
     "wiki_duration": "36 minutes",
     "spell_type": "Statistic Buff"
   },
@@ -15695,6 +16701,7 @@
         "level": 42
       }
     ],
+    "spellicon": "E",
     "wiki_duration": "2 ticks",
     "spell_type": "Detrimental"
   },
@@ -15715,6 +16722,7 @@
         "level": 38
       }
     ],
+    "spellicon": "O",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -15735,6 +16743,7 @@
         "level": 46
       }
     ],
+    "spellicon": "S",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -15755,6 +16764,7 @@
         "level": 50
       }
     ],
+    "spellicon": "N",
     "wiki_duration": "2 ticks",
     "spell_type": "Detrimental"
   },
@@ -15779,6 +16789,7 @@
         "level": 27
       }
     ],
+    "spellicon": "87",
     "wiki_duration": "36 minutes",
     "spell_type": "Beneficial"
   },
@@ -15799,6 +16810,7 @@
         "level": 57
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "1 hour 39 minutes",
     "spell_type": "Beneficial"
   },
@@ -15819,6 +16831,7 @@
         "level": 59
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "1 hour 12 minutes",
     "spell_type": "Beneficial"
   },
@@ -15839,6 +16852,7 @@
         "level": 59
       }
     ],
+    "spellicon": "L",
     "wiki_duration": "3.5 minutes",
     "spell_type": "Beneficial"
   },
@@ -15863,6 +16877,7 @@
         "level": 47
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "54 minutes",
     "spell_type": "Beneficial"
   },
@@ -15878,6 +16893,7 @@
     "wear_off_you": "You are no longer charmed",
     "watched_by_default": true,
     "classes": [],
+    "spellicon": "D",
     "wiki_duration": "1 ticks @L1 to 1 minute @L20",
     "spell_type": "Detrimental"
   },
@@ -15902,6 +16918,7 @@
         "level": 29
       }
     ],
+    "spellicon": "G",
     "wiki_duration": "9 ticks",
     "spell_type": "Detrimental"
   },
@@ -15922,6 +16939,7 @@
         "level": 58
       }
     ],
+    "spellicon": "A",
     "wiki_duration": "36 minutes",
     "spell_type": "Beneficial"
   },
@@ -15937,6 +16955,7 @@
     "wear_off_you": "}}",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "Q",
     "wiki_duration": "1 minute",
     "spell_type": "Detrimental"
   },
@@ -15957,6 +16976,7 @@
         "level": 49
       }
     ],
+    "spellicon": "G",
     "wiki_duration": "5 ticks",
     "spell_type": "Detrimental"
   },
@@ -15981,6 +17001,7 @@
         "level": 34
       }
     ],
+    "spellicon": "42",
     "wiki_duration": "36 Sec",
     "spell_type": "Detrimental"
   },
@@ -16001,6 +17022,7 @@
         "level": 50
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -16021,6 +17043,7 @@
         "level": 57
       }
     ],
+    "spellicon": "G",
     "wiki_duration": "10 ticks",
     "spell_type": "Detrimental"
   },
@@ -16036,6 +17059,7 @@
     "wear_off_you": "The potion has worn off",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "R",
     "wiki_duration": "30 minutes",
     "spell_type": "Beneficial"
   },
@@ -16056,6 +17080,7 @@
         "level": 54
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -16076,6 +17101,7 @@
         "level": 36
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "3 ticks",
     "spell_type": "Beneficial"
   },
@@ -16096,6 +17122,7 @@
         "level": 17
       }
     ],
+    "spellicon": "88",
     "wiki_duration": "11 Min",
     "spell_type": "Beneficial"
   },
@@ -16116,6 +17143,7 @@
         "level": 40
       }
     ],
+    "spellicon": "B",
     "wiki_duration": "60 Min",
     "spell_type": "Beneficial"
   },
@@ -16136,6 +17164,7 @@
         "level": 60
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "42 minutes",
     "spell_type": "Beneficial"
   },
@@ -16156,6 +17185,7 @@
         "level": 15
       }
     ],
+    "spellicon": "U",
     "wiki_duration": "27 minutes",
     "spell_type": "Beneficial"
   },
@@ -16176,6 +17206,7 @@
         "level": 39
       }
     ],
+    "spellicon": "91",
     "wiki_duration": "10 Min",
     "spell_type": "Beneficial"
   },
@@ -16196,6 +17227,7 @@
         "level": 46
       }
     ],
+    "spellicon": "91",
     "wiki_duration": "10 Min",
     "spell_type": "Beneficial"
   },
@@ -16216,6 +17248,7 @@
         "level": 59
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "18.7 minutes @L59 to 20.5 minutes @L65",
     "spell_type": "Beneficial"
   },
@@ -16240,6 +17273,7 @@
         "level": 51
       }
     ],
+    "spellicon": "H",
     "wiki_duration": "6.1 minutes @L51 to 7.0 minutes @L60",
     "spell_type": "Beneficial"
   },
@@ -16260,6 +17294,7 @@
         "level": 13
       }
     ],
+    "spellicon": "17",
     "wiki_duration": "2 Min 30 Sec",
     "spell_type": "Detrimental"
   },
@@ -16280,6 +17315,7 @@
         "level": 38
       }
     ],
+    "spellicon": "D",
     "wiki_duration": "2 minutes",
     "spell_type": "Detrimental"
   },
@@ -16300,6 +17336,7 @@
         "level": 29
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "36 Min",
     "spell_type": "Beneficial"
   },
@@ -16328,6 +17365,7 @@
         "level": 49
       }
     ],
+    "spellicon": "46",
     "wiki_duration": "36 minutes",
     "spell_type": "Block"
   },
@@ -16348,6 +17386,7 @@
         "level": 49
       }
     ],
+    "spellicon": "K",
     "wiki_duration": "36 Min",
     "spell_type": "Beneficial"
   },
@@ -16368,6 +17407,7 @@
         "level": 50
       }
     ],
+    "spellicon": "153",
     "wiki_duration": "20 Min",
     "spell_type": "Beneficial"
   },
@@ -16388,6 +17428,7 @@
         "level": 20
       }
     ],
+    "spellicon": "128",
     "wiki_duration": "36 Min",
     "spell_type": "Beneficial"
   },
@@ -16412,6 +17453,7 @@
         "level": 27
       }
     ],
+    "spellicon": "7",
     "wiki_duration": "4 Min",
     "spell_type": "Detrimental"
   },
@@ -16432,6 +17474,7 @@
         "level": 21
       }
     ],
+    "spellicon": "G",
     "wiki_duration": "3 ticks",
     "spell_type": "Detrimental"
   },
@@ -16447,6 +17490,7 @@
     "wear_off_you": "}}",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "S",
     "wiki_duration": "2.5 minutes",
     "spell_type": "Detrimental"
   },
@@ -16462,6 +17506,7 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "N",
     "wiki_duration": "1 minute",
     "spell_type": "Detrimental"
   },
@@ -16482,6 +17527,7 @@
         "level": 1
       }
     ],
+    "spellicon": "I",
     "wiki_duration": "6 Min",
     "spell_type": "Detrimental"
   },
@@ -16497,6 +17543,7 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "1 ticks @L1 to 6 minutes @L60",
     "spell_type": "Detrimental"
   },
@@ -16512,6 +17559,7 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "1 ticks @L1 to 6.5 minutes @L65",
     "spell_type": "Detrimental"
   },
@@ -16527,6 +17575,7 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "1 ticks @L1 to 6.5 minutes @L65",
     "spell_type": "Detrimental"
   },
@@ -16542,6 +17591,7 @@
     "wear_off_you": "The poison has run its course",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "1 ticks @L1 to 6.5 minutes @L65",
     "spell_type": "Detrimental"
   },
@@ -16557,6 +17607,7 @@
     "wear_off_you": "The poison subsides",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "1",
     "wiki_duration": "3 Min 30 Sec",
     "spell_type": "Detrimental"
   },
@@ -16577,6 +17628,7 @@
         "level": 42
       }
     ],
+    "spellicon": "I",
     "wiki_duration": "3 Min",
     "spell_type": "Detrimental"
   },
@@ -16597,6 +17649,7 @@
         "level": 9
       }
     ],
+    "spellicon": "M",
     "wiki_duration": "Up to 2 ticks",
     "spell_type": "Detrimental"
   },
@@ -16612,6 +17665,7 @@
     "wear_off_you": "The wind fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "M",
     "wiki_duration": "1 ticks @L1 to 2 ticks @L4",
     "spell_type": "Detrimental"
   },
@@ -16627,6 +17681,7 @@
     "wear_off_you": "The wind fades",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "M",
     "wiki_duration": "1 ticks",
     "spell_type": "Detrimental"
   },
@@ -16647,6 +17702,7 @@
         "level": 55
       }
     ],
+    "spellicon": "T",
     "wiki_duration": "12 minutes @L55 to 13 minutes @L60",
     "spell_type": "Detrimental"
   },
@@ -16667,6 +17723,7 @@
         "level": 60
       }
     ],
+    "spellicon": "T",
     "wiki_duration": "13 minutes @L60",
     "spell_type": "Detrimental"
   },
@@ -16687,15 +17744,16 @@
         "level": 53
       }
     ],
+    "spellicon": "T",
     "wiki_duration": "10 ticks",
     "spell_type": "Detrimental"
   },
   {
     "name": "Wonderous Rapidity",
     "category": "buff",
-    "duration_formula": "level_x3_plus_10",
-    "base_ticks": 184,
-    "max_ticks": 205,
+    "duration_formula": "fixed",
+    "base_ticks": 40,
+    "max_ticks": 40,
     "tier_duration_pct": 10,
     "land_other": "begins to move with wonderous rapidity",
     "land_you": "You begin to move with wonderous rapidity",
@@ -16707,6 +17765,7 @@
         "level": 58
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "18.4 minutes @L58 to 19 minutes @L65",
     "spell_type": "Beneficial"
   },
@@ -16722,6 +17781,7 @@
     "wear_off_you": "The wrath of nature recedes",
     "watched_by_default": false,
     "classes": [],
+    "spellicon": "C",
     "wiki_duration": "1 ticks @L1 to 3 minutes @L60",
     "spell_type": "Detrimental"
   },
@@ -16742,6 +17802,7 @@
         "level": 55
       }
     ],
+    "spellicon": "M",
     "wiki_duration": "5 ticks",
     "spell_type": "Detrimental"
   },
@@ -16766,6 +17827,7 @@
         "level": 60
       }
     ],
+    "spellicon": "R",
     "wiki_duration": "4 ticks",
     "spell_type": "Beneficial"
   }

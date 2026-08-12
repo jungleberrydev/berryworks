@@ -164,14 +164,20 @@ function parseTemplateField(wikitext, field) {
 
 function durationToTicks(duration) {
   if (!duration) return null;
-  const d = duration.toLowerCase().trim();
+  let d = duration.toLowerCase().trim();
   if (!d || d === "instant" || d === "permanent" || d.includes("permanent")) return null;
+  // Scaled wiki strings: use the max (last) duration.
+  if (d.includes(" to ")) d = d.split(" to ").pop().trim();
+  // Drop "@L57" and restatements like "(1 hour)" so minutes aren't double-counted.
+  d = d.replace(/@l\d+/gi, " ").replace(/\([^)]*\)/g, " ").replace(/\s+/g, " ").trim();
 
   let ticks = null;
   const tickMatch = d.match(/(\d+)\s*ticks?/);
   if (tickMatch) ticks = Number(tickMatch[1]);
 
   let seconds = 0;
+  const hourMatch = d.match(/(\d+)\s*hours?\b/);
+  if (hourMatch) seconds += Number(hourMatch[1]) * 3600;
   const minMatch = d.match(/(\d+)\s*min(?:ute)?s?/);
   if (minMatch) seconds += Number(minMatch[1]) * 60;
   // Prefer "24 sec" / "24 seconds" before bare "24s" so "secs" isn't misread.

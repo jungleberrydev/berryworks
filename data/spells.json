@@ -13093,6 +13093,25 @@
     "spellicon": "2001"
   },
   {
+    "name": "Spirit of the Puma",
+    "category": "buff",
+    "duration_formula": "fixed",
+    "base_ticks": 10,
+    "max_ticks": 10,
+    "tier_duration_pct": 10,
+    "land_other": "growls with the spirit of the puma",
+    "land_you": "You begin to snarl as your features become feline",
+    "wear_off_you": "The spirit of the puma departs",
+    "watched_by_default": false,
+    "classes": [
+      {
+        "class": "Shaman",
+        "level": 50
+      }
+    ],
+    "spellicon": "2"
+  },
+  {
     "name": "Spirit of the Scorpion",
     "category": "buff",
     "duration_formula": "fixed",

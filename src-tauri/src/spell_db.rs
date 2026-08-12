@@ -95,7 +95,7 @@ pub struct OverlayAppearance {
     /// Speak spell name when a timer crosses into the expiry-warn window (main overlay).
     #[serde(default = "default_verbal_expiry_warn")]
     pub verbal_expiry_warn: bool,
-    /// Shared lead time (seconds) for flash + verbal pre-expiry alerts. Clamped 1..=30.
+    /// Shared lead time (seconds) for flash + verbal pre-expiry alerts. Clamped 1..=120.
     #[serde(default = "default_expiry_warn_secs")]
     pub expiry_warn_secs: u64,
     /// Show the independent respawn overlay window.
@@ -168,7 +168,7 @@ fn default_verbal_expiry_warn() -> bool {
 }
 
 fn default_expiry_warn_secs() -> u64 {
-    30
+    10
 }
 
 /// Recently-wore-off retention window bounds (seconds).
@@ -177,7 +177,7 @@ pub const RECENTLY_WORE_OFF_SECS_MAX: u64 = 300;
 
 /// Pre-expiry flash/verbal lead-time bounds (seconds).
 pub const EXPIRY_WARN_SECS_MIN: u64 = 1;
-pub const EXPIRY_WARN_SECS_MAX: u64 = 30;
+pub const EXPIRY_WARN_SECS_MAX: u64 = 120;
 
 impl OverlayAppearance {
     /// Clamped retention for recently-wore-off rows (15..=300 seconds).
@@ -194,7 +194,7 @@ impl OverlayAppearance {
         self.voice_volume.clamp(0.0, 1.0)
     }
 
-    /// Clamped pre-expiry warn lead time (1..=30 seconds).
+    /// Clamped pre-expiry warn lead time (1..=120 seconds).
     pub fn expiry_warn_secs_clamped(&self) -> u64 {
         self.expiry_warn_secs
             .clamp(EXPIRY_WARN_SECS_MIN, EXPIRY_WARN_SECS_MAX)
@@ -1122,6 +1122,40 @@ mod tests {
     }
 
     #[test]
+    fn armor_of_faith_is_one_hour_three_minutes() {
+        // Wiki "1 hour 3 minutes"; hour was previously dropped → 30 ticks.
+        let spells = load_spells().expect("spells");
+        let aof = spells
+            .iter()
+            .find(|s| s.name == "Armor of Faith")
+            .expect("Armor of Faith");
+        assert_eq!(aof.duration_formula, "fixed");
+        assert_eq!(aof.base_ticks, 630);
+        assert_eq!(aof.max_ticks, 630);
+        assert_eq!(duration_seconds(aof, 35, 0), 3780);
+    }
+
+    #[test]
+    fn wiki_hour_durations_use_client_cap() {
+        // Wiki scrape used to keep only the minutes ("1 hour 12 minutes" → 120 ticks).
+        let spells = load_spells().expect("spells");
+        let cases = [
+            ("Aegis", 1440),
+            ("Shield of Words", 720),
+            ("Symbol of Marzin", 630),
+            ("Rune V", 1100),
+            ("Focus of Spirit", 1000),
+        ];
+        for (name, ticks) in cases {
+            let spell = spells.iter().find(|s| s.name == name).expect(name);
+            assert_eq!(spell.duration_formula, "fixed", "{name}");
+            assert_eq!(spell.base_ticks, ticks, "{name} base");
+            assert_eq!(spell.max_ticks, ticks, "{name} max");
+            assert_eq!(duration_seconds(spell, 60, 0), ticks as u64 * 6, "{name}");
+        }
+    }
+
+    #[test]
     fn shield_of_thorns_resolves_from_cast_name() {
         // Wiki used "Shield of Thorns (Spell)"; cast log is bare "Shield of Thorns".
         let spells = load_spells().expect("spells");
@@ -1150,12 +1184,12 @@ mod tests {
         let mut ov = OverlayAppearance::default();
         assert!(ov.flash_expiry_warn);
         assert!(!ov.verbal_expiry_warn);
-        assert_eq!(ov.expiry_warn_secs, 30);
-        assert_eq!(ov.expiry_warn_secs_clamped(), 30);
+        assert_eq!(ov.expiry_warn_secs, 10);
+        assert_eq!(ov.expiry_warn_secs_clamped(), 10);
         ov.expiry_warn_secs = 0;
         assert_eq!(ov.expiry_warn_secs_clamped(), 1);
-        ov.expiry_warn_secs = 99;
-        assert_eq!(ov.expiry_warn_secs_clamped(), 30);
+        ov.expiry_warn_secs = 999;
+        assert_eq!(ov.expiry_warn_secs_clamped(), 120);
         let mut cfg = AppConfig::default();
         cfg.overlay.expiry_warn_secs = 0;
         normalize_config(&mut cfg);

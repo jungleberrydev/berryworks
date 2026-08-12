@@ -4,7 +4,9 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import {
   DEFAULT_OVERLAY,
   TIMER_SIZES,
+  bindIconErrorHandling,
   clampExpiryWarnSecs,
+  expiryWarnThresholdMs,
   iconImgHtml,
   overlayFontCss,
   type OverlayAppearance,
@@ -100,6 +102,8 @@ let announcedRecentIds = new Set<string>();
 /** Timer IDs already given a pre-expiry verbal warning (or under threshold at startup). */
 let announcedPreExpiryIds = new Set<string>();
 let voicePrimed = false;
+/** Skip full innerHTML rebuild when only remaining time changed. */
+let lastOverlayLayoutKey = "";
 function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
   if (!m) return null;
@@ -134,6 +138,7 @@ function applyConfig(cfg: AppConfig) {
 
 function applyAppearance(ov: OverlayAppearance) {
   appearance = { ...DEFAULT_OVERLAY, ...ov };
+  lastOverlayLayoutKey = "";
   rightClickDismiss = appearance.right_click_dismiss !== false;
   showRecentlyWoreOff = appearance.show_recently_wore_off !== false;
   separateEnemyWindow = !!appearance.separate_enemy_window;
@@ -284,14 +289,15 @@ function groupByTarget<T extends { target: string }>(
 function remainMs(endsAt: string): number {
   return Math.max(0, new Date(endsAt).getTime() - Date.now());
 }
-function isUrgent(leftMs: number): boolean {
-  return flashExpiryWarn && leftMs > 0 && leftMs < expiryWarnSecs * 1000;
+function isUrgent(leftMs: number, durationMs: number): boolean {
+  if (!flashExpiryWarn || leftMs <= 0) return false;
+  return leftMs < expiryWarnThresholdMs(durationMs, expiryWarnSecs);
 }
 function renderActiveRow(t: ActiveTimer, hideTarget: boolean): string {
   const total = t.duration_secs * 1000;
   const left = remainMs(t.ends_at);
   const pct = total > 0 ? (left / total) * 100 : 0;
-  const urgentClass = isUrgent(left) ? " otimer-urgent" : "";
+  const urgentClass = isUrgent(left, total) ? " otimer-urgent" : "";
   const icon = spellIconHtml(t.spell);
   const minimal = appearance.timer_size === "minimal";
   if (minimal) {
@@ -385,7 +391,7 @@ function renderRespawnRow(t: RespawnTimer): string {
   const total = t.duration_secs * 1000;
   const left = remainMs(t.ends_at);
   const pct = total > 0 ? (left / total) * 100 : 0;
-  const urgentClass = isUrgent(left) ? " otimer-urgent" : "";
+  const urgentClass = isUrgent(left, total) ? " otimer-urgent" : "";
   const rareClass = t.is_rare ? " otimer-rare" : "";
   const cat = t.is_rare ? "rare" : "trash";
   const minimal = appearance.timer_size === "minimal";
@@ -500,11 +506,11 @@ function seedAnnouncedRecent(recent: RecentExpired[]) {
 /** Speak once when a timer first crosses into the pre-expiry window (main overlay). */
 function announcePreExpiry(timers: ActiveTimer[]) {
   if (overlayRole !== "main" || !verbalExpiryWarn) return;
-  const thresholdMs = expiryWarnSecs * 1000;
   const live = new Set(timers.map((t) => t.id));
   for (const t of timers) {
     const left = remainMs(t.ends_at);
     if (left <= 0) continue;
+    const thresholdMs = expiryWarnThresholdMs(t.duration_secs * 1000, expiryWarnSecs);
     if (left >= thresholdMs) {
       // Renewed / duration grew past threshold → allow a later warning.
       announcedPreExpiryIds.delete(t.id);
@@ -521,15 +527,63 @@ function announcePreExpiry(timers: ActiveTimer[]) {
 
 /** Seed timers already under the warn window so opening the overlay doesn't spam. */
 function seedAnnouncedPreExpiry(timers: ActiveTimer[]) {
-  const thresholdMs = expiryWarnSecs * 1000;
   announcedPreExpiryIds = new Set(
     timers
       .filter((t) => {
         const left = remainMs(t.ends_at);
+        const thresholdMs = expiryWarnThresholdMs(t.duration_secs * 1000, expiryWarnSecs);
         return left > 0 && left < thresholdMs;
       })
       .map((t) => t.id)
   );
+}
+
+function overlayLayoutKey(
+  timers: { id: string; spell: string; target: string; category: string }[],
+  extra: string[] = []
+): string {
+  return [
+    overlayRole,
+    appearance.timer_size,
+    appearance.show_icons === false ? "0" : "1",
+    ...timers.map((t) => `${t.id}\t${t.spell}\t${t.target}\t${t.category}`),
+    ...extra,
+  ].join("\n");
+}
+
+function patchCountdownRow(
+  el: HTMLElement,
+  endsAt: string,
+  durationSecs: number,
+  timeText: string
+) {
+  const total = durationSecs * 1000;
+  const left = remainMs(endsAt);
+  const pct = total > 0 ? (left / total) * 100 : 0;
+  el.classList.toggle("otimer-urgent", isUrgent(left, total));
+  const timeEl = el.querySelector(".otime");
+  if (timeEl) timeEl.textContent = timeText;
+  const fill = el.querySelector(".ofill") as HTMLElement | null;
+  if (fill) fill.style.width = `${pct}%`;
+}
+
+function patchOverlayRows(
+  box: HTMLElement,
+  timers: { id: string; ends_at: string; duration_secs: number }[],
+  recent: { id: string; ended_at: string }[] = []
+): boolean {
+  for (const t of timers) {
+    const el = box.querySelector(`[data-timer-id="${CSS.escape(t.id)}"]`) as HTMLElement | null;
+    if (!el) return false;
+    patchCountdownRow(el, t.ends_at, t.duration_secs, formatRemain(t.ends_at));
+  }
+  for (const r of recent) {
+    const el = box.querySelector(`[data-recent-id="${CSS.escape(r.id)}"]`) as HTMLElement | null;
+    if (!el) return false;
+    const timeEl = el.querySelector(".otime");
+    if (timeEl) timeEl.textContent = formatAgo(r.ended_at);
+  }
+  return true;
 }
 
 function renderRespawns(timers: RespawnTimer[], zone: string | null) {
@@ -543,12 +597,23 @@ function renderRespawns(timers: RespawnTimer[], zone: string | null) {
   syncOverlayZoneSelect(zone);
   const box = document.getElementById("timers")!;
   if (!timers.length) {
+    lastOverlayLayoutKey = "";
     const empty = zone
       ? `No respawn timers in ${escapeHtml(zone)}…`
       : "Select a zone (settings or dropdown) to track respawns…";
     box.innerHTML = `<div class="empty-state">${empty}</div>`;
     return;
   }
+  const key = overlayLayoutKey(timers.map((t) => ({
+    id: t.id,
+    spell: t.label,
+    target: t.npc_name,
+    category: t.is_rare ? "rare" : "trash",
+  })), [zone ?? ""]);
+  if (key === lastOverlayLayoutKey && patchOverlayRows(box, timers)) {
+    return;
+  }
+  lastOverlayLayoutKey = key;
   box.innerHTML = `<div class="ogroup">${timers.map(renderRespawnRow).join("")}</div>`;
 }
 
@@ -563,11 +628,23 @@ function render(timers: ActiveTimer[], recent: RecentExpired[] = []) {
   const box = document.getElementById("timers")!;
   const showRecent = showRecentlyWoreOff && visibleRecent.length > 0;
   if (!visibleTimers.length && !showRecent) {
+    lastOverlayLayoutKey = "";
     const emptyMsg =
       overlayRole === "enemies" ? "No enemy timers…" : "Waiting for spells…";
     box.innerHTML = `<div class="empty-state">${emptyMsg}</div>`;
     return;
   }
+  const key = overlayLayoutKey(visibleTimers, [
+    showRecent ? "recent" : "norecent",
+    ...visibleRecent.map((r) => `${r.id}\t${r.spell}\t${r.target}\t${r.category}`),
+  ]);
+  if (
+    key === lastOverlayLayoutKey &&
+    patchOverlayRows(box, visibleTimers, showRecent ? visibleRecent : [])
+  ) {
+    return;
+  }
+  lastOverlayLayoutKey = key;
   const parts: string[] = [];
   if (visibleTimers.length) {
     parts.push(renderGroupedActive(visibleTimers));
@@ -594,6 +671,7 @@ async function loadSpellIcons() {
   }
 }
 window.addEventListener("DOMContentLoaded", async () => {
+  bindIconErrorHandling();
   const win = getCurrentWindow();
   if (win.label === "overlay-enemies") overlayRole = "enemies";
   else if (win.label === "overlay-respawns") overlayRole = "respawns";

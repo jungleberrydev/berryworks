@@ -7,7 +7,7 @@
     <title>Berryworks</title>
     <script type="module" src="/src/main.ts" defer></script>
   </head>
-  <body class="settings-body">
+  <body class="settings-body" data-theme="berry">
     <header class="app-header">
       <div>
         <h1>Berryworks</h1>
@@ -20,6 +20,15 @@
     </header>
 
     <nav class="section-nav" role="tablist" aria-label="Berryworks sections">
+      <button
+        type="button"
+        class="section-tab"
+        role="tab"
+        aria-selected="false"
+        data-section="appearance"
+      >
+        Appearance
+      </button>
       <button
         type="button"
         class="section-tab is-active"
@@ -44,9 +53,6 @@
       <nav class="settings-tabs" role="tablist" aria-label="Timer settings">
         <button type="button" class="settings-tab is-active" role="tab" aria-selected="true" data-tab="general">
           General
-        </button>
-        <button type="button" class="settings-tab" role="tab" aria-selected="false" data-tab="appearance">
-          Appearance
         </button>
         <button type="button" class="settings-tab" role="tab" aria-selected="false" data-tab="overlay">
           Overlay
@@ -138,103 +144,11 @@
             </p>
             <div class="row gap">
               <button id="btn-check-updates" type="button" class="secondary">Check for updates</button>
+              <button id="btn-whats-new" type="button" class="secondary">What's new</button>
               <span id="update-status" class="status"></span>
             </div>
+            <div id="changelog-list" class="changelog changelog-inline"></div>
           </div>
-        </section>
-
-        <section
-          id="tab-appearance"
-          class="panel settings-panel"
-          role="tabpanel"
-          data-tab-panel="appearance"
-          hidden
-        >
-          <h2>Theme &amp; colors</h2>
-          <div class="settings-group">
-            <p class="hint">
-              Themes set colors and panel opacity; you can still tweak after picking one. Changes apply live.
-            </p>
-            <div class="appearance-grid">
-              <label class="field">
-                <span>Theme</span>
-                <select id="ov-theme">
-                  <option value="berry">Berry (default)</option>
-                  <option value="parchment">Classic parchment</option>
-                  <option value="eq-chrome">Dark blue EQ chrome</option>
-                  <option value="velious">Velious ice</option>
-                  <option value="kunark">Kunark / swamp</option>
-                </select>
-              </label>
-              <label class="field color-field">
-                <span>Text</span>
-                <input id="ov-text-color" type="color" value="#f6ebf1" />
-              </label>
-              <label class="field color-field">
-                <span>Panel</span>
-                <input id="ov-panel-color" type="color" value="#160e14" />
-              </label>
-              <label class="field color-field">
-                <span>Buff bar</span>
-                <input id="ov-buff-color" type="color" value="#7eb8a2" />
-              </label>
-              <label class="field color-field">
-                <span>Debuff bar</span>
-                <input id="ov-debuff-color" type="color" value="#c45c8a" />
-              </label>
-              <label class="field color-field">
-                <span>DoT bar</span>
-                <input id="ov-dot-color" type="color" value="#d4a05a" />
-              </label>
-              <label class="field">
-                <span>Panel opacity</span>
-                <input id="ov-panel-opacity" type="range" min="0" max="100" value="82" />
-                <span id="ov-panel-opacity-label" class="range-label">82%</span>
-              </label>
-              <label class="field">
-                <span>Bar opacity</span>
-                <input id="ov-bar-opacity" type="range" min="0" max="100" value="100" />
-                <span id="ov-bar-opacity-label" class="range-label">100%</span>
-              </label>
-            </div>
-          </div>
-
-          <h2 class="panel-subhead">Size &amp; type</h2>
-          <div class="settings-group">
-            <p class="hint">Density and font affect all timer overlay windows.</p>
-            <div class="appearance-grid">
-              <label class="field">
-                <span>Timer density</span>
-                <select id="ov-timer-size">
-                  <option value="minimal">Minimal</option>
-                  <option value="small">Small</option>
-                  <option value="normal" selected>Normal</option>
-                  <option value="large">Large</option>
-                </select>
-              </label>
-              <label class="field">
-                <span>Overlay font</span>
-                <select id="ov-font-family">
-                  <option value="Segoe UI" selected>Segoe UI (default)</option>
-                  <option value="Cascadia Mono">Cascadia Mono</option>
-                  <option value="Consolas">Consolas</option>
-                  <option value="Georgia">Georgia</option>
-                  <option value="Palatino Linotype">Palatino Linotype</option>
-                  <option value="Trebuchet MS">Trebuchet MS</option>
-                  <option value="Arial">Arial</option>
-                  <option value="Verdana">Verdana</option>
-                  <option value="Calibri">Calibri</option>
-                  <option value="Tahoma">Tahoma</option>
-                </select>
-              </label>
-              <label class="field checkbox">
-                <input id="ov-show-icons" type="checkbox" checked />
-                <span>Show spell icons on overlay</span>
-              </label>
-            </div>
-          </div>
-
-          <button id="btn-reset-appearance" type="button" class="secondary">Reset appearance</button>
         </section>
 
         <section
@@ -275,8 +189,10 @@
           <h2 class="panel-subhead">Expiry warnings</h2>
           <div class="settings-group">
             <p class="hint">
-              Flash and verbal share the warn lead time (1–30s). Verbal speaks once when a timer crosses the
-              threshold, using the announcement voice and volume above.
+              Flash and verbal share the warn lead time (1–120 seconds). Type or slide to set how many
+              seconds before expiry. Short timers cap at half their duration so they don’t flash the whole
+              time. Verbal speaks once when a timer crosses the threshold, using the announcement voice
+              and volume above.
             </p>
             <div class="settings-stack">
               <label class="field checkbox">
@@ -289,8 +205,20 @@
               </label>
               <label class="field field-wide">
                 <span>Warn before expiry</span>
-                <input id="ov-expiry-warn-secs" type="range" min="1" max="30" step="1" value="30" />
-                <span id="ov-expiry-warn-label" class="range-label">30s</span>
+                <div class="row gap expiry-warn-row">
+                  <input id="ov-expiry-warn-secs" type="range" min="1" max="120" step="1" value="10" />
+                  <input
+                    id="ov-expiry-warn-secs-num"
+                    type="number"
+                    min="1"
+                    max="120"
+                    step="1"
+                    value="10"
+                    class="secs-input"
+                    aria-label="Warn seconds"
+                  />
+                  <span id="ov-expiry-warn-label" class="range-label">10s</span>
+                </div>
               </label>
             </div>
           </div>
@@ -420,6 +348,110 @@
       </section>
     </div>
 
+    <div id="section-appearance" class="app-section" data-section-panel="appearance" hidden>
+      <section class="panel settings-panel is-active">
+        <h2>Theme &amp; colors</h2>
+        <div class="settings-group">
+          <p class="hint">
+            Themes set colors, chrome, and (for fantasy/terminal) a matching font. You can still tweak after
+            picking one. Changes apply live to the overlay and this window.
+          </p>
+          <div class="appearance-grid">
+            <label class="field">
+              <span>Theme</span>
+              <select id="ov-theme">
+                <optgroup label="Classic">
+                  <option value="berry">Berry (default)</option>
+                  <option value="parchment">Classic parchment</option>
+                  <option value="eq-chrome">Dark blue EQ chrome</option>
+                  <option value="velious">Velious ice</option>
+                  <option value="kunark">Kunark / swamp</option>
+                </optgroup>
+                <optgroup label="Fantasy">
+                  <option value="ironkeep">Ironkeep</option>
+                  <option value="grimoire">Grimoire</option>
+                </optgroup>
+                <optgroup label="Terminal / retro">
+                  <option value="phosphor">Phosphor CRT</option>
+                  <option value="amber">Amber CRT</option>
+                  <option value="vga">VGA night</option>
+                </optgroup>
+              </select>
+            </label>
+            <label class="field color-field">
+              <span>Text</span>
+              <input id="ov-text-color" type="color" value="#f6ebf1" />
+            </label>
+            <label class="field color-field">
+              <span>Panel</span>
+              <input id="ov-panel-color" type="color" value="#160e14" />
+            </label>
+            <label class="field color-field">
+              <span>Buff bar</span>
+              <input id="ov-buff-color" type="color" value="#7eb8a2" />
+            </label>
+            <label class="field color-field">
+              <span>Debuff bar</span>
+              <input id="ov-debuff-color" type="color" value="#c45c8a" />
+            </label>
+            <label class="field color-field">
+              <span>DoT bar</span>
+              <input id="ov-dot-color" type="color" value="#d4a05a" />
+            </label>
+            <label class="field">
+              <span>Panel opacity</span>
+              <input id="ov-panel-opacity" type="range" min="0" max="100" value="82" />
+              <span id="ov-panel-opacity-label" class="range-label">82%</span>
+            </label>
+            <label class="field">
+              <span>Bar opacity</span>
+              <input id="ov-bar-opacity" type="range" min="0" max="100" value="100" />
+              <span id="ov-bar-opacity-label" class="range-label">100%</span>
+            </label>
+          </div>
+        </div>
+
+        <h2 class="panel-subhead">Size &amp; type</h2>
+        <div class="settings-group">
+          <p class="hint">Density and font affect all timer overlay windows.</p>
+          <div class="appearance-grid">
+            <label class="field">
+              <span>Timer density</span>
+              <select id="ov-timer-size">
+                <option value="minimal">Minimal</option>
+                <option value="small">Small</option>
+                <option value="normal" selected>Normal</option>
+                <option value="large">Large</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Overlay font</span>
+              <select id="ov-font-family">
+                <option value="Segoe UI" selected>Segoe UI (default)</option>
+                <option value="Cascadia Mono">Cascadia Mono</option>
+                <option value="Consolas">Consolas</option>
+                <option value="Courier New">Courier New</option>
+                <option value="Lucida Console">Lucida Console</option>
+                <option value="Georgia">Georgia</option>
+                <option value="Palatino Linotype">Palatino Linotype</option>
+                <option value="Trebuchet MS">Trebuchet MS</option>
+                <option value="Arial">Arial</option>
+                <option value="Verdana">Verdana</option>
+                <option value="Calibri">Calibri</option>
+                <option value="Tahoma">Tahoma</option>
+              </select>
+            </label>
+            <label class="field checkbox">
+              <input id="ov-show-icons" type="checkbox" checked />
+              <span>Show spell icons on overlay</span>
+            </label>
+          </div>
+        </div>
+
+        <button id="btn-reset-appearance" type="button" class="secondary">Reset appearance</button>
+      </section>
+    </div>
+
     <div id="section-loot" class="app-section" data-section-panel="loot" hidden>
       <section class="panel settings-panel is-active">
         <h2>Tracking</h2>
@@ -502,5 +534,15 @@
         </div>
       </section>
     </div>
+
+    <dialog id="whats-new-dialog" class="whats-new-dialog" aria-labelledby="whats-new-title">
+      <div class="whats-new-card">
+        <h2 id="whats-new-title">What's new</h2>
+        <div id="whats-new-body" class="changelog"></div>
+        <form method="dialog" class="whats-new-actions">
+          <button type="submit" class="primary">Got it</button>
+        </form>
+      </div>
+    </dialog>
   </body>
 </html>

@@ -7,16 +7,27 @@ import { relaunch } from "@tauri-apps/plugin-process";
 import {
   DEFAULT_OVERLAY,
   OVERLAY_FONTS,
+  THEME_GROUPS,
+  THEME_PRESETS,
   TIMER_SIZES,
   applyThemePreset,
+  bindIconErrorHandling,
   clampExpiryWarnSecs,
   clampRecentlyWoreOffSecs,
+  expiryWarnThresholdMs,
   formatExpiryWarnLabel,
   formatRecentlyWoreOffLabel,
   iconImgHtml,
   type OverlayAppearance,
 } from "./themes";
 import { PET_NAME_HINT } from "./pets";
+import {
+  entriesSince,
+  getLastSeenVersion,
+  loadChangelog,
+  renderChangelogHtml,
+  setLastSeenVersion,
+} from "./changelog";
 
 /** Fixed production sync base; not user-editable in the Loot UI. */
 const DEFAULT_LOOT_SYNC_URL = "https://norrathroster.com";
@@ -489,6 +500,43 @@ function resolveFontFamily(raw: string): string {
   return found?.id ?? DEFAULT_OVERLAY.font_family;
 }
 
+function populateThemeSelect(selected?: string) {
+  const select = document.getElementById("ov-theme") as HTMLSelectElement | null;
+  if (!select) return;
+  const value = selected ?? select.value ?? "berry";
+  select.innerHTML = "";
+  for (const group of THEME_GROUPS) {
+    const og = document.createElement("optgroup");
+    og.label = group.label;
+    for (const preset of THEME_PRESETS.filter((p) => p.group === group.id)) {
+      const opt = document.createElement("option");
+      opt.value = preset.id;
+      opt.textContent = preset.label;
+      og.appendChild(opt);
+    }
+    select.appendChild(og);
+  }
+  select.value = THEME_PRESETS.some((p) => p.id === value) ? value : "berry";
+}
+
+function populateFontSelect(selected?: string) {
+  const select = document.getElementById("ov-font-family") as HTMLSelectElement | null;
+  if (!select) return;
+  const value = resolveFontFamily(selected ?? select.value);
+  select.innerHTML = "";
+  for (const font of OVERLAY_FONTS) {
+    const opt = document.createElement("option");
+    opt.value = font.id;
+    opt.textContent = font.label;
+    select.appendChild(opt);
+  }
+  select.value = value;
+}
+
+function applySettingsChrome(theme: string) {
+  document.body.dataset.theme = theme || "berry";
+}
+
 function readAppearanceFromForm(): OverlayAppearance {
   const panelPct = Number((document.getElementById("ov-panel-opacity") as HTMLInputElement).value);
   const barPct = Number((document.getElementById("ov-bar-opacity") as HTMLInputElement).value);
@@ -567,6 +615,7 @@ function readAppearanceFromForm(): OverlayAppearance {
 
 function writeAppearanceToForm(ov: OverlayAppearance) {
   const merged = { ...DEFAULT_OVERLAY, ...ov };
+  applySettingsChrome(merged.theme || "berry");
   (document.getElementById("ov-theme") as HTMLSelectElement).value = merged.theme || "berry";
   (document.getElementById("ov-text-color") as HTMLInputElement).value = merged.text_color;
   (document.getElementById("ov-panel-color") as HTMLInputElement).value = merged.panel_color;
@@ -612,6 +661,8 @@ function writeAppearanceToForm(ov: OverlayAppearance) {
     !!merged.verbal_expiry_warn;
   const warnSecs = clampExpiryWarnSecs(merged.expiry_warn_secs);
   (document.getElementById("ov-expiry-warn-secs") as HTMLInputElement).value = String(warnSecs);
+  const warnNum = document.getElementById("ov-expiry-warn-secs-num") as HTMLInputElement | null;
+  if (warnNum) warnNum.value = String(warnSecs);
   $("ov-expiry-warn-label").textContent = formatExpiryWarnLabel(warnSecs);
   (document.getElementById("ov-show-respawn-window") as HTMLInputElement).checked =
     merged.show_respawn_window !== false;
@@ -731,6 +782,9 @@ function scheduleAppearanceSave() {
   const warnSecs = clampExpiryWarnSecs(
     Number((document.getElementById("ov-expiry-warn-secs") as HTMLInputElement).value)
   );
+  (document.getElementById("ov-expiry-warn-secs") as HTMLInputElement).value = String(warnSecs);
+  const warnNum = document.getElementById("ov-expiry-warn-secs-num") as HTMLInputElement | null;
+  if (warnNum && document.activeElement !== warnNum) warnNum.value = String(warnSecs);
   $("ov-expiry-warn-label").textContent = formatExpiryWarnLabel(warnSecs);
   if (appearanceSaveTimer) clearTimeout(appearanceSaveTimer);
   appearanceSaveTimer = setTimeout(() => {
@@ -747,9 +801,12 @@ function applyThemeFromSelect() {
   scheduleAppearanceSave();
 }
 
+let lastLiveTimerKey = "";
+
 function renderLiveTimers(timers: ActiveTimer[]) {
   const box = $("live-timers");
   if (!timers.length) {
+    lastLiveTimerKey = "";
     box.className = "live-timers empty";
     box.textContent = "No active timers";
     return;
@@ -757,18 +814,43 @@ function renderLiveTimers(timers: ActiveTimer[]) {
   box.className = "live-timers";
   const ov = overlayOf(config);
   const flash = ov.flash_expiry_warn !== false;
-  const warnMs = clampExpiryWarnSecs(ov.expiry_warn_secs) * 1000;
+  const warnSecs = clampExpiryWarnSecs(ov.expiry_warn_secs);
   const sorted = [...timers].sort(
     (a, b) => new Date(a.ends_at).getTime() - new Date(b.ends_at).getTime(),
   );
+  const key = sorted.map((t) => `${t.id}\t${t.spell}\t${t.target}\t${t.category}`).join("\n");
+  const patchRow = (el: HTMLElement, t: ActiveTimer) => {
+    const { text } = formatRemain(t.ends_at);
+    const total = t.duration_secs * 1000;
+    const left = Math.max(0, new Date(t.ends_at).getTime() - Date.now());
+    const pct = total > 0 ? (left / total) * 100 : 0;
+    const urgent = flash && left > 0 && left < expiryWarnThresholdMs(total, warnSecs);
+    el.classList.toggle("timer-urgent", urgent);
+    const timeEl = el.querySelector(".timer-time");
+    if (timeEl) timeEl.textContent = text;
+    const fill = el.querySelector(".bar-fill") as HTMLElement | null;
+    if (fill) fill.style.width = `${pct}%`;
+  };
+  if (key === lastLiveTimerKey) {
+    for (const t of sorted) {
+      const el = box.querySelector(`[data-timer-id="${CSS.escape(t.id)}"]`) as HTMLElement | null;
+      if (!el) {
+        lastLiveTimerKey = "";
+        break;
+      }
+      patchRow(el, t);
+    }
+    if (lastLiveTimerKey) return;
+  }
+  lastLiveTimerKey = key;
   box.innerHTML = sorted
     .map((t) => {
       const { text } = formatRemain(t.ends_at);
       const total = t.duration_secs * 1000;
       const left = Math.max(0, new Date(t.ends_at).getTime() - Date.now());
       const pct = total > 0 ? (left / total) * 100 : 0;
-      const urgent = flash && left > 0 && left < warnMs;
-      return `<div class="timer-row cat-${t.category}${urgent ? " timer-urgent" : ""}">
+      const urgent = flash && left > 0 && left < expiryWarnThresholdMs(total, warnSecs);
+      return `<div class="timer-row cat-${t.category}${urgent ? " timer-urgent" : ""}" data-timer-id="${escapeHtml(t.id)}">
         <div class="timer-meta">${iconImgHtml(spellIconByName(t.spell))} <strong>${escapeHtml(t.spell)}</strong> — ${escapeHtml(t.target)}</div>
         <div class="timer-time">${text}</div>
         <div class="bar"><div class="bar-fill" style="width:${pct}%"></div></div>
@@ -1126,8 +1208,10 @@ function initLootUi() {
 }
 
 function initSettingsTabs() {
-  const tabs = document.querySelectorAll<HTMLButtonElement>(".settings-tab:not([data-loot-view])");
-  const panels = document.querySelectorAll<HTMLElement>("[data-tab-panel]");
+  const root = document.getElementById("section-timers");
+  if (!root) return;
+  const tabs = root.querySelectorAll<HTMLButtonElement>(".settings-tab");
+  const panels = root.querySelectorAll<HTMLElement>("[data-tab-panel]");
   const activate = (id: string) => {
     for (const tab of tabs) {
       const on = tab.dataset.tab === id;
@@ -1200,15 +1284,66 @@ async function runUpdateCheck(opts: { interactive: boolean }) {
   }
 }
 
+function openWhatsNewDialog(html: string, heading: string) {
+  const dialog = document.getElementById("whats-new-dialog") as HTMLDialogElement | null;
+  const body = document.getElementById("whats-new-body");
+  const title = document.getElementById("whats-new-title");
+  if (!dialog || !body) return;
+  if (title) title.textContent = heading;
+  body.innerHTML = html;
+  if (typeof dialog.showModal === "function") dialog.showModal();
+}
+
+async function initChangelogUi(currentVersion: string) {
+  const entries = loadChangelog();
+  const list = document.getElementById("changelog-list");
+  if (list) list.innerHTML = renderChangelogHtml(entries);
+
+  const dialog = document.getElementById("whats-new-dialog") as HTMLDialogElement | null;
+  dialog?.addEventListener("click", (event) => {
+    if (event.target === dialog) dialog.close();
+  });
+  dialog?.addEventListener("close", () => {
+    if (currentVersion) setLastSeenVersion(currentVersion);
+  });
+
+  const btn = document.getElementById("btn-whats-new");
+  btn?.addEventListener("click", () => {
+    openWhatsNewDialog(renderChangelogHtml(entries), "What's new");
+  });
+
+  const lastSeen = getLastSeenVersion();
+  if (!currentVersion) return;
+  if (!lastSeen) {
+    setLastSeenVersion(currentVersion);
+    return;
+  }
+  if (lastSeen === currentVersion) return;
+  const fresh = entriesSince(entries, lastSeen, currentVersion);
+  if (!fresh.length) {
+    setLastSeenVersion(currentVersion);
+    return;
+  }
+  window.setTimeout(() => {
+    openWhatsNewDialog(
+      renderChangelogHtml(fresh),
+      `What's new in Berryworks ${currentVersion}`
+    );
+  }, 400);
+}
+
 async function initUpdaterUi() {
   const ver = document.getElementById("app-version");
+  let currentVersion = "";
   if (ver) {
     try {
-      ver.textContent = await getVersion();
+      currentVersion = await getVersion();
+      ver.textContent = currentVersion;
     } catch {
       ver.textContent = "unknown";
     }
   }
+  await initChangelogUi(currentVersion);
   const btn = document.getElementById("btn-check-updates");
   btn?.addEventListener("click", () => {
     void runUpdateCheck({ interactive: true });
@@ -1220,6 +1355,9 @@ async function initUpdaterUi() {
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
+  bindIconErrorHandling();
+  populateThemeSelect();
+  populateFontSelect();
   initSectionNav();
   initSettingsTabs();
   initLootUi();
@@ -1314,6 +1452,21 @@ window.addEventListener("DOMContentLoaded", async () => {
     $(id).addEventListener("input", scheduleAppearanceSave);
     $(id).addEventListener("change", scheduleAppearanceSave);
   }
+
+  const warnNum = document.getElementById("ov-expiry-warn-secs-num") as HTMLInputElement | null;
+  const warnRange = document.getElementById("ov-expiry-warn-secs") as HTMLInputElement;
+  warnNum?.addEventListener("input", () => {
+    if (warnNum.value === "") return;
+    const secs = clampExpiryWarnSecs(Number(warnNum.value));
+    warnRange.value = String(secs);
+    scheduleAppearanceSave();
+  });
+  warnNum?.addEventListener("change", () => {
+    const secs = clampExpiryWarnSecs(Number(warnNum.value));
+    warnRange.value = String(secs);
+    warnNum.value = String(secs);
+    scheduleAppearanceSave();
+  });
 
   $("ov-theme").addEventListener("change", applyThemeFromSelect);
 

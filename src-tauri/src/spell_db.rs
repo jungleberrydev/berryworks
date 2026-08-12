@@ -250,6 +250,11 @@ impl Default for OverlayAppearance {
 pub struct AppConfig {
     pub log_path: String,
     pub character_level: u32,
+    /// Spell Casting Reinforcement AA rank (0 = none, 1–4 = +5/15/30/50%).
+    /// Extends beneficial spells you cast; invulnerability and combat abilities
+    /// are exempt.
+    #[serde(default)]
+    pub spell_casting_reinforcement: u32,
     /// Exact pet target string as it appears in land/combat logs
     /// (e.g. `Gastik` or `Jungleberry pet`). See `data/pets.json`.
     #[serde(default)]
@@ -312,6 +317,7 @@ impl Default for AppConfig {
         Self {
             log_path: String::new(),
             character_level: 1,
+            spell_casting_reinforcement: 0,
             my_pet_name: String::new(),
             spell_tiers: HashMap::new(),
             watched: HashMap::new(),
@@ -333,8 +339,14 @@ impl Default for AppConfig {
     }
 }
 
+/// Highest Spell Casting Reinforcement rank (Mastery / +50%).
+pub const SPELL_CASTING_REINFORCEMENT_MAX_RANK: u32 = 4;
+
 /// Clamp overlay fields that have valid ranges (called on load/save).
 pub fn normalize_config(config: &mut AppConfig) {
+    config.spell_casting_reinforcement = config
+        .spell_casting_reinforcement
+        .min(SPELL_CASTING_REINFORCEMENT_MAX_RANK);
     config.my_pet_name = config.my_pet_name.trim().to_string();
     config.overlay.recently_wore_off_secs = config.overlay.recently_wore_off_secs_clamped();
     config.overlay.voice_volume = config.overlay.voice_volume_clamped();
@@ -500,8 +512,58 @@ pub fn ticks_from_formula(formula: &str, level: u32, base_ticks: u32) -> u32 {
     }
 }
 
+/// Spell Casting Reinforcement rank → duration bonus percent.
+/// Rank 0 = none; 1 = 5%; 2 = 15%; 3 = 30%; 4 = 50%.
+pub fn spell_casting_reinforcement_pct(rank: u32) -> f64 {
+    match rank.min(SPELL_CASTING_REINFORCEMENT_MAX_RANK) {
+        1 => 5.0,
+        2 => 15.0,
+        3 => 30.0,
+        4 => 50.0,
+        _ => 0.0,
+    }
+}
+
+/// Beneficial spells you cast, excluding invulnerability and combat abilities.
+pub fn spell_eligible_for_reinforcement(spell: &SpellDef) -> bool {
+    if is_invulnerability_spell(spell) || is_combat_ability_spell(spell) {
+        return false;
+    }
+    let cat = spell.category.to_ascii_lowercase();
+    cat == "buff" || cat == "lull"
+}
+
+fn is_invulnerability_spell(spell: &SpellDef) -> bool {
+    const NAMES: &[&str] = &[
+        "Divine Aura",
+        "Divine Barrier",
+        "Harmshield",
+        "Quivering Veil of Xarn",
+    ];
+    if NAMES.iter().any(|n| spell.name.eq_ignore_ascii_case(n)) {
+        return true;
+    }
+    let blob = format!(
+        "{} {} {}",
+        spell.land_you, spell.land_other, spell.wear_off_you
+    )
+    .to_ascii_lowercase();
+    blob.contains("invulnerab")
+}
+
+fn is_combat_ability_spell(spell: &SpellDef) -> bool {
+    let cat = spell.category.to_ascii_lowercase();
+    cat == "combat" || cat == "combat_ability" || cat == "discipline"
+}
+
 /// Compute duration in seconds from spell definition, caster level, and tier.
 pub fn duration_seconds(spell: &SpellDef, level: u32, tier: u32) -> u64 {
+    duration_seconds_with_aa(spell, level, tier, 0)
+}
+
+/// Like [`duration_seconds`], plus Spell Casting Reinforcement when the spell
+/// is eligible (beneficial, not invuln / combat ability). `scr_rank` 0–4.
+pub fn duration_seconds_with_aa(spell: &SpellDef, level: u32, tier: u32, scr_rank: u32) -> u64 {
     let tier = tier.min(10);
     let mut ticks = ticks_from_formula(&spell.duration_formula, level, spell.base_ticks);
 
@@ -513,7 +575,14 @@ pub fn duration_seconds(spell: &SpellDef, level: u32, tier: u32) -> u64 {
     }
 
     let bonus = 1.0 + (tier as f64) * (spell.tier_duration_pct / 100.0);
-    let effective = ((ticks as f64) * bonus).round() as u32;
+    let mut effective = (ticks as f64) * bonus;
+    if spell_eligible_for_reinforcement(spell) {
+        let scr = 1.0 + spell_casting_reinforcement_pct(scr_rank) / 100.0;
+        if scr > 1.0 {
+            effective *= scr;
+        }
+    }
+    let effective = effective.round() as u32;
     let capped = if spell.max_ticks > 0 {
         // Tier can push past listed wiki max; allow rounded value but keep a soft ceiling
         // of max_ticks * 2.5 so rank 10 (~+100%) still works.
@@ -1091,5 +1160,60 @@ mod tests {
         cfg.overlay.expiry_warn_secs = 0;
         normalize_config(&mut cfg);
         assert_eq!(cfg.overlay.expiry_warn_secs, 1);
+    }
+
+    #[test]
+    fn spell_casting_reinforcement_rank_percents() {
+        assert_eq!(spell_casting_reinforcement_pct(0), 0.0);
+        assert_eq!(spell_casting_reinforcement_pct(1), 5.0);
+        assert_eq!(spell_casting_reinforcement_pct(2), 15.0);
+        assert_eq!(spell_casting_reinforcement_pct(3), 30.0);
+        assert_eq!(spell_casting_reinforcement_pct(4), 50.0);
+        assert_eq!(spell_casting_reinforcement_pct(99), 50.0);
+    }
+
+    #[test]
+    fn spell_casting_reinforcement_extends_buffs_not_debuffs() {
+        let celerity = haste("Celerity", "level_x3_plus_10", 160);
+        // L50 cap 160 ticks = 960s; rank 4 → 240 ticks = 1440s.
+        assert_eq!(duration_seconds(&celerity, 50, 0), 960);
+        assert_eq!(duration_seconds_with_aa(&celerity, 50, 0, 4), 1440);
+        assert_eq!(duration_seconds_with_aa(&celerity, 50, 0, 1), 1008); // 160 * 1.05
+        assert!(!spell_eligible_for_reinforcement(&mez()));
+        assert_eq!(duration_seconds_with_aa(&mez(), 50, 0, 4), 24);
+    }
+
+    #[test]
+    fn spell_casting_reinforcement_skips_invulnerability() {
+        let spells = load_spells().expect("spells");
+        let aura = spells
+            .iter()
+            .find(|s| s.name == "Divine Aura")
+            .expect("Divine Aura");
+        let barrier = spells
+            .iter()
+            .find(|s| s.name == "Divine Barrier")
+            .expect("Divine Barrier");
+        let harm = spells
+            .iter()
+            .find(|s| s.name == "Harmshield")
+            .expect("Harmshield");
+        assert!(!spell_eligible_for_reinforcement(aura));
+        assert!(!spell_eligible_for_reinforcement(barrier));
+        assert!(!spell_eligible_for_reinforcement(harm));
+        assert_eq!(duration_seconds(aura, 50, 0), duration_seconds_with_aa(aura, 50, 0, 4));
+        assert_eq!(
+            duration_seconds(barrier, 50, 0),
+            duration_seconds_with_aa(barrier, 50, 0, 4)
+        );
+    }
+
+    #[test]
+    fn spell_casting_reinforcement_rank_clamped_on_normalize() {
+        let mut cfg = AppConfig::default();
+        assert_eq!(cfg.spell_casting_reinforcement, 0);
+        cfg.spell_casting_reinforcement = 99;
+        normalize_config(&mut cfg);
+        assert_eq!(cfg.spell_casting_reinforcement, 4);
     }
 }

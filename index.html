@@ -96,7 +96,21 @@
               <span>Level</span>
               <input id="char-level" type="number" min="1" max="125" value="1" />
             </label>
-            <p class="hint">Used for level-scaled buff durations. Auto-updates from log level-ups when possible.</p>
+            <label class="field field-scr">
+              <span>Spell Casting Reinforcement</span>
+              <select id="scr-rank">
+                <option value="0">None</option>
+                <option value="1">Rank 1 (+5%)</option>
+                <option value="2">Rank 2 (+15%)</option>
+                <option value="3">Rank 3 (+30%)</option>
+                <option value="4">Rank 4 (+50%)</option>
+              </select>
+            </label>
+            <p class="hint">
+              Level is used for scaled buff durations and auto-updates from log level-ups.
+              Spell Casting Reinforcement extends beneficial spells you cast; invulnerability
+              and combat abilities are exempt.
+            </p>
           </div>
 
           <h2 class="panel-subhead">Overlay lock</h2>

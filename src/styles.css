@@ -261,6 +261,14 @@ input[type="number"] {
   width: 100%;
 }
 
+.field.field-scr {
+  max-width: 260px;
+}
+
+.field.field-scr select {
+  width: 100%;
+}
+
 .field.field-wide input[type="text"],
 .field.field-wide select {
   width: 100%;

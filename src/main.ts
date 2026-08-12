@@ -44,6 +44,8 @@ export interface SpellDef {
 export interface AppConfig {
   log_path: string;
   character_level: number;
+  /** Spell Casting Reinforcement AA rank 0–4 (+0/5/15/30/50%). */
+  spell_casting_reinforcement?: number;
   /** Exact pet target string from logs (e.g. Gastik or Jungleberry pet). */
   my_pet_name?: string;
   spell_tiers: Record<string, number>;
@@ -679,6 +681,8 @@ function readFormIntoConfig(): AppConfig {
     ...config,
     log_path: (document.getElementById("log-path") as HTMLInputElement).value,
     character_level: Number((document.getElementById("char-level") as HTMLInputElement).value) || 1,
+    spell_casting_reinforcement:
+      Number((document.getElementById("scr-rank") as HTMLSelectElement).value) || 0,
     my_pet_name: (document.getElementById("my-pet-name") as HTMLInputElement).value.trim(),
     overlay_locked: (document.getElementById("overlay-locked") as HTMLInputElement).checked,
     spell_tiers: { ...config.spell_tiers },
@@ -825,6 +829,9 @@ async function load() {
   config = await invoke<AppConfig>("get_config");
   (document.getElementById("log-path") as HTMLInputElement).value = config.log_path;
   (document.getElementById("char-level") as HTMLInputElement).value = String(config.character_level);
+  (document.getElementById("scr-rank") as HTMLSelectElement).value = String(
+    config.spell_casting_reinforcement ?? 0,
+  );
   (document.getElementById("my-pet-name") as HTMLInputElement).value = config.my_pet_name ?? "";
   (document.getElementById("my-pet-name") as HTMLInputElement).title = PET_NAME_HINT;
   (document.getElementById("overlay-locked") as HTMLInputElement).checked = config.overlay_locked;

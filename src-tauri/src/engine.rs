@@ -1,6 +1,7 @@
 use crate::parser::{extract_target, LogEvent};
 use crate::spell_db::{
-    duration_seconds, find_spell_by_name, is_watched, resolve_cast_spell, AppConfig, SpellDef,
+    duration_seconds, duration_seconds_with_aa, find_spell_by_name, is_watched, resolve_cast_spell,
+    AppConfig, SpellDef,
 };
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -343,7 +344,7 @@ impl TimerEngine {
             if let Some(spell) = find_spell_by_name(spells, &pending.spell) {
                 if let Some(target) = extract_target(message, &spell.land_other) {
                     if is_watched(config, &spell.name) {
-                        self.start_timer(spell, &target, config, pending.tier);
+                        self.start_timer(spell, &target, config, pending.tier, true);
                         // Keep pending for a short AE window so multi-target lands
                         // (Mesmerization, etc.) all get the same spell + tier.
                         // Clearing immediately made the 2nd+ target fall through to
@@ -361,7 +362,7 @@ impl TimerEngine {
                     && is_watched(config, &spell.name)
                     && lower.contains(&spell.land_you.to_lowercase())
                 {
-                    self.start_timer(spell, "You", config, pending.tier);
+                    self.start_timer(spell, "You", config, pending.tier, true);
                     self.pending = None;
                     return true;
                 }
@@ -387,14 +388,14 @@ impl TimerEngine {
             }
         }
         if let Some((spell, target)) = best_other {
-            self.start_timer(spell, &target, config, 0);
+            self.start_timer(spell, &target, config, 0, false);
             self.pending = None;
             return true;
         }
 
         // Other caster buffed you, or land_you not caught by parser prefixes
         if let Some(spell) = best_watched_land_you(spells, config, &lower) {
-            self.start_timer(spell, "You", config, 0);
+            self.start_timer(spell, "You", config, 0, false);
             self.pending = None;
             return true;
         }
@@ -415,7 +416,7 @@ impl TimerEngine {
                     && is_watched(config, &spell.name)
                     && lower.contains(&spell.land_you.to_lowercase())
                 {
-                    self.start_timer(spell, "You", config, pending.tier);
+                    self.start_timer(spell, "You", config, pending.tier, true);
                     self.pending = None;
                     return true;
                 }
@@ -425,15 +426,31 @@ impl TimerEngine {
         // Prefer longest land_you so Skin Like Nature is not stolen by
         // Natureskin / Protection of the Glades ("Your skin shimmers").
         if let Some(spell) = best_watched_land_you(spells, config, &lower) {
-            self.start_timer(spell, "You", config, 0);
+            self.start_timer(spell, "You", config, 0, false);
             self.pending = None;
             return true;
         }
         false
     }
 
-    fn start_timer(&mut self, spell: &SpellDef, target: &str, config: &AppConfig, tier: u32) {
-        let secs = duration_seconds(spell, config.character_level, tier);
+    fn start_timer(
+        &mut self,
+        spell: &SpellDef,
+        target: &str,
+        config: &AppConfig,
+        tier: u32,
+        own_cast: bool,
+    ) {
+        let secs = if own_cast && config.spell_casting_reinforcement > 0 {
+            duration_seconds_with_aa(
+                spell,
+                config.character_level,
+                tier,
+                config.spell_casting_reinforcement,
+            )
+        } else {
+            duration_seconds(spell, config.character_level, tier)
+        };
         let now = Utc::now();
         let ends = now + chrono::Duration::seconds(secs as i64);
 
@@ -956,6 +973,66 @@ mod tests {
         assert_eq!(engine.timers()[0].spell, "Clarity");
         assert_eq!(engine.timers()[0].target, "You");
         assert_eq!(engine.timers()[0].duration_secs, 1620);
+    }
+
+    #[test]
+    fn spell_casting_reinforcement_extends_own_buff_cast() {
+        let spells = load_spells().expect("spells");
+        let mut config = AppConfig::default();
+        config.character_level = 42;
+        config.spell_casting_reinforcement = 4;
+        config.watched.insert("Clarity".into(), true);
+
+        let mut engine = TimerEngine::new();
+        engine.handle(
+            parse_line("[Thu Aug 06 00:09:02 2026] You begin casting Clarity."),
+            &spells,
+            &config,
+        );
+        engine.handle(
+            parse_line("[Thu Aug 06 00:09:03 2026] A cool breeze slips through your mind."),
+            &spells,
+            &config,
+        );
+        assert_eq!(engine.timers().len(), 1);
+        // 270 ticks * 1.5 = 405 ticks = 2430s
+        assert_eq!(engine.timers()[0].duration_secs, 2430);
+    }
+
+    #[test]
+    fn spell_casting_reinforcement_skips_other_caster_and_debuffs() {
+        let spells = load_spells().expect("spells");
+        let mut config = AppConfig::default();
+        config.character_level = 42;
+        config.spell_casting_reinforcement = 4;
+        config.watched.insert("Clarity".into(), true);
+        config.watched.insert("Mesmerize".into(), true);
+
+        let mut engine = TimerEngine::new();
+        // No begin-cast → treated as another caster; AA must not apply.
+        engine.handle(
+            parse_line("[Thu Aug 06 00:09:03 2026] A cool breeze slips through your mind."),
+            &spells,
+            &config,
+        );
+        assert_eq!(engine.timers()[0].duration_secs, 1620);
+
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:00 2026] You begin casting Mesmerize."),
+            &spells,
+            &config,
+        );
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:03 2026] A gnoll has been mesmerized."),
+            &spells,
+            &config,
+        );
+        let mez = engine
+            .timers()
+            .iter()
+            .find(|t| t.spell == "Mesmerize")
+            .expect("mez");
+        assert_eq!(mez.duration_secs, 24);
     }
 
     #[test]

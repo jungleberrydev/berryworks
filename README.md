@@ -103,6 +103,10 @@ berry-timers/
   fixtures/            # sample log snippets for validation
 ```
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

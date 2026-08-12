@@ -2,6 +2,20 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::sync::OnceLock;
 
+/// How an item left the corpse (EQL auto-loot / keep / depot / combine).
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum LootDisposition {
+    /// `--You have looted …--` kept in inventory
+    Kept,
+    /// `… and sold it for …`
+    Sold,
+    /// `… and stored it in your currency|tradeskill depot|Dragon Hoard`
+    Stored,
+    /// `… to create a …` (combine / upgrade on loot)
+    Combined,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum LogEvent {
@@ -14,10 +28,20 @@ pub enum LogEvent {
     LandYou { message: String },
     WearOff { message: String },
     MezBreak { target: String, breaker: String },
-    Death { target: String },
+    /// NPC death. `by_you` is true for `You have slain …!`.
+    Death { target: String, by_you: bool },
     ZoneChange { zone: String },
     /// `You have gained a level! Welcome to level N!`
     LevelUp { level: u32 },
+    /// Item looted from a named corpse (mob is always present in EQL).
+    LootItem {
+        item: String,
+        quantity: u32,
+        mob: String,
+        disposition: LootDisposition,
+    },
+    /// `You receive … from the corpse.` (no mob name — correlate via recent kill).
+    CorpseCoin { copper: u64 },
     Other,
 }
 
@@ -70,6 +94,82 @@ fn re_level_up() -> &'static Regex {
     RE.get_or_init(|| {
         Regex::new(r"(?i)^You have gained a level! Welcome to level (\d+)!?\s*$").unwrap()
     })
+}
+
+/// Kept: `--You have looted a ITEM from MOB's corpse.--`
+fn re_loot_kept() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| {
+        Regex::new(
+            r"(?i)^--You have looted (?:a |an )?(.+?) from (.+?)'s corpse\.--\s*$",
+        )
+        .unwrap()
+    })
+}
+
+/// Auto-sold / stored / combined loot from a corpse.
+/// Captures: optional qty, item, mob, disposition tail.
+fn re_loot_action() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| {
+        Regex::new(
+            r"(?i)^You looted (?:(\d+) )?(?:a |an )?(.+?) from (.+?)'s corpse (and sold it for .+|and stored it in your .+|to create .+)\.?\s*$",
+        )
+        .unwrap()
+    })
+}
+
+/// Coin only: `You receive 5 silver and 3 copper from the corpse.`
+fn re_corpse_coin() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| {
+        Regex::new(r"(?i)^You receive (.+?) from the corpse\.?\s*$").unwrap()
+    })
+}
+
+/// Parse EQ coin phrase into total copper (1p=1000, 1g=100, 1s=10, 1c=1).
+pub fn parse_coin_to_copper(text: &str) -> Option<u64> {
+    let lower = text.to_lowercase();
+    if lower.trim().is_empty() || lower.contains("free") {
+        return Some(0);
+    }
+    let re = Regex::new(
+        r"(?i)(\d+)\s*(platinum|gold|silver|copper|platinums|golds|silvers|coppers|pp|gp|sp|cp)\b",
+    )
+    .ok()?;
+    let mut total = 0u64;
+    let mut matched = false;
+    for caps in re.captures_iter(&lower) {
+        matched = true;
+        let n: u64 = caps[1].parse().ok()?;
+        let unit = &caps[2];
+        let mult = if unit.starts_with('p') {
+            1000
+        } else if unit.starts_with('g') {
+            100
+        } else if unit.starts_with('s') {
+            10
+        } else {
+            1
+        };
+        total = total.saturating_add(n.saturating_mul(mult));
+    }
+    if matched {
+        Some(total)
+    } else {
+        None
+    }
+}
+
+fn loot_disposition_from_tail(tail: &str) -> LootDisposition {
+    let lower = tail.to_lowercase();
+    if lower.starts_with("and sold") {
+        LootDisposition::Sold
+    } else if lower.starts_with("and stored") {
+        LootDisposition::Stored
+    } else {
+        LootDisposition::Combined
+    }
 }
 
 /// Heuristic: self wear-off / expire chat lines (checked before LandYou).
@@ -158,12 +258,42 @@ pub fn parse_line(line: &str) -> LogEvent {
     if let Some(caps) = re_you_slain().captures(msg) {
         return LogEvent::Death {
             target: caps[1].trim().trim_end_matches('!').trim().to_string(),
+            by_you: true,
         };
     }
     if let Some(caps) = re_death().captures(msg) {
         return LogEvent::Death {
             target: caps[1].trim().to_string(),
+            by_you: false,
         };
+    }
+
+    // Loot / corpse coin (EQL includes mob name on item lines).
+    if let Some(caps) = re_loot_kept().captures(msg) {
+        return LogEvent::LootItem {
+            item: caps[1].trim().to_string(),
+            quantity: 1,
+            mob: caps[2].trim().to_string(),
+            disposition: LootDisposition::Kept,
+        };
+    }
+    if let Some(caps) = re_loot_action().captures(msg) {
+        let quantity = caps
+            .get(1)
+            .and_then(|m| m.as_str().parse::<u32>().ok())
+            .unwrap_or(1)
+            .max(1);
+        return LogEvent::LootItem {
+            item: caps[2].trim().to_string(),
+            quantity,
+            mob: caps[3].trim().to_string(),
+            disposition: loot_disposition_from_tail(&caps[4]),
+        };
+    }
+    if let Some(caps) = re_corpse_coin().captures(msg) {
+        if let Some(copper) = parse_coin_to_copper(&caps[1]) {
+            return LogEvent::CorpseCoin { copper };
+        }
     }
 
     // Wear-off lines (self buffs / DoTs ending). Keep ahead of generic LandOther,
@@ -348,7 +478,8 @@ mod tests {
         assert_eq!(
             e,
             LogEvent::Death {
-                target: "a frenzied ghoul".into()
+                target: "a frenzied ghoul".into(),
+                by_you: true,
             }
         );
     }
@@ -361,9 +492,86 @@ mod tests {
         assert_eq!(
             e,
             LogEvent::Death {
-                target: "A zol ghoul knight".into()
+                target: "A zol ghoul knight".into(),
+                by_you: false,
             }
         );
+    }
+
+    #[test]
+    fn parses_loot_kept() {
+        let e = parse_line(
+            "[Tue Aug 11 23:10:48 2026] --You have looted a Drop of Crystallized Flame +4 from Unbound Flame's corpse.--",
+        );
+        assert_eq!(
+            e,
+            LogEvent::LootItem {
+                item: "Drop of Crystallized Flame +4".into(),
+                quantity: 1,
+                mob: "Unbound Flame".into(),
+                disposition: LootDisposition::Kept,
+            }
+        );
+    }
+
+    #[test]
+    fn parses_loot_sold_with_qty() {
+        let e = parse_line(
+            "[Thu Jul 16 21:20:31 2026] You looted 2 Crystallized Sulfur from an ire ghast's corpse and sold it for 2 gold, 3 silver and 6 copper.",
+        );
+        assert_eq!(
+            e,
+            LogEvent::LootItem {
+                item: "Crystallized Sulfur".into(),
+                quantity: 2,
+                mob: "an ire ghast".into(),
+                disposition: LootDisposition::Sold,
+            }
+        );
+    }
+
+    #[test]
+    fn parses_loot_stored_and_combined() {
+        let stored = parse_line(
+            "[Thu Jul 16 21:07:58 2026] You looted a Mote of Infinitesimal Potential from a spite golem's corpse and stored it in your currency",
+        );
+        assert_eq!(
+            stored,
+            LogEvent::LootItem {
+                item: "Mote of Infinitesimal Potential".into(),
+                quantity: 1,
+                mob: "a spite golem".into(),
+                disposition: LootDisposition::Stored,
+            }
+        );
+        let combined = parse_line(
+            "[Thu Jul 16 21:12:27 2026] You looted a Valorium Vambraces from an ire ghast's corpse to create a Valorium Vambraces +1",
+        );
+        assert_eq!(
+            combined,
+            LogEvent::LootItem {
+                item: "Valorium Vambraces".into(),
+                quantity: 1,
+                mob: "an ire ghast".into(),
+                disposition: LootDisposition::Combined,
+            }
+        );
+    }
+
+    #[test]
+    fn parses_corpse_coin() {
+        let e = parse_line(
+            "[Tue Aug 11 23:08:49 2026] You receive 2 silver and 8 copper from the corpse.",
+        );
+        assert_eq!(e, LogEvent::CorpseCoin { copper: 28 });
+    }
+
+    #[test]
+    fn ignores_vendor_coin_as_corpse() {
+        let e = parse_line(
+            "[Tue Aug 11 22:57:09 2026] You received 1 platinum, 4 gold, 2 silver and 9 copper from that item.",
+        );
+        assert!(matches!(e, LogEvent::LandOther { .. } | LogEvent::Other));
     }
 
     #[test]

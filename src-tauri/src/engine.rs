@@ -295,7 +295,7 @@ impl TimerEngine {
             }
             LogEvent::MezBreak { target, .. } => self.cancel_by_target(&target, recent_ttl_secs),
             // Dead mobs lose every DoT/debuff; clear all timers for that name.
-            LogEvent::Death { target } => self.cancel_all_by_target(&target, recent_ttl_secs),
+            LogEvent::Death { target, .. } => self.cancel_all_by_target(&target, recent_ttl_secs),
             LogEvent::ZoneChange { .. } => {
                 // Keep timers across zones; only clear pending cast
                 self.pending = None;
@@ -303,6 +303,7 @@ impl TimerEngine {
             }
             // Level-ups are applied to AppConfig in lib.rs (duration formulas).
             LogEvent::LevelUp { .. } => false,
+            LogEvent::LootItem { .. } | LogEvent::CorpseCoin { .. } => false,
             LogEvent::Other => false,
         };
         changed
@@ -743,6 +744,7 @@ mod tests {
         let cleared = engine.handle(
             LogEvent::Death {
                 target: "A gnoll".into(),
+                by_you: true,
             },
             &[],
             &config,
@@ -1103,7 +1105,14 @@ mod tests {
             ends_at: now + chrono::Duration::seconds(60),
             duration_secs: 60,
         });
-        let cleared = engine.handle(LogEvent::Death { target: "A gnoll".into() }, &[], &config);
+        let cleared = engine.handle(
+            LogEvent::Death {
+                target: "A gnoll".into(),
+                by_you: true,
+            },
+            &[],
+            &config,
+        );
         assert!(cleared);
         assert!(engine.timers().is_empty());
         assert!(engine.recent_expired().is_empty());

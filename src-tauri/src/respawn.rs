@@ -128,7 +128,7 @@ impl RespawnEngine {
     ) -> bool {
         match event {
             LogEvent::ZoneChange { zone } => self.set_zone(&zone, camps),
-            LogEvent::Death { target } => {
+            LogEvent::Death { target, .. } => {
                 let Some(zone) = self.current_zone.clone() else {
                     return false;
                 };

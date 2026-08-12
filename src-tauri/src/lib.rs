@@ -1,5 +1,6 @@
 mod engine;
 mod log_suggest;
+mod loot;
 mod parser;
 mod pets;
 mod respawn;
@@ -8,6 +9,7 @@ mod spell_db;
 mod tailer;
 
 use engine::{ActiveTimer, RecentExpired, TimerEngine};
+use loot::{LootEngine, LootSnapshot, LootSyncResult};
 use parser::parse_line;
 use respawn::{RespawnEngine, RespawnTimer};
 use spawn_db::{load_camps, CampsFile};
@@ -38,6 +40,7 @@ struct AppState {
     config: Mutex<AppConfig>,
     engine: Mutex<TimerEngine>,
     respawn: Mutex<RespawnEngine>,
+    loot: Mutex<LootEngine>,
     tail_cmd: Mutex<Option<mpsc::Sender<TailCommand>>>,
 }
 
@@ -91,6 +94,14 @@ fn emit_respawns(app: &AppHandle, state: &AppState) {
     let _ = app.emit("respawns-updated", payload);
 }
 
+fn emit_loot(app: &AppHandle, state: &AppState) {
+    let payload = {
+        let engine = state.loot.lock().unwrap();
+        engine.snapshot("")
+    };
+    let _ = app.emit("loot-updated", payload);
+}
+
 fn apply_line(app: &AppHandle, state: &AppState, line: &str) {
     let event = parse_line(line);
 
@@ -116,6 +127,18 @@ fn apply_line(app: &AppHandle, state: &AppState, line: &str) {
         let mut engine = state.respawn.lock().unwrap();
         engine.handle(event.clone(), &state.camps, &config)
     };
+    let loot_changed = {
+        let mut engine = state.loot.lock().unwrap();
+        // Keep loot zone aligned with respawn / settings zone when possible.
+        if engine.current_zone().is_none() && !config.respawn_zone.is_empty() {
+            engine.set_zone(&config.respawn_zone);
+        }
+        let changed = engine.handle(event.clone(), &config);
+        if changed {
+            let _ = engine.flush_if_dirty();
+        }
+        changed
+    };
     if spell_changed {
         emit_timers(app, state);
     }
@@ -129,6 +152,10 @@ fn apply_line(app: &AppHandle, state: &AppState, line: &str) {
                 .current_zone()
                 .unwrap_or("")
                 .to_string();
+            {
+                let mut loot = state.loot.lock().unwrap();
+                loot.set_zone(&zone_name);
+            }
             let mut cfg = state.config.lock().unwrap();
             if cfg.respawn_zone != zone_name {
                 cfg.respawn_zone = zone_name;
@@ -139,6 +166,9 @@ fn apply_line(app: &AppHandle, state: &AppState, line: &str) {
             }
         }
         emit_respawns(app, state);
+    }
+    if loot_changed {
+        emit_loot(app, state);
     }
 }
 
@@ -237,6 +267,10 @@ fn save_settings(
         let mut engine = state.respawn.lock().unwrap();
         engine.set_zone(&respawn_zone, &state.camps);
     }
+    {
+        let mut loot = state.loot.lock().unwrap();
+        loot.set_zone(&respawn_zone);
+    }
 
     if let Some(tx) = state.tail_cmd.lock().unwrap().as_ref() {
         if !config.log_path.is_empty() {
@@ -279,6 +313,10 @@ fn set_respawn_zone(
         let mut engine = state.respawn.lock().unwrap();
         engine.set_zone(&zone, &state.camps);
     }
+    {
+        let mut loot = state.loot.lock().unwrap();
+        loot.set_zone(&zone);
+    }
     let snapshot = {
         let mut config = state.config.lock().unwrap();
         config.respawn_zone = zone.trim().to_string();
@@ -304,6 +342,110 @@ fn clear_timers(app: AppHandle, state: State<'_, AppState>) {
 fn clear_respawns(app: AppHandle, state: State<'_, AppState>) {
     state.respawn.lock().unwrap().clear_all();
     emit_respawns(&app, &state);
+}
+
+#[tauri::command]
+fn get_loot(state: State<'_, AppState>, query: Option<String>) -> LootSnapshot {
+    let engine = state.loot.lock().unwrap();
+    engine.snapshot(query.as_deref().unwrap_or(""))
+}
+
+#[tauri::command]
+fn clear_loot(app: AppHandle, state: State<'_, AppState>) -> Result<(), String> {
+    {
+        let mut engine = state.loot.lock().unwrap();
+        engine.clear_all()?;
+    }
+    emit_loot(&app, &state);
+    Ok(())
+}
+
+#[tauri::command]
+fn upload_loot(state: State<'_, AppState>) -> Result<LootSyncResult, String> {
+    let config = {
+        let mut cfg = state.config.lock().unwrap();
+        normalize_config(&mut cfg);
+        save_config(&cfg)?;
+        cfg.clone()
+    };
+    if !config.loot_sync_enabled {
+        return Ok(LootSyncResult {
+            ok: false,
+            message: "Enable community sync in Loot settings first.".into(),
+            kills_added: None,
+            drops_added: None,
+        });
+    }
+    if config.loot_sync_key.trim().is_empty() {
+        return Ok(LootSyncResult {
+            ok: false,
+            message: "Set the sync key from Norrath Roster (BERRYWORKS_LOOT_INGEST_KEY).".into(),
+            kills_added: None,
+            drops_added: None,
+        });
+    }
+
+    let payload = {
+        let engine = state.loot.lock().unwrap();
+        engine.export_for_sync(&config.loot_contributor_id)
+    };
+    if payload.mobs.is_empty() {
+        return Ok(LootSyncResult {
+            ok: false,
+            message: "No local loot to upload yet.".into(),
+            kills_added: None,
+            drops_added: None,
+        });
+    }
+
+    let url = format!(
+        "{}/api/loot/ingest",
+        config.loot_sync_url.trim_end_matches('/')
+    );
+    let client = reqwest::blocking::Client::builder()
+        .timeout(std::time::Duration::from_secs(60))
+        .build()
+        .map_err(|e| e.to_string())?;
+    let response = client
+        .post(&url)
+        .header(
+            "Authorization",
+            format!("Bearer {}", config.loot_sync_key.trim()),
+        )
+        .header("X-Berryworks-Key", config.loot_sync_key.trim())
+        .json(&payload)
+        .send()
+        .map_err(|e| format!("Upload failed: {e}"))?;
+
+    let status = response.status();
+    let text = response.text().unwrap_or_default();
+    if !status.is_success() {
+        let msg = serde_json::from_str::<serde_json::Value>(&text)
+            .ok()
+            .and_then(|v| v.get("error")?.as_str().map(|s| s.to_string()))
+            .unwrap_or_else(|| text.chars().take(200).collect());
+        return Ok(LootSyncResult {
+            ok: false,
+            message: format!("Server {status}: {msg}"),
+            kills_added: None,
+            drops_added: None,
+        });
+    }
+
+    let parsed: serde_json::Value =
+        serde_json::from_str(&text).unwrap_or_else(|_| serde_json::json!({ "ok": true }));
+    Ok(LootSyncResult {
+        ok: true,
+        message: "Uploaded to Norrath Roster.".into(),
+        kills_added: parsed
+            .get("killsAdded")
+            .and_then(|v| v.as_u64())
+            .or_else(|| parsed.get("kills_added").and_then(|v| v.as_u64())),
+        drops_added: parsed
+            .get("dropsAdded")
+            .and_then(|v| v.as_u64())
+            .or_else(|| parsed.get("drops_added").and_then(|v| v.as_u64())),
+    })
 }
 
 #[tauri::command]
@@ -419,6 +561,7 @@ pub fn run() {
             config: Mutex::new(config),
             engine: Mutex::new(TimerEngine::new()),
             respawn: Mutex::new(RespawnEngine::new()),
+            loot: Mutex::new(LootEngine::new()),
             tail_cmd: Mutex::new(None),
         })
         .invoke_handler(tauri::generate_handler![
@@ -431,6 +574,9 @@ pub fn run() {
             set_respawn_zone,
             clear_timers,
             clear_respawns,
+            get_loot,
+            clear_loot,
+            upload_loot,
             dismiss_timer,
             dismiss_respawn,
             set_overlay_locked,
@@ -455,6 +601,7 @@ pub fn run() {
                         .lock()
                         .unwrap()
                         .set_zone(&config.respawn_zone, &state.camps);
+                    state.loot.lock().unwrap().set_zone(&config.respawn_zone);
                 }
                 apply_overlay_lock(app.handle(), config.overlay_locked);
                 sync_enemy_overlay(

@@ -14,6 +14,18 @@
         <p class="subtitle">EverQuest Legends toolkit</p>
       </div>
       <div class="header-actions">
+        <div class="header-updates">
+          <a
+            class="header-version"
+            href="https://github.com/jungleberrydev/berryworks/releases/latest"
+            target="_blank"
+            rel="noopener"
+            title="GitHub Releases"
+          >v<span id="app-version">…</span></a>
+          <button id="btn-check-updates" type="button" class="secondary">Check for updates</button>
+          <button id="btn-whats-new" type="button" class="secondary">What's new</button>
+          <span id="update-status" class="status header-update-status" role="status" aria-live="polite"></span>
+        </div>
         <button id="btn-show-overlay" type="button" class="secondary">Show Overlay</button>
         <button id="btn-clear" type="button" class="secondary">Clear Timers</button>
       </div>
@@ -131,23 +143,6 @@
               When locked, clicks pass through to the game and the OS window outline is hidden. Unlock to drag
               overlays or right-click dismiss timers.
             </p>
-          </div>
-
-          <h2 class="panel-subhead">Updates</h2>
-          <div class="settings-group">
-            <p class="hint">
-              Version <span id="app-version">…</span>. Checks
-              <a href="https://github.com/jungleberrydev/berryworks/releases/latest" target="_blank" rel="noopener"
-                >GitHub Releases</a
-              >
-              for a newer installer.
-            </p>
-            <div class="row gap">
-              <button id="btn-check-updates" type="button" class="secondary">Check for updates</button>
-              <button id="btn-whats-new" type="button" class="secondary">What's new</button>
-              <span id="update-status" class="status"></span>
-            </div>
-            <div id="changelog-list" class="changelog changelog-inline"></div>
           </div>
         </section>
 
@@ -541,6 +536,19 @@
         <div id="whats-new-body" class="changelog"></div>
         <form method="dialog" class="whats-new-actions">
           <button type="submit" class="primary">Got it</button>
+        </form>
+      </div>
+    </dialog>
+
+    <dialog id="update-available-dialog" class="whats-new-dialog" aria-labelledby="update-available-title">
+      <div class="whats-new-card">
+        <h2 id="update-available-title">Update available</h2>
+        <p id="update-available-summary" class="hint"></p>
+        <div id="update-available-notes" class="changelog"></div>
+        <p id="update-install-status" class="status update-install-status" hidden></p>
+        <form method="dialog" class="whats-new-actions">
+          <button type="button" id="btn-update-later" class="secondary">Later</button>
+          <button type="button" id="btn-update-install" class="primary">Install</button>
         </form>
       </div>
     </dialog>

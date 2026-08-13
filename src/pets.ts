@@ -56,6 +56,124 @@ export function isPetTarget(
   return typeNames.some((n) => n.trim().toLowerCase() === lower);
 }
 
+/** Class / rank titles for generic NPCs (`Cleric of Innoruuk`). Keep in sync with engine.rs. */
+const GENERIC_NPC_TITLES = new Set([
+  "acolyte",
+  "apostle",
+  "avenger",
+  "bard",
+  "beastlord",
+  "champion",
+  "cleric",
+  "defender",
+  "devotee",
+  "disciple",
+  "druid",
+  "enchanter",
+  "fanatic",
+  "guardian",
+  "hand",
+  "herald",
+  "high cleric",
+  "high priest",
+  "initiate",
+  "knight",
+  "lady",
+  "lord",
+  "magician",
+  "monk",
+  "necromancer",
+  "oracle",
+  "paladin",
+  "priest",
+  "prophet",
+  "ranger",
+  "rogue",
+  "sentinel",
+  "servant",
+  "shadow knight",
+  "shadowknight",
+  "shaman",
+  "templar",
+  "warrior",
+  "wizard",
+  "zealot",
+]);
+
+/** Creature-type tokens so `spite golem` matches after the article is stripped. */
+const GENERIC_NPC_TYPES = new Set([
+  "abhorrent",
+  "banshee",
+  "basilisk",
+  "beetle",
+  "boar",
+  "bouncer",
+  "chest",
+  "construct",
+  "cub",
+  "drake",
+  "elemental",
+  "fiend",
+  "gargoyle",
+  "ghast",
+  "ghost",
+  "ghoul",
+  "giant",
+  "gnoll",
+  "goblin",
+  "golem",
+  "griffin",
+  "guard",
+  "horror",
+  "imp",
+  "kobold",
+  "lich",
+  "minion",
+  "mummy",
+  "ogre",
+  "orc",
+  "pawn",
+  "rat",
+  "revenant",
+  "scarecrow",
+  "skeleton",
+  "snake",
+  "spider",
+  "spirit",
+  "treant",
+  "vampire",
+  "wolf",
+  "wraith",
+  "wyvern",
+  "zombie",
+]);
+
+function stripLeadingArticle(t: string): string {
+  if (t.startsWith("an ")) return t.slice(3).trimStart();
+  if (t.startsWith("the ")) return t.slice(4).trimStart();
+  if (t.startsWith("a ")) return t.slice(2).trimStart();
+  return t;
+}
+
+/**
+ * Generic NPC names whose beneficial self-buffs share land text with player
+ * haste/SoW. Mirrors Rust `looks_like_unnamed_npc`.
+ */
+export function looksLikeNpcBuffTarget(target: string): boolean {
+  const t = target.trim().toLowerCase();
+  if (!t || t === "you") return false;
+  const rest = stripLeadingArticle(t);
+  if (t.startsWith("a ") || t.startsWith("an ") || t.startsWith("the ")) return true;
+  const ofIdx = rest.indexOf(" of ");
+  if (ofIdx > 0) {
+    const before = rest.slice(0, ofIdx);
+    if (GENERIC_NPC_TITLES.has(before) || [...GENERIC_NPC_TITLES].some((title) => before.endsWith(` ${title}`))) {
+      return true;
+    }
+  }
+  return rest.split(/[^a-z]+/).some((w) => w.length > 0 && GENERIC_NPC_TYPES.has(w));
+}
+
 /** Main/friendly overlay: self-buffs-only and/or hide-other-pets. */
 export function keepFriendlyTarget(
   target: string,

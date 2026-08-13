@@ -1232,56 +1232,226 @@ function initSettingsTabs() {
   }
 }
 
-function setUpdateStatus(message: string) {
-  const el = document.getElementById("update-status");
-  if (el) el.textContent = message;
+type AppUpdate = NonNullable<Awaited<ReturnType<typeof check>>>;
+
+let appVersion = "";
+let pendingUpdate: AppUpdate | null = null;
+let installingUpdate = false;
+let hasCompletedUpdateCheck = false;
+let updateCheckInFlight: Promise<AppUpdate | null> | null = null;
+let updateStatusClearTimer = 0;
+
+function escapeUpdateHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
-async function installUpdate(update: NonNullable<Awaited<ReturnType<typeof check>>>) {
-  setUpdateStatus(`Downloading ${update.version}…`);
-  await update.downloadAndInstall((event) => {
-    switch (event.event) {
-      case "Started":
-        setUpdateStatus(`Downloading ${update.version}…`);
-        break;
-      case "Finished":
-        setUpdateStatus("Installing…");
-        break;
-      default:
-        break;
-    }
-  });
-  setUpdateStatus("Restarting…");
-  await relaunch();
+function renderReleaseNotes(body: string | undefined): string {
+  const text = body?.trim();
+  if (!text) return `<p class="hint">No release notes for this version.</p>`;
+  return text
+    .split(/\n{2,}/)
+    .map((para) => `<p>${escapeUpdateHtml(para).replace(/\n/g, "<br>")}</p>`)
+    .join("");
+}
+
+function updateCheckButton(): HTMLButtonElement | null {
+  return document.getElementById("btn-check-updates") as HTMLButtonElement | null;
+}
+
+function setUpdateHint(hasUpdate: boolean) {
+  const btn = updateCheckButton();
+  btn?.classList.toggle("has-update", hasUpdate);
+  const status = document.getElementById("update-status");
+  status?.classList.toggle("is-action", hasUpdate);
+}
+
+function setUpdateStatus(message: string, opts?: { autoClearMs?: number }) {
+  const el = document.getElementById("update-status");
+  if (!el) return;
+  window.clearTimeout(updateStatusClearTimer);
+  el.textContent = message;
+  el.title = message;
+  if (opts?.autoClearMs && message) {
+    updateStatusClearTimer = window.setTimeout(() => {
+      if (el.textContent === message) {
+        el.textContent = "";
+        el.removeAttribute("title");
+      }
+    }, opts.autoClearMs);
+  }
+}
+
+function setInstallProgress(message: string) {
+  const el = document.getElementById("update-install-status");
+  if (el) {
+    el.hidden = !message;
+    el.textContent = message;
+  }
+  if (message) setUpdateStatus(message);
+}
+
+function updateDialog(): HTMLDialogElement | null {
+  return document.getElementById("update-available-dialog") as HTMLDialogElement | null;
+}
+
+function setUpdateDialogBusy(busy: boolean) {
+  const installBtn = document.getElementById("btn-update-install") as HTMLButtonElement | null;
+  const laterBtn = document.getElementById("btn-update-later") as HTMLButtonElement | null;
+  if (installBtn) {
+    installBtn.disabled = busy;
+    installBtn.textContent = busy ? "Installing…" : "Install";
+  }
+  if (laterBtn) laterBtn.disabled = busy;
+}
+
+function openUpdateDialog(update: AppUpdate) {
+  if (installingUpdate) return;
+  const dialog = updateDialog();
+  const summary = document.getElementById("update-available-summary");
+  const notes = document.getElementById("update-available-notes");
+  const title = document.getElementById("update-available-title");
+  if (!dialog || !notes) return;
+
+  const whatsNew = document.getElementById("whats-new-dialog") as HTMLDialogElement | null;
+  if (whatsNew?.open) whatsNew.close();
+
+  if (title) title.textContent = `Berryworks ${update.version}`;
+  if (summary) {
+    summary.textContent = appVersion
+      ? `A new version is available. You have ${appVersion}.`
+      : "A new version is available.";
+  }
+  notes.innerHTML = renderReleaseNotes(update.body);
+  const installStatus = document.getElementById("update-install-status");
+  if (installStatus) {
+    installStatus.hidden = true;
+    installStatus.textContent = "";
+  }
+  setUpdateDialogBusy(false);
+  setUpdateStatus(`Update ${update.version} available`);
+
+  if (typeof dialog.showModal === "function" && !dialog.open) dialog.showModal();
+}
+
+async function installUpdate(update: AppUpdate) {
+  if (installingUpdate) return;
+  installingUpdate = true;
+  setUpdateDialogBusy(true);
+  const checkBtn = updateCheckButton();
+  if (checkBtn) checkBtn.disabled = true;
+
+  let downloaded = 0;
+  let total = 0;
+  setInstallProgress(`Downloading ${update.version}…`);
+  try {
+    await update.downloadAndInstall((event) => {
+      switch (event.event) {
+        case "Started":
+          total = event.data.contentLength ?? 0;
+          downloaded = 0;
+          setInstallProgress(`Downloading ${update.version}…`);
+          break;
+        case "Progress":
+          downloaded += event.data.chunkLength;
+          if (total > 0) {
+            const pct = Math.min(100, Math.round((downloaded / total) * 100));
+            setInstallProgress(`Downloading ${update.version}… ${pct}%`);
+          }
+          break;
+        case "Finished":
+          setInstallProgress("Installing…");
+          break;
+        default:
+          break;
+      }
+    });
+    setInstallProgress("Restarting…");
+    await relaunch();
+  } catch (err) {
+    installingUpdate = false;
+    setUpdateDialogBusy(false);
+    if (checkBtn) checkBtn.disabled = false;
+    const msg = err instanceof Error ? err.message : String(err);
+    setInstallProgress(msg || "Install failed");
+  }
 }
 
 async function runUpdateCheck(opts: { interactive: boolean }) {
-  const btn = document.getElementById("btn-check-updates") as HTMLButtonElement | null;
-  if (btn) btn.disabled = true;
+  if (installingUpdate) return;
+  if (!opts.interactive && hasCompletedUpdateCheck) return;
+
+  if (opts.interactive && pendingUpdate) {
+    setUpdateStatus(`Update ${pendingUpdate.version} available`);
+    setUpdateHint(true);
+    openUpdateDialog(pendingUpdate);
+    return;
+  }
+
+  const btn = updateCheckButton();
+  if (opts.interactive) {
+    if (btn) {
+      btn.disabled = true;
+      btn.setAttribute("aria-busy", "true");
+    }
+    setUpdateStatus("Checking…");
+  }
+
   try {
-    if (opts.interactive) setUpdateStatus("Checking…");
-    const update = await check();
+    if (!updateCheckInFlight) {
+      updateCheckInFlight = check().finally(() => {
+        updateCheckInFlight = null;
+      });
+    }
+    const update = await updateCheckInFlight;
+    hasCompletedUpdateCheck = true;
     if (!update) {
-      if (opts.interactive) setUpdateStatus("You're up to date");
+      pendingUpdate = null;
+      setUpdateHint(false);
+      if (opts.interactive) setUpdateStatus("You're up to date", { autoClearMs: 4000 });
       return;
     }
-    const notes = update.body?.trim() ? `\n\n${update.body.trim()}` : "";
-    const ok = window.confirm(
-      `Berryworks ${update.version} is available (you have ${await getVersion()}).${notes}\n\nDownload and install now?`
-    );
-    if (!ok) {
-      setUpdateStatus(`Update ${update.version} available`);
-      return;
-    }
-    await installUpdate(update);
+    pendingUpdate = update;
+    setUpdateHint(true);
+    setUpdateStatus(`Update ${update.version} available`);
+    if (opts.interactive) openUpdateDialog(update);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     // Dev / unsigned local builds often have no updater endpoint payload yet.
     if (opts.interactive) setUpdateStatus(msg || "Update check failed");
     else console.debug("Silent update check skipped:", msg);
   } finally {
-    if (btn) btn.disabled = false;
+    if (opts.interactive && !installingUpdate && btn) {
+      btn.disabled = false;
+      btn.removeAttribute("aria-busy");
+    }
   }
+}
+
+function bindUpdateDialog() {
+  const dialog = updateDialog();
+  dialog?.addEventListener("click", (event) => {
+    if (installingUpdate) return;
+    if (event.target === dialog) dialog.close();
+  });
+  dialog?.addEventListener("cancel", (event) => {
+    if (installingUpdate) event.preventDefault();
+  });
+  document.getElementById("btn-update-later")?.addEventListener("click", () => {
+    if (installingUpdate) return;
+    dialog?.close();
+  });
+  document.getElementById("btn-update-install")?.addEventListener("click", () => {
+    if (!pendingUpdate) return;
+    void installUpdate(pendingUpdate);
+  });
+  document.getElementById("update-status")?.addEventListener("click", () => {
+    if (!pendingUpdate || installingUpdate) return;
+    openUpdateDialog(pendingUpdate);
+  });
 }
 
 function openWhatsNewDialog(html: string, heading: string) {
@@ -1296,8 +1466,6 @@ function openWhatsNewDialog(html: string, heading: string) {
 
 async function initChangelogUi(currentVersion: string) {
   const entries = loadChangelog();
-  const list = document.getElementById("changelog-list");
-  if (list) list.innerHTML = renderChangelogHtml(entries);
 
   const dialog = document.getElementById("whats-new-dialog") as HTMLDialogElement | null;
   dialog?.addEventListener("click", (event) => {
@@ -1334,21 +1502,22 @@ async function initChangelogUi(currentVersion: string) {
 
 async function initUpdaterUi() {
   const ver = document.getElementById("app-version");
-  let currentVersion = "";
+  appVersion = "";
   if (ver) {
     try {
-      currentVersion = await getVersion();
-      ver.textContent = currentVersion;
+      appVersion = await getVersion();
+      ver.textContent = appVersion;
     } catch {
       ver.textContent = "unknown";
     }
   }
-  await initChangelogUi(currentVersion);
+  await initChangelogUi(appVersion);
+  bindUpdateDialog();
   const btn = document.getElementById("btn-check-updates");
   btn?.addEventListener("click", () => {
     void runUpdateCheck({ interactive: true });
   });
-  // Quiet check shortly after launch so users see a prompt when a release lands.
+  // Quiet check after launch: hint in the header only — never a modal.
   window.setTimeout(() => {
     void runUpdateCheck({ interactive: false });
   }, 2500);

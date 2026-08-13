@@ -25,6 +25,8 @@
         "url": "overlay.html",
         "width": 340,
         "height": 420,
+        "x": 40,
+        "y": 80,
         "decorations": false,
         "transparent": true,
         "shadow": true,

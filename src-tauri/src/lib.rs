@@ -17,22 +17,43 @@ use spell_db::{
     load_config, load_spells, normalize_config, save_config, seed_watched_rares, AppConfig,
     SpellDef,
 };
+use std::collections::HashMap;
 use std::sync::mpsc;
 use std::sync::Mutex;
 use std::thread;
 use std::time::Duration;
 use tailer::{start_tailer, TailCommand};
-use tauri::{AppHandle, Emitter, Manager, State};
-use tauri_plugin_window_state::{AppHandleExt, StateFlags};
+use tauri::{
+    AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize, State, WebviewWindow, WindowEvent,
+};
+use tauri_plugin_window_state::{AppHandleExt, StateFlags, WindowExt};
 
 const OVERLAY_MAIN: &str = "overlay";
 const OVERLAY_ENEMIES: &str = "overlay-enemies";
 const OVERLAY_RESPAWNS: &str = "overlay-respawns";
+const WINDOW_STATE_FILE: &str = ".window-state.json";
 
 /// Persist position/size (and maximized for settings). Skip visible/decorations so
 /// overlay lock + separate-enemy / respawn show/hide stay authoritative.
 const WINDOW_STATE_FLAGS: StateFlags =
     StateFlags::SIZE.union(StateFlags::POSITION).union(StateFlags::MAXIMIZED);
+
+/// Last-known overlay geometry. The window-state plugin restores in `on_window_ready`,
+/// then overlay lock/shadow/show races with Windows `CW_USEDEFAULT` placement and can
+/// both move the window and poison the plugin cache via `Moved` events.
+#[derive(Clone, serde::Deserialize)]
+struct SavedWindowGeom {
+    x: i32,
+    y: i32,
+    width: u32,
+    height: u32,
+}
+
+struct OverlayGeomStore {
+    geoms: Mutex<HashMap<String, SavedWindowGeom>>,
+    /// Ignore `Moved` until startup restore has been applied (creation cascade).
+    restore_done: Mutex<bool>,
+}
 
 struct AppState {
     spells: Vec<SpellDef>,
@@ -172,16 +193,272 @@ fn apply_line(app: &AppHandle, state: &AppState, line: &str) {
     }
 }
 
-fn overlay_labels(app: &AppHandle) -> Vec<String> {
-    app.webview_windows()
-        .into_keys()
-        .filter(|label| {
-            label == OVERLAY_MAIN
-                || label == OVERLAY_ENEMIES
-                || label == OVERLAY_RESPAWNS
-                || label.starts_with("overlay")
-        })
+fn is_overlay_label(label: &str) -> bool {
+    label == OVERLAY_MAIN || label == OVERLAY_ENEMIES || label == OVERLAY_RESPAWNS
+}
+
+fn geom_is_usable(g: &SavedWindowGeom) -> bool {
+    g.width > 0 && g.height > 0 && g.x > -10_000 && g.y > -10_000
+}
+
+fn window_state_path(app: &AppHandle) -> Option<std::path::PathBuf> {
+    app.path()
+        .app_config_dir()
+        .ok()
+        .map(|dir| dir.join(WINDOW_STATE_FILE))
+}
+
+fn load_saved_window_geoms(app: &AppHandle) -> HashMap<String, SavedWindowGeom> {
+    let Some(path) = window_state_path(app) else {
+        return HashMap::new();
+    };
+    let Ok(data) = std::fs::read(path) else {
+        return HashMap::new();
+    };
+    let parsed: HashMap<String, SavedWindowGeom> = serde_json::from_slice(&data).unwrap_or_default();
+    parsed
+        .into_iter()
+        .filter(|(label, g)| is_overlay_label(label) && geom_is_usable(g))
         .collect()
+}
+
+fn monitor_intersects(
+    monitor: &tauri::Monitor,
+    position: PhysicalPosition<i32>,
+    size: PhysicalSize<u32>,
+) -> bool {
+    let PhysicalPosition { x, y } = *monitor.position();
+    let PhysicalSize { width, height } = *monitor.size();
+    let left = x;
+    let right = x + width as i32;
+    let top = y;
+    let bottom = y + height as i32;
+    [
+        (position.x, position.y),
+        (position.x + size.width as i32, position.y),
+        (position.x, position.y + size.height as i32),
+        (
+            position.x + size.width as i32,
+            position.y + size.height as i32,
+        ),
+    ]
+    .into_iter()
+    .any(|(px, py)| px >= left && px < right && py >= top && py < bottom)
+}
+
+fn apply_saved_geom(win: &WebviewWindow, g: &SavedWindowGeom) {
+    if !geom_is_usable(g) {
+        return;
+    }
+    let mut x = g.x;
+    let mut y = g.y;
+    let position = PhysicalPosition { x, y };
+    let size = PhysicalSize {
+        width: g.width,
+        height: g.height,
+    };
+    let on_screen = win
+        .available_monitors()
+        .ok()
+        .map(|monitors| {
+            monitors
+                .iter()
+                .any(|m| monitor_intersects(m, position, size))
+        })
+        .unwrap_or(true);
+    if !on_screen {
+        if let Ok(Some(primary)) = win.primary_monitor() {
+            let origin = primary.position();
+            x = origin.x + 40;
+            y = origin.y + 40;
+        }
+    }
+    let _ = win.set_position(PhysicalPosition { x, y });
+    let _ = win.set_size(PhysicalSize {
+        width: g.width,
+        height: g.height,
+    });
+}
+
+fn apply_saved_overlay_geoms(app: &AppHandle, geoms: &HashMap<String, SavedWindowGeom>) {
+    for (label, g) in geoms {
+        if let Some(win) = app.get_webview_window(label) {
+            apply_saved_geom(&win, g);
+        }
+    }
+}
+
+fn remember_overlay_geom(app: &AppHandle, label: &str, g: SavedWindowGeom) {
+    if !geom_is_usable(&g) {
+        return;
+    }
+    if let Some(store) = app.try_state::<OverlayGeomStore>() {
+        store.geoms.lock().unwrap().insert(label.to_string(), g);
+    }
+}
+
+fn overlay_geom_for(app: &AppHandle, label: &str) -> Option<SavedWindowGeom> {
+    app.try_state::<OverlayGeomStore>()
+        .and_then(|store| store.geoms.lock().unwrap().get(label).cloned())
+}
+
+fn overlay_restore_done(app: &AppHandle) -> bool {
+    app.try_state::<OverlayGeomStore>()
+        .map(|store| *store.restore_done.lock().unwrap())
+        .unwrap_or(false)
+}
+
+/// Re-apply last-known overlay geometry after show/chrome so `SetWindowPos` sticks.
+fn restore_overlay_geom(app: &AppHandle, label: &str) {
+    if let (Some(win), Some(g)) = (app.get_webview_window(label), overlay_geom_for(app, label)) {
+        apply_saved_geom(&win, &g);
+    } else if let Some(win) = app.get_webview_window(label) {
+        let _ = win.restore_state(WINDOW_STATE_FLAGS);
+    }
+}
+
+fn snapshot_overlay_pins(app: &AppHandle) -> Vec<(WebviewWindow, SavedWindowGeom)> {
+    let mut pins = Vec::new();
+    for label in [OVERLAY_MAIN, OVERLAY_ENEMIES, OVERLAY_RESPAWNS] {
+        let Some(win) = app.get_webview_window(label) else {
+            continue;
+        };
+        let Ok(pos) = win.outer_position() else {
+            continue;
+        };
+        let Ok(size) = win.inner_size() else {
+            continue;
+        };
+        let g = SavedWindowGeom {
+            x: pos.x,
+            y: pos.y,
+            width: size.width,
+            height: size.height,
+        };
+        if geom_is_usable(&g) {
+            pins.push((win, g));
+        }
+    }
+    pins
+}
+
+/// Lock/shadow/decorations change DWM styles and can move the window; pin geometry.
+fn pin_overlay_positions(app: &AppHandle, apply: impl FnOnce()) {
+    let pins = snapshot_overlay_pins(app);
+    apply();
+    for (win, g) in &pins {
+        apply_saved_geom(win, g);
+        if overlay_restore_done(app) {
+            remember_overlay_geom(app, win.label(), g.clone());
+        }
+    }
+}
+
+/// Merge overlay geometry into `.window-state.json` after the plugin's Exit save,
+/// so hidden windows (and destroy/`Moved` poison) cannot overwrite last placement.
+fn persist_overlay_geoms(app: &AppHandle) {
+    let Some(store) = app.try_state::<OverlayGeomStore>() else {
+        return;
+    };
+    let geoms = store.geoms.lock().unwrap().clone();
+    if geoms.is_empty() {
+        return;
+    }
+    let Some(path) = window_state_path(app) else {
+        return;
+    };
+    let mut root: serde_json::Value = std::fs::read(&path)
+        .ok()
+        .and_then(|data| serde_json::from_slice(&data).ok())
+        .unwrap_or_else(|| serde_json::json!({}));
+    let Some(obj) = root.as_object_mut() else {
+        return;
+    };
+    for label in [OVERLAY_MAIN, OVERLAY_ENEMIES, OVERLAY_RESPAWNS] {
+        let Some(g) = geoms.get(label) else {
+            continue;
+        };
+        if !geom_is_usable(g) {
+            continue;
+        }
+        let entry = obj.entry(label.to_string()).or_insert_with(|| {
+            serde_json::json!({
+                "width": g.width,
+                "height": g.height,
+                "x": g.x,
+                "y": g.y,
+                "prev_x": g.x,
+                "prev_y": g.y,
+                "maximized": false,
+                "visible": true,
+                "decorated": false,
+                "fullscreen": false
+            })
+        });
+        if let Some(map) = entry.as_object_mut() {
+            map.insert("x".into(), serde_json::json!(g.x));
+            map.insert("y".into(), serde_json::json!(g.y));
+            map.insert("width".into(), serde_json::json!(g.width));
+            map.insert("height".into(), serde_json::json!(g.height));
+        }
+    }
+    if let Ok(bytes) = serde_json::to_vec_pretty(&root) {
+        let _ = std::fs::write(path, bytes);
+    }
+}
+
+fn track_overlay_geometry(app: &AppHandle) {
+    for label in [OVERLAY_MAIN, OVERLAY_ENEMIES, OVERLAY_RESPAWNS] {
+        let Some(win) = app.get_webview_window(label) else {
+            continue;
+        };
+        let handle = app.clone();
+        let label = label.to_string();
+        let tracked = win.clone();
+        win.on_window_event(move |event| {
+            if !overlay_restore_done(&handle) {
+                return;
+            }
+            match event {
+                WindowEvent::Moved(pos) => {
+                    if pos.x <= -10_000 || pos.y <= -10_000 {
+                        return;
+                    }
+                    let size = tracked.inner_size().unwrap_or(PhysicalSize {
+                        width: 0,
+                        height: 0,
+                    });
+                    remember_overlay_geom(
+                        &handle,
+                        &label,
+                        SavedWindowGeom {
+                            x: pos.x,
+                            y: pos.y,
+                            width: size.width,
+                            height: size.height,
+                        },
+                    );
+                }
+                WindowEvent::Resized(size) => {
+                    if size.width == 0 || size.height == 0 {
+                        return;
+                    }
+                    let pos = tracked.outer_position().unwrap_or(PhysicalPosition { x: 0, y: 0 });
+                    remember_overlay_geom(
+                        &handle,
+                        &label,
+                        SavedWindowGeom {
+                            x: pos.x,
+                            y: pos.y,
+                            width: size.width,
+                            height: size.height,
+                        },
+                    );
+                }
+                _ => {}
+            }
+        });
+    }
 }
 
 /// Apply click-through + native DWM chrome for overlay windows.
@@ -191,13 +468,15 @@ fn overlay_labels(app: &AppHandle) -> Vec<String> {
 /// Locked: ignore cursor events (click-through) and hide the DWM border/shadow
 /// for a clean in-game look.
 fn apply_overlay_lock(app: &AppHandle, locked: bool) {
-    for label in [OVERLAY_MAIN, OVERLAY_ENEMIES, OVERLAY_RESPAWNS] {
-        if let Some(win) = app.get_webview_window(label) {
-            let _ = win.set_ignore_cursor_events(locked);
-            let _ = win.set_shadow(!locked);
-            let _ = win.set_decorations(false);
+    pin_overlay_positions(app, || {
+        for label in [OVERLAY_MAIN, OVERLAY_ENEMIES, OVERLAY_RESPAWNS] {
+            if let Some(win) = app.get_webview_window(label) {
+                let _ = win.set_ignore_cursor_events(locked);
+                let _ = win.set_shadow(!locked);
+                let _ = win.set_decorations(false);
+            }
         }
-    }
+    });
 }
 
 /// Show or hide the enemy overlay based on `overlay.separate_enemy_window`.
@@ -211,6 +490,7 @@ fn sync_enemy_overlay(app: &AppHandle, separate: bool, locked: bool) {
         let _ = win.set_ignore_cursor_events(locked);
         let _ = win.set_shadow(!locked);
         let _ = win.set_decorations(false);
+        restore_overlay_geom(app, OVERLAY_ENEMIES);
     } else {
         let _ = win.hide();
     }
@@ -227,6 +507,7 @@ fn sync_respawn_overlay(app: &AppHandle, show: bool, locked: bool) {
         let _ = win.set_ignore_cursor_events(locked);
         let _ = win.set_shadow(!locked);
         let _ = win.set_decorations(false);
+        restore_overlay_geom(app, OVERLAY_RESPAWNS);
     } else {
         let _ = win.hide();
     }
@@ -658,6 +939,7 @@ fn show_overlay(app: AppHandle, state: State<'_, AppState>) -> Result<(), String
     if let Some(win) = app.get_webview_window(OVERLAY_MAIN) {
         win.show().map_err(|e| e.to_string())?;
         win.set_always_on_top(true).map_err(|e| e.to_string())?;
+        restore_overlay_geom(&app, OVERLAY_MAIN);
     }
     apply_overlay_lock(&app, locked);
     if separate {
@@ -671,13 +953,10 @@ fn show_overlay(app: AppHandle, state: State<'_, AppState>) -> Result<(), String
 
 /// Tear down overlay window(s) and exit the process (used when main closes).
 fn shutdown_with_overlay(app: &AppHandle) {
-    // Flush geometry before destroying overlays so the next launch restores it.
+    // Flush plugin state, then overlay geoms (hidden windows / destroy races).
+    // Do not destroy overlays first: WM_MOVE during teardown poisons saved coords.
     let _ = app.save_window_state(WINDOW_STATE_FLAGS);
-    for label in overlay_labels(app) {
-        if let Some(win) = app.get_webview_window(&label) {
-            let _ = win.destroy();
-        }
-    }
+    persist_overlay_geoms(app);
     app.exit(0);
 }
 
@@ -706,6 +985,11 @@ pub fn run() {
         .plugin(
             tauri_plugin_window_state::Builder::new()
                 .with_state_flags(WINDOW_STATE_FLAGS)
+                // Restore overlays ourselves after lock/shadow/show; the plugin's
+                // on_window_ready restore loses to Windows cascade + DWM style changes.
+                .skip_initial_state(OVERLAY_MAIN)
+                .skip_initial_state(OVERLAY_ENEMIES)
+                .skip_initial_state(OVERLAY_RESPAWNS)
                 .build(),
         )
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
@@ -750,6 +1034,12 @@ pub fn run() {
         .setup(|app| {
             let handle = app.handle().clone();
             let state = app.state::<AppState>();
+            let saved_overlay_geoms = load_saved_window_geoms(app.handle());
+            app.manage(OverlayGeomStore {
+                geoms: Mutex::new(saved_overlay_geoms.clone()),
+                restore_done: Mutex::new(saved_overlay_geoms.is_empty()),
+            });
+            track_overlay_geometry(app.handle());
 
             let (line_tx, line_rx) = mpsc::channel::<String>();
             let cmd_tx = start_tailer(line_tx);
@@ -777,6 +1067,26 @@ pub fn run() {
                     config.overlay.show_respawn_window,
                     config.overlay_locked,
                 );
+            }
+            // After lock/show: apply last geometry (plugin restore already skipped).
+            apply_saved_overlay_geoms(app.handle(), &saved_overlay_geoms);
+            if !saved_overlay_geoms.is_empty() {
+                let deferred_handle = app.handle().clone();
+                let deferred_geoms = saved_overlay_geoms.clone();
+                if app
+                    .handle()
+                    .run_on_main_thread(move || {
+                        apply_saved_overlay_geoms(&deferred_handle, &deferred_geoms);
+                        if let Some(store) = deferred_handle.try_state::<OverlayGeomStore>() {
+                            *store.restore_done.lock().unwrap() = true;
+                        }
+                    })
+                    .is_err()
+                {
+                    if let Some(store) = app.try_state::<OverlayGeomStore>() {
+                        *store.restore_done.lock().unwrap() = true;
+                    }
+                }
             }
             *state.tail_cmd.lock().unwrap() = Some(cmd_tx);
 
@@ -853,6 +1163,11 @@ pub fn run() {
                 }
             }
         })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while running tauri application")
+        .run(|app, event| {
+            if matches!(event, tauri::RunEvent::Exit) {
+                persist_overlay_geoms(app);
+            }
+        });
 }

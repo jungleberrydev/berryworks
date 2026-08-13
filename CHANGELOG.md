@@ -9,6 +9,18 @@ The in-app **What's new** dialog and General → Updates list are generated from
 
 ## [Unreleased]
 
+## [0.2.4] - 2026-08-12
+
+### Added
+
+- Header Updates controls (version, Check for updates, What's new) and an in-app update dialog instead of a browser confirm.
+
+### Fixed
+
+- Overlay windows restore last position and size after lock, show, and DWM chrome races.
+- NPC self-buffs (Cleric of Innoruuk, spite golem, unnamed a/an/the targets) no longer start Swift Like the Wind or Spirit of Wolf timers, so death no longer announces a false wear-off. Overlay voice matches visible rows.
+- Wear-off matching uses the longest phrase so a slow's "Your speed returns" does not clear haste.
+
 ## [0.2.3] - 2026-08-12
 
 ### Added
@@ -63,7 +75,8 @@ Initial public release of Berryworks — an EverQuest Legends timers toolkit tha
 - Windows NSIS installer bundle and GitHub Actions release workflow (tag-driven builds uploading `Berryworks_*_x64-setup.exe`).
 - MIT license and README install / in-game / development docs.
 
-[Unreleased]: https://github.com/jungleberrydev/berryworks/compare/v0.2.3...HEAD
+[Unreleased]: https://github.com/jungleberrydev/berryworks/compare/v0.2.4...HEAD
+[0.2.4]: https://github.com/jungleberrydev/berryworks/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/jungleberrydev/berryworks/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/jungleberrydev/berryworks/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/jungleberrydev/berryworks/compare/v0.2.0...v0.2.1

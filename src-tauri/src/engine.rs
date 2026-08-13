@@ -61,6 +61,174 @@ pub fn is_friendly_timer(category: &str, target: &str, spell: &str) -> bool {
     !is_enemy_timer(category, target, spell)
 }
 
+/// Leading a/an/the, checked longest-first so `an` is not treated as `a`.
+fn strip_leading_article(t: &str) -> &str {
+    for prefix in ["an ", "the ", "a "] {
+        if let Some(rest) = t.strip_prefix(prefix) {
+            return rest.trim_start();
+        }
+    }
+    t
+}
+
+/// Class / rank titles used by generic EQ NPCs: `Cleric of Innoruuk`,
+/// `priest of Nagafen`, `Lord of Ire`.
+const GENERIC_NPC_TITLES: &[&str] = &[
+    "acolyte",
+    "apostle",
+    "avenger",
+    "bard",
+    "beastlord",
+    "champion",
+    "cleric",
+    "defender",
+    "devotee",
+    "disciple",
+    "druid",
+    "enchanter",
+    "fanatic",
+    "guardian",
+    "hand",
+    "herald",
+    "high cleric",
+    "high priest",
+    "initiate",
+    "knight",
+    "lady",
+    "lord",
+    "magician",
+    "monk",
+    "necromancer",
+    "oracle",
+    "paladin",
+    "priest",
+    "prophet",
+    "ranger",
+    "rogue",
+    "sentinel",
+    "servant",
+    "shadow knight",
+    "shadowknight",
+    "shaman",
+    "templar",
+    "warrior",
+    "wizard",
+    "zealot",
+];
+
+/// Creature-type tokens. After stripping a/an/the, `spite golem` still matches
+/// `golem` so a skipped article cannot attach player haste/SoW.
+const GENERIC_NPC_TYPES: &[&str] = &[
+    "abhorrent",
+    "banshee",
+    "basilisk",
+    "beetle",
+    "boar",
+    "bouncer",
+    "chest",
+    "construct",
+    "cub",
+    "drake",
+    "elemental",
+    "fiend",
+    "gargoyle",
+    "ghast",
+    "ghost",
+    "ghoul",
+    "giant",
+    "gnoll",
+    "goblin",
+    "golem",
+    "griffin",
+    "guard",
+    "horror",
+    "imp",
+    "kobold",
+    "lich",
+    "minion",
+    "mummy",
+    "ogre",
+    "orc",
+    "pawn",
+    "rat",
+    "revenant",
+    "scarecrow",
+    "skeleton",
+    "snake",
+    "spider",
+    "spirit",
+    "treant",
+    "vampire",
+    "wolf",
+    "wraith",
+    "wyvern",
+    "zombie",
+];
+
+fn looks_like_titled_npc(rest: &str) -> bool {
+    let Some((before, after)) = rest.split_once(" of ") else {
+        return false;
+    };
+    if before.is_empty() || after.is_empty() {
+        return false;
+    }
+    GENERIC_NPC_TITLES.iter().any(|title| {
+        before == *title || before.ends_with(&format!(" {title}"))
+    })
+}
+
+fn looks_like_creature_type_npc(rest: &str) -> bool {
+    rest.split(|c: char| !c.is_ascii_alphabetic())
+        .any(|w| !w.is_empty() && GENERIC_NPC_TYPES.iter().any(|t| w == *t))
+}
+
+/// Generic EQ NPCs whose beneficial self-buffs share land text with watched
+/// player spells (SLTW / SoW). Matches:
+/// - article names: `a spite golem`, `an abhorrent`, `the Lord of Ire`
+/// - the same names with the article already stripped: `spite golem`
+/// - titled generics: `Cleric of Innoruuk`, `a cleric of Innoruuk`
+///
+/// Player names (`Meddic`, `Hoptor Thaggelum`) and `You` do not match.
+pub fn looks_like_unnamed_npc(target: &str) -> bool {
+    let t = target.trim().to_ascii_lowercase();
+    if t.is_empty() || t == "you" {
+        return false;
+    }
+    let rest = strip_leading_article(&t);
+    t.starts_with("a ")
+        || t.starts_with("an ")
+        || t.starts_with("the ")
+        || looks_like_titled_npc(rest)
+        || looks_like_creature_type_npc(rest)
+}
+
+/// Whether a land-other should start a timer on `target`.
+///
+/// Debuff/DoT/lull on NPCs: yes. Beneficial buffs on generic NPCs share
+/// land text with watched player spells (Swift Like The Wind, Spirit of Wolf)
+/// and must not steal or duplicate those timers. When overlay `self_buffs_only`
+/// would hide the row, skip starting it so death cannot announce wear-off.
+fn should_track_land_target(spell: &SpellDef, target: &str, config: &AppConfig) -> bool {
+    if target.eq_ignore_ascii_case("You") {
+        return true;
+    }
+    if is_enemy_timer(&spell.category, target, &spell.name) {
+        return true;
+    }
+    if crate::pets::is_my_pet(target, &config.my_pet_name) {
+        return true;
+    }
+    if looks_like_unnamed_npc(target) {
+        return false;
+    }
+    crate::pets::keep_friendly_target(
+        target,
+        config.overlay.self_buffs_only,
+        config.overlay.hide_other_pets,
+        &config.my_pet_name,
+    )
+}
+
 /// Faction-drop / pacify line (often categorized `buff` because EQ marks Beneficial).
 /// Name tokens cover the classic lull ladder plus AE variants; Evanescence is kept
 /// for forward-compat even if absent from the current spells.json.
@@ -85,6 +253,11 @@ pub fn is_lull_spell(spell: &str) -> bool {
 /// can be renewed from recently-wore-off.
 pub fn should_record_recent(category: &str, target: &str, spell: &str) -> bool {
     if is_enemy_timer(category, target, spell) {
+        return false;
+    }
+    // NPC self-buffs that share land text with watched player spells must not
+    // announce "Swift Like The Wind has worn off" when the mob dies.
+    if looks_like_unnamed_npc(target) {
         return false;
     }
     let cat = category.to_ascii_lowercase();
@@ -344,17 +517,22 @@ impl TimerEngine {
             if let Some(spell) = find_spell_by_name(spells, &pending.spell) {
                 if let Some(target) = extract_target(message, &spell.land_other) {
                     if is_watched(config, &spell.name) {
-                        self.start_timer(spell, &target, config, pending.tier, true);
-                        // Keep pending for a short AE window so multi-target lands
-                        // (Mesmerization, etc.) all get the same spell + tier.
-                        // Clearing immediately made the 2nd+ target fall through to
-                        // the first watched spell sharing the land text (e.g. Dazzle).
-                        if let Some(p) = self.pending.as_mut() {
-                            if p.first_land_at.is_none() {
-                                p.first_land_at = Some(Utc::now());
+                        if should_track_land_target(spell, &target, config) {
+                            self.start_timer(spell, &target, config, pending.tier, true);
+                            // Keep pending for a short AE window so multi-target lands
+                            // (Mesmerization, etc.) all get the same spell + tier.
+                            // Clearing immediately made the 2nd+ target fall through to
+                            // the first watched spell sharing the land text (e.g. Dazzle).
+                            if let Some(p) = self.pending.as_mut() {
+                                if p.first_land_at.is_none() {
+                                    p.first_land_at = Some(Utc::now());
+                                }
                             }
+                            return true;
                         }
-                        return true;
+                        // Land matched this cast on a generic NPC (or a target the
+                        // overlay would hide). Do not attach a You timer.
+                        return false;
                     }
                 }
                 // Self-buff land_you misclassified as LandOther (e.g. breeze lines)
@@ -378,6 +556,9 @@ impl TimerEngine {
                 continue;
             }
             if let Some(target) = extract_target(message, &spell.land_other) {
+                if !should_track_land_target(spell, &target, config) {
+                    continue;
+                }
                 let better = best_other
                     .as_ref()
                     .map(|(b, _)| spell.land_other.len() > b.land_other.len())
@@ -487,21 +668,10 @@ impl TimerEngine {
         spells: &[SpellDef],
         recent_ttl_secs: u64,
     ) -> bool {
-        let msg = normalize_chat(message);
-        if msg.is_empty() {
-            return false;
-        }
-
-        // All spells whose wear_off_you matches this line (shared phrases like
-        // "Your speed returns to normal" hit every haste with that text).
-        let matching: Vec<&str> = spells
-            .iter()
-            .filter(|s| {
-                let wear = normalize_chat(&s.wear_off_you);
-                !wear.is_empty() && (msg.contains(&wear) || wear.contains(&msg))
-            })
-            .map(|s| s.name.as_str())
-            .collect();
+        // Longest wear-off phrase contained in the log line. Exact/contains only
+        // (not the reverse) so "Your speed returns" (slow) does not clear haste
+        // ("Your speed returns to normal").
+        let matching = matching_wear_off_spells(message, spells);
 
         if matching.is_empty() {
             return false;
@@ -600,6 +770,31 @@ fn normalize_chat(s: &str) -> String {
         .trim_end_matches(|c: char| c == '.' || c == '!' || c == '?')
         .trim()
         .to_lowercase()
+}
+
+/// Spells whose `wear_off_you` is contained in `message`, keeping only the
+/// longest matching phrase so a slow's "Your speed returns" does not also
+/// hit haste's "Your speed returns to normal".
+fn matching_wear_off_spells<'a>(message: &str, spells: &'a [SpellDef]) -> Vec<&'a str> {
+    let msg = normalize_chat(message);
+    if msg.is_empty() {
+        return Vec::new();
+    }
+    let mut hits: Vec<(&'a str, usize)> = Vec::new();
+    for s in spells {
+        let wear = normalize_chat(&s.wear_off_you);
+        if wear.is_empty() {
+            continue;
+        }
+        if msg == wear || msg.contains(&wear) {
+            hits.push((s.name.as_str(), wear.len()));
+        }
+    }
+    let best = hits.iter().map(|(_, n)| *n).max().unwrap_or(0);
+    hits.into_iter()
+        .filter(|(_, n)| *n == best)
+        .map(|(name, _)| name)
+        .collect()
 }
 
 /// Among watched spells whose `land_you` is contained in `lower_msg`, pick the
@@ -1216,6 +1411,33 @@ mod tests {
         assert!(is_friendly_timer("buff", "You", "Clarity"));
         assert!(is_friendly_timer("buff", "You", "Calming Visage"));
         assert!(should_record_recent("buff", "Vebn", "Clarity"));
+        assert!(!should_record_recent(
+            "buff",
+            "a spite golem",
+            "Swift Like The Wind"
+        ));
+        assert!(!should_record_recent(
+            "buff",
+            "a haunted chest",
+            "Spirit of Wolf"
+        ));
+        assert!(looks_like_unnamed_npc("a spite golem"));
+        assert!(looks_like_unnamed_npc("an abhorrent"));
+        assert!(looks_like_unnamed_npc("spite golem"));
+        assert!(looks_like_unnamed_npc("Spite Golem"));
+        assert!(looks_like_unnamed_npc("Cleric of Innoruuk"));
+        assert!(looks_like_unnamed_npc("a cleric of Innoruuk"));
+        assert!(looks_like_unnamed_npc("priest of Nagafen"));
+        assert!(!looks_like_unnamed_npc("Garober"));
+        assert!(!looks_like_unnamed_npc("You"));
+        assert!(!looks_like_unnamed_npc("Meddic"));
+        assert!(!looks_like_unnamed_npc("Hoptor Thaggelum"));
+        assert!(!should_record_recent(
+            "buff",
+            "Cleric of Innoruuk",
+            "Swift Like The Wind"
+        ));
+        assert!(!should_record_recent("buff", "spite golem", "Spirit of Wolf"));
         // Enemy lulls must not enter recently wore off under the mob name.
         assert!(!should_record_recent("buff", "a frenzied ghoul", "Calm"));
         // Self-debuffs (e.g. Ghoul Root on You) must not enter recently wore off.
@@ -1454,6 +1676,114 @@ mod tests {
         );
     }
 
+    #[test]
+    fn slow_wear_off_does_not_clear_haste_or_sow() {
+        let spells = load_spells().expect("spells");
+        let mut config = AppConfig::default();
+        config.character_level = 50;
+        config.watched.insert("Swift Like The Wind".into(), true);
+        config.watched.insert("Spirit of Wolf".into(), true);
+
+        let mut engine = TimerEngine::new();
+        engine.handle(
+            parse_line("[Wed Aug 12 21:04:46 2026] You feel much faster."),
+            &spells,
+            &config,
+        );
+        engine.handle(
+            parse_line("[Wed Aug 12 21:04:46 2026] You feel the spirit of wolf enter you."),
+            &spells,
+            &config,
+        );
+        let you: Vec<_> = engine
+            .timers()
+            .iter()
+            .filter(|t| t.target == "You")
+            .map(|t| t.spell.as_str())
+            .collect();
+        assert!(
+            you.contains(&"Swift Like The Wind") && you.contains(&"Spirit of Wolf"),
+            "expected You haste + SoW, got {you:?}"
+        );
+
+        let slow = engine.handle(
+            parse_line("[Thu Jul 16 21:24:07 2026] Your speed returns."),
+            &spells,
+            &config,
+        );
+        assert!(
+            !slow,
+            "slow wear-off must not remove You haste/SoW timers, got {:?}",
+            engine
+                .timers()
+                .iter()
+                .map(|t| (t.spell.as_str(), t.target.as_str()))
+                .collect::<Vec<_>>()
+        );
+        assert!(
+            engine.timers().iter().any(|t| {
+                t.target == "You" && t.spell.eq_ignore_ascii_case("Swift Like The Wind")
+            }),
+            "slow wear-off must not clear Swift Like The Wind"
+        );
+        assert!(
+            engine
+                .timers()
+                .iter()
+                .any(|t| t.target == "You" && t.spell.eq_ignore_ascii_case("Spirit of Wolf")),
+            "slow wear-off must not clear Spirit of Wolf"
+        );
+    }
+
+    #[test]
+    fn npc_self_buff_lands_do_not_attach_watched_haste_or_sow() {
+        let spells = load_spells().expect("spells");
+        let mut config = AppConfig::default();
+        config.character_level = 50;
+        config.watched.insert("Swift Like The Wind".into(), true);
+        config.watched.insert("Spirit of Wolf".into(), true);
+        config.watched.insert("Shiftless Deeds".into(), true);
+
+        let path = hate_npc_buff_fixture_path();
+        let raw = fs::read_to_string(&path).expect("hate npc fixture");
+
+        let mut engine = TimerEngine::new();
+        for line in raw.lines() {
+            engine.handle(parse_line(line), &spells, &config);
+        }
+
+        let rows: Vec<_> = engine
+            .timers()
+            .iter()
+            .map(|t| (t.spell.as_str(), t.target.as_str()))
+            .collect();
+        assert!(
+            rows.iter()
+                .any(|(s, t)| *s == "Swift Like The Wind" && *t == "You"),
+            "You SLTW should remain, got {rows:?}"
+        );
+        assert!(
+            rows.iter()
+                .any(|(s, t)| *s == "Spirit of Wolf" && *t == "You"),
+            "You SoW should remain, got {rows:?}"
+        );
+        assert!(
+            !rows.iter().any(|(s, t)| looks_like_unnamed_npc(t)
+                && (*s == "Swift Like The Wind" || *s == "Spirit of Wolf")),
+            "unnamed NPC self-buffs must not start watched haste/SoW timers, got {rows:?}"
+        );
+        assert!(
+            rows.iter()
+                .any(|(s, t)| *s == "Spirit of Wolf" && *t == "Meddic"),
+            "ally SoW land should still start a timer, got {rows:?}"
+        );
+        assert!(
+            rows.iter()
+                .any(|(s, t)| *s == "Shiftless Deeds" && t.eq_ignore_ascii_case("a revultant rat")),
+            "NPC slow lands must still start debuff timers, got {rows:?}"
+        );
+    }
+
     fn fixture_path() -> std::path::PathBuf {
         let candidates = [
             std::path::PathBuf::from("fixtures/sample_mez.log"),
@@ -1492,6 +1822,180 @@ mod tests {
             .unwrap_or_else(|| {
                 std::path::PathBuf::from("../fixtures/celerity_wear_off.log")
             })
+    }
+
+    fn hate_npc_buff_fixture_path() -> std::path::PathBuf {
+        let candidates = [
+            std::path::PathBuf::from("fixtures/hate_npc_buff_collision.log"),
+            std::path::PathBuf::from("../fixtures/hate_npc_buff_collision.log"),
+            std::path::PathBuf::from("../../fixtures/hate_npc_buff_collision.log"),
+        ];
+        candidates
+            .into_iter()
+            .find(|p| p.exists())
+            .unwrap_or_else(|| {
+                std::path::PathBuf::from("../fixtures/hate_npc_buff_collision.log")
+            })
+    }
+
+    fn cleric_innoruuk_buff_fixture_path() -> std::path::PathBuf {
+        let candidates = [
+            std::path::PathBuf::from("fixtures/cleric_innoruuk_buff_collision.log"),
+            std::path::PathBuf::from("../fixtures/cleric_innoruuk_buff_collision.log"),
+            std::path::PathBuf::from("../../fixtures/cleric_innoruuk_buff_collision.log"),
+        ];
+        candidates
+            .into_iter()
+            .find(|p| p.exists())
+            .unwrap_or_else(|| {
+                std::path::PathBuf::from("../fixtures/cleric_innoruuk_buff_collision.log")
+            })
+    }
+
+    #[test]
+    fn cleric_and_golem_self_buffs_do_not_announce_player_haste_or_sow() {
+        let spells = load_spells().expect("spells");
+        let mut config = AppConfig::default();
+        config.character_level = 50;
+        config.my_pet_name = "Garober".into();
+        config.watched.insert("Swift Like The Wind".into(), true);
+        config.watched.insert("Spirit of Wolf".into(), true);
+        config.watched.insert("Shiftless Deeds".into(), true);
+        config.watched.insert("Ensnare".into(), true);
+
+        let path = cleric_innoruuk_buff_fixture_path();
+        let raw = fs::read_to_string(&path).expect("cleric innoruuk fixture");
+
+        let mut engine = TimerEngine::new();
+        let mut saw_slow = false;
+        let mut saw_snare = false;
+        for line in raw.lines() {
+            engine.handle(parse_line(line), &spells, &config);
+            if line.contains("You have slain") {
+                continue;
+            }
+            saw_slow |= engine.timers().iter().any(|t| {
+                t.spell == "Shiftless Deeds"
+                    && t.target.eq_ignore_ascii_case("Cleric of Innoruuk")
+            });
+            saw_snare |= engine.timers().iter().any(|t| {
+                t.spell == "Ensnare" && t.target.eq_ignore_ascii_case("Cleric of Innoruuk")
+            });
+        }
+        assert!(saw_slow, "Shiftless Deeds must still land on Cleric of Innoruuk");
+        assert!(saw_snare, "Ensnare must still land on Cleric of Innoruuk");
+
+        let rows: Vec<_> = engine
+            .timers()
+            .iter()
+            .map(|t| (t.spell.as_str(), t.target.as_str()))
+            .collect();
+        assert!(
+            rows.iter()
+                .any(|(s, t)| *s == "Swift Like The Wind" && *t == "You"),
+            "You SLTW should remain after NPC kills, got {rows:?}"
+        );
+        assert!(
+            rows.iter()
+                .any(|(s, t)| *s == "Spirit of Wolf" && *t == "You"),
+            "You SoW should remain after NPC kills, got {rows:?}"
+        );
+        assert!(
+            rows.iter()
+                .any(|(s, t)| *s == "Spirit of Wolf" && *t == "Garober"),
+            "pet SoW should still start, got {rows:?}"
+        );
+        assert!(
+            rows.iter()
+                .any(|(s, t)| *s == "Spirit of Wolf" && *t == "Meddic"),
+            "ally SoW should still start, got {rows:?}"
+        );
+        assert!(
+            !rows.iter().any(|(s, t)| {
+                (*s == "Swift Like The Wind" || *s == "Spirit of Wolf")
+                    && looks_like_unnamed_npc(t)
+            }),
+            "generic NPC haste/SoW must not start timers, got {rows:?}"
+        );
+        assert!(
+            !engine.recent_expired().iter().any(|r| {
+                r.spell.eq_ignore_ascii_case("Swift Like The Wind")
+                    || r.spell.eq_ignore_ascii_case("Spirit of Wolf")
+            }),
+            "killing cleric/golem must not announce SLTW/SoW worn off, got {:?}",
+            engine
+                .recent_expired()
+                .iter()
+                .map(|r| (r.spell.as_str(), r.target.as_str()))
+                .collect::<Vec<_>>()
+        );
+        assert!(
+            !rows.iter().any(|(_, t)| {
+                t.eq_ignore_ascii_case("Cleric of Innoruuk")
+                    || t.eq_ignore_ascii_case("a cleric of Innoruuk")
+                    || t.eq_ignore_ascii_case("a spite golem")
+                    || t.eq_ignore_ascii_case("spite golem")
+            }),
+            "slain NPC timers (including slows) should be gone, got {rows:?}"
+        );
+    }
+
+    #[test]
+    fn self_buffs_only_skips_ally_but_keeps_you_and_pet() {
+        let spells = load_spells().expect("spells");
+        let mut config = AppConfig::default();
+        config.character_level = 50;
+        config.my_pet_name = "Garober".into();
+        config.overlay.self_buffs_only = true;
+        config.watched.insert("Spirit of Wolf".into(), true);
+
+        let mut engine = TimerEngine::new();
+        engine.handle(
+            parse_line("[Wed Aug 12 21:04:46 2026] You feel the spirit of wolf enter you."),
+            &spells,
+            &config,
+        );
+        engine.handle(
+            parse_line("[Wed Aug 12 21:04:46 2026] Garober is surrounded by a brief lupine aura."),
+            &spells,
+            &config,
+        );
+        engine.handle(
+            parse_line("[Wed Aug 12 21:05:00 2026] Meddic is surrounded by a brief lupine aura."),
+            &spells,
+            &config,
+        );
+        engine.handle(
+            parse_line("[Wed Aug 12 21:44:20 2026] Cleric of Innoruuk feels much faster."),
+            &spells,
+            &config,
+        );
+
+        let rows: Vec<_> = engine
+            .timers()
+            .iter()
+            .map(|t| (t.spell.as_str(), t.target.as_str()))
+            .collect();
+        assert!(
+            rows.iter()
+                .any(|(s, t)| *s == "Spirit of Wolf" && *t == "You"),
+            "You SoW must start, got {rows:?}"
+        );
+        assert!(
+            rows.iter()
+                .any(|(s, t)| *s == "Spirit of Wolf" && *t == "Garober"),
+            "pet SoW must start, got {rows:?}"
+        );
+        assert!(
+            !rows.iter().any(|(_, t)| t.eq_ignore_ascii_case("Meddic")),
+            "self_buffs_only must not attach ally SoW, got {rows:?}"
+        );
+        assert!(
+            !rows
+                .iter()
+                .any(|(_, t)| t.eq_ignore_ascii_case("Cleric of Innoruuk")),
+            "self_buffs_only must not attach NPC haste, got {rows:?}"
+        );
     }
 
     fn drifting_death_fixture_path() -> std::path::PathBuf {

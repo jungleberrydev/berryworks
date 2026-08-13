@@ -11,7 +11,7 @@ import {
   overlayFontCss,
   type OverlayAppearance,
 } from "./themes";
-import { isMyPet, isPetTarget, keepFriendlyTarget } from "./pets";
+import { isMyPet, isPetTarget, keepFriendlyTarget, looksLikeNpcBuffTarget } from "./pets";
 interface ActiveTimer {
   id: string;
   spell: string;
@@ -223,16 +223,20 @@ function filterForRole<T extends { category: string; target: string; spell: stri
   } else {
     filtered = items.filter((t) => isFriendlyTimer(t.category, t.target, t.spell));
   }
-  // Main overlay only: self-buffs / hide-other-pets. Enemies overlay unchanged.
+  // Main overlay: hide generic-NPC beneficial rows (voice matches overlay).
   // Combined mode still keeps enemy timers on the single window.
-  if (overlayRole === "main" && (selfBuffsOnly || hideOtherPets)) {
+  if (overlayRole === "main") {
     filtered = filtered.filter((t) => {
-      if (!separateEnemyWindow && isEnemyTimer(t.category, t.target, t.spell)) return true;
-      return keepFriendlyTarget(t.target, {
-        selfBuffsOnly,
-        hideOtherPets,
-        myPetName,
-      });
+      if (isEnemyTimer(t.category, t.target, t.spell)) return true;
+      if (looksLikeNpcBuffTarget(t.target) && !isMyPet(t.target, myPetName)) return false;
+      if (selfBuffsOnly || hideOtherPets) {
+        return keepFriendlyTarget(t.target, {
+          selfBuffsOnly,
+          hideOtherPets,
+          myPetName,
+        });
+      }
+      return true;
     });
   }
   return filtered;
@@ -621,10 +625,12 @@ function render(timers: ActiveTimer[], recent: RecentExpired[] = []) {
   if (overlayRole === "respawns") return;
   lastTimers = timers;
   lastRecent = recent;
-  announceNewWornOff(recent);
   const visibleTimers = filterForRole(timers);
-  announcePreExpiry(visibleTimers);
   const visibleRecent = filterForRole(recent);
+  // Same filter as the rows: do not announce NPC self-buffs that share a
+  // watched spell name (Swift Like The Wind on a spite golem, SoW on a chest).
+  announceNewWornOff(visibleRecent);
+  announcePreExpiry(visibleTimers);
   const box = document.getElementById("timers")!;
   const showRecent = showRecentlyWoreOff && visibleRecent.length > 0;
   if (!visibleTimers.length && !showRecent) {
@@ -742,7 +748,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     });
   } else {
     const payload = await invoke<TimersPayload>("get_timers");
-    seedAnnouncedRecent(payload.recent_expired ?? []);
+    seedAnnouncedRecent(filterForRole(payload.recent_expired ?? []));
     seedAnnouncedPreExpiry(filterForRole(payload.timers));
     if (overlayRole === "main") primeSpeech();
     render(payload.timers, payload.recent_expired ?? []);

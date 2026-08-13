@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Berryworks",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "identifier": "com.evans.berry-timers",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -25,6 +25,8 @@
         "url": "overlay.html",
         "width": 340,
         "height": 420,
+        "x": 40,
+        "y": 80,
         "decorations": false,
         "transparent": true,
         "shadow": true,

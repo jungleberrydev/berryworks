@@ -8,656 +8,730 @@
     <script type="module" src="/src/main.ts" defer></script>
   </head>
   <body class="settings-body" data-theme="berry">
-    <header class="app-header">
-      <div>
-        <h1>Berryworks</h1>
-        <p class="subtitle">EverQuest Legends toolkit</p>
-      </div>
-      <div class="header-actions">
-        <div class="header-updates">
-          <a
-            class="header-version"
-            href="https://github.com/jungleberrydev/berryworks/releases/latest"
-            target="_blank"
-            rel="noopener"
-            title="GitHub Releases"
-          >v<span id="app-version">…</span></a>
-          <button id="btn-check-updates" type="button" class="secondary">Check for updates</button>
-          <button id="btn-whats-new" type="button" class="secondary">What's new</button>
-          <span id="update-status" class="status header-update-status" role="status" aria-live="polite"></span>
+    <div class="app-shell">
+      <aside class="app-rail">
+        <div class="rail-brand">
+          <h1>Berryworks</h1>
+          <p class="subtitle">EverQuest Legends toolkit</p>
         </div>
-        <button id="btn-overlay-lock" type="button" class="secondary" aria-pressed="false">
-          Lock Overlays
-        </button>
-        <button id="btn-clear" type="button" class="secondary">Clear Timers</button>
-      </div>
-    </header>
-
-    <nav class="section-nav" role="tablist" aria-label="Berryworks sections">
-      <button
-        type="button"
-        class="section-tab"
-        role="tab"
-        aria-selected="false"
-        data-section="appearance"
-      >
-        Appearance
-      </button>
-      <button
-        type="button"
-        class="section-tab is-active"
-        role="tab"
-        aria-selected="true"
-        data-section="timers"
-      >
-        Timers
-      </button>
-      <button
-        type="button"
-        class="section-tab"
-        role="tab"
-        aria-selected="false"
-        data-section="loot"
-      >
-        Loot
-      </button>
-      <button
-        type="button"
-        class="section-tab"
-        role="tab"
-        aria-selected="false"
-        data-section="combat"
-      >
-        Combat
-      </button>
-    </nav>
-
-    <div id="section-timers" class="app-section is-active" data-section-panel="timers">
-      <nav class="settings-tabs" role="tablist" aria-label="Timer settings">
-        <button type="button" class="settings-tab is-active" role="tab" aria-selected="true" data-tab="general">
-          General
-        </button>
-        <button type="button" class="settings-tab" role="tab" aria-selected="false" data-tab="overlay">
-          Overlay
-        </button>
-        <button type="button" class="settings-tab" role="tab" aria-selected="false" data-tab="respawns">
-          Respawns
-        </button>
-        <button type="button" class="settings-tab" role="tab" aria-selected="false" data-tab="spells">
-          Spells
-        </button>
-      </nav>
-
-      <div class="settings-panels">
-        <section
-          id="tab-general"
-          class="panel settings-panel is-active"
-          role="tabpanel"
-          data-tab-panel="general"
-        >
-          <h2>Log file</h2>
-          <div class="settings-group">
-            <p class="hint">
-              Enable logging in-game with <code>/log on</code>, then pick a detected log or Browse to
-              <code>eqlog_&lt;Character&gt;_&lt;Server&gt;.txt</code>.
-            </p>
-            <div id="log-suggest-wrap" class="log-suggest" hidden>
-              <label class="field field-wide">
-                <span>Detected logs</span>
-                <div class="row gap">
-                  <select id="log-suggest"></select>
-                  <button id="btn-use-log" type="button">Use</button>
-                </div>
-              </label>
-            </div>
-            <p id="log-suggest-empty" class="hint log-suggest-empty" hidden>
-              No logs found in common EverQuest folders — use Browse.
-            </p>
-            <div class="row gap">
-              <input id="log-path" type="text" placeholder="Path to eqlog_Character_Server.txt" readonly />
-              <button id="btn-browse" type="button">Browse…</button>
-            </div>
-          </div>
-
-          <h2 class="panel-subhead">Character</h2>
-          <div class="settings-group">
-            <label class="field">
-              <span>Level</span>
-              <input id="char-level" type="number" min="1" max="125" value="1" />
-            </label>
-            <label class="field field-scr">
-              <span>Spell Casting Reinforcement</span>
-              <select id="scr-rank">
-                <option value="0">None</option>
-                <option value="1">Rank 1 (+5%)</option>
-                <option value="2">Rank 2 (+15%)</option>
-                <option value="3">Rank 3 (+30%)</option>
-                <option value="4">Rank 4 (+50%)</option>
-              </select>
-            </label>
-            <p class="hint">
-              Level is used for scaled buff durations and auto-updates from log level-ups.
-              Spell Casting Reinforcement extends beneficial spells you cast; invulnerability
-              and combat abilities are exempt.
-            </p>
-          </div>
-
-          <h2 class="panel-subhead">Overlay lock</h2>
-          <div class="settings-group">
-            <div class="settings-stack">
-              <label class="field checkbox">
-                <input id="overlay-locked" type="checkbox" />
-                <span>Lock overlays (click-through to game)</span>
-              </label>
-            </div>
-            <p class="hint">
-              When locked, clicks pass through to the game and the OS window outline is hidden. Unlock to drag
-              overlays or right-click dismiss timers.
-            </p>
-          </div>
-        </section>
-
-        <section
-          id="tab-overlay"
-          class="panel settings-panel"
-          role="tabpanel"
-          data-tab-panel="overlay"
-          hidden
-        >
-          <h2>Announcements &amp; voice</h2>
-          <div class="settings-group">
-            <p class="hint">
-              Spoken from the main overlay when a timer wears off or is dismissed. Charm-break and
-              invis-drop alerts use the same voice and also appear on the alert overlay. Also used by
-              verbal expiry warnings below.
-            </p>
-            <div class="settings-stack">
-              <label class="field checkbox">
-                <input id="ov-voice-announcements" type="checkbox" checked />
-                <span>Voice announcements (worn off / dismissed)</span>
-              </label>
-              <label class="field checkbox">
-                <input id="ov-charm-break-alerts" type="checkbox" checked />
-                <span>Alert when charm breaks</span>
-              </label>
-              <label class="field checkbox">
-                <input id="ov-invis-break-alerts" type="checkbox" checked />
-                <span>Alert when invis fades or wears off</span>
-              </label>
-              <label class="field field-wide voice-field">
-                <span>Announcement voice</span>
-                <div class="row gap">
-                  <select id="ov-voice-uri">
-                    <option value="">System default</option>
-                  </select>
-                  <button id="btn-test-voice" type="button" class="secondary">Test voice</button>
-                </div>
-              </label>
-              <label class="field field-wide">
-                <span>Announcement volume</span>
-                <input id="ov-voice-volume" type="range" min="0" max="100" step="1" value="100" />
-                <span id="ov-voice-volume-label" class="range-label">100%</span>
-              </label>
-            </div>
-          </div>
-
-          <h2 class="panel-subhead">Alert overlay</h2>
-          <div class="settings-group">
-            <p class="hint">
-              A separate always-on-top window for short messages such as Charm break! and Invis wore
-              off! Unlock overlays to drag it where you want; lock to click through. Size, font, and
-              colors below apply only to this window.
-            </p>
-            <div class="settings-stack">
-              <label class="field checkbox">
-                <input id="ov-show-alert-window" type="checkbox" checked />
-                <span>Show alert overlay window</span>
-              </label>
-              <label class="field field-wide">
-                <span>Alert duration</span>
-                <div class="row gap">
-                  <input id="ov-alert-secs" type="range" min="2" max="15" step="1" value="5" />
-                  <span id="ov-alert-secs-label" class="range-label">5s</span>
-                </div>
-              </label>
-              <div class="appearance-grid">
-                <label class="field">
-                  <span>Alert size</span>
-                  <select id="ov-alert-size">
-                    <option value="small">Small</option>
-                    <option value="normal">Normal</option>
-                    <option value="large" selected>Large</option>
-                    <option value="huge">Huge</option>
-                  </select>
-                </label>
-                <label class="field">
-                  <span>Alert font</span>
-                  <select id="ov-alert-font-family">
-                    <option value="" selected>Same as overlay</option>
-                  </select>
-                </label>
-                <label class="field color-field">
-                  <span>Charm color</span>
-                  <input id="ov-alert-charm-color" type="color" value="#ff3b3b" />
-                </label>
-                <label class="field color-field">
-                  <span>Invis color</span>
-                  <input id="ov-alert-invis-color" type="color" value="#6ec8ff" />
-                </label>
-              </div>
-              <div class="row gap">
-                <button id="btn-test-alert" type="button" class="secondary">Test charm</button>
-                <button id="btn-test-invis-fading" type="button" class="secondary">Test fading</button>
-                <button id="btn-test-invis-alert" type="button" class="secondary">Test invis</button>
-              </div>
-            </div>
-          </div>
-
-          <h2 class="panel-subhead">Expiry warnings</h2>
-          <div class="settings-group">
-            <p class="hint">
-              Flash and verbal share the warn lead time (1–120 seconds). Type or slide to set how many
-              seconds before expiry. Short timers cap at half their duration so they don’t flash the whole
-              time. Verbal speaks once when a timer crosses the threshold, using the announcement voice
-              and volume above.
-            </p>
-            <div class="settings-stack">
-              <label class="field checkbox">
-                <input id="ov-flash-expiry-warn" type="checkbox" checked />
-                <span>Flash timers near expiry</span>
-              </label>
-              <label class="field checkbox">
-                <input id="ov-verbal-expiry-warn" type="checkbox" />
-                <span>Verbal warning before expiry</span>
-              </label>
-              <label class="field field-wide">
-                <span>Warn before expiry</span>
-                <div class="row gap expiry-warn-row">
-                  <input id="ov-expiry-warn-secs" type="range" min="1" max="120" step="1" value="10" />
-                  <input
-                    id="ov-expiry-warn-secs-num"
-                    type="number"
-                    min="1"
-                    max="120"
-                    step="1"
-                    value="10"
-                    class="secs-input"
-                    aria-label="Warn seconds"
-                  />
-                  <span id="ov-expiry-warn-label" class="range-label">10s</span>
-                </div>
-              </label>
-            </div>
-          </div>
-
-          <h2 class="panel-subhead">Dismiss &amp; wore off</h2>
-          <div class="settings-group">
-            <p class="hint">
-              Right-click dismiss needs overlays unlocked (General → Overlay lock). Recently wore off lists
-              renew-relevant self/ally buffs (Clarity, Celerity, SOW, Chloroplast/regen, shields) — not
-              blossom/celestial HoTs, invis, roots, or enemy debuffs.
-            </p>
-            <div class="settings-stack">
-              <label class="field checkbox">
-                <input id="ov-right-click-dismiss" type="checkbox" checked />
-                <span>Right-click overlay timer to dismiss</span>
-              </label>
-              <label class="field checkbox">
-                <input id="ov-show-recently-wore-off" type="checkbox" checked />
-                <span>Show recently wore off</span>
-              </label>
-              <label class="field field-wide">
-                <span>Recently wore off duration</span>
-                <input id="ov-recently-wore-off-secs" type="range" min="15" max="300" step="15" value="300" />
-                <span id="ov-recently-wore-off-label" class="range-label">5 min</span>
-              </label>
-            </div>
-          </div>
-
-          <h2 class="panel-subhead">Filters &amp; windows</h2>
-          <div class="settings-group">
-            <p class="hint">
-              Separate enemy overlay shows debuff/DoT timers on a second window. “Only show my buffs” still
-              keeps your pet when My pet name is set. Use the exact log target for the pet (e.g. Gastik or
-              OwnerName pet). Unlock overlays (General) to drag windows — each shows a label while unlocked.
-            </p>
-            <div class="settings-stack">
-              <label class="field checkbox">
-                <input id="ov-separate-enemy-window" type="checkbox" />
-                <span>Separate enemy overlay window</span>
-              </label>
-              <label class="field checkbox">
-                <input id="ov-self-buffs-only" type="checkbox" />
-                <span>Only show my buffs (hide buffs on others)</span>
-              </label>
-              <label class="field field-wide">
-                <span>My pet name</span>
-                <input id="my-pet-name" type="text" placeholder="Jungleberry pet" autocomplete="off" spellcheck="false" />
-              </label>
-              <label class="field checkbox">
-                <input id="ov-hide-other-pets" type="checkbox" />
-                <span>Hide other pets</span>
-              </label>
-            </div>
-          </div>
-        </section>
-
-        <section
-          id="tab-respawns"
-          class="panel settings-panel"
-          role="tabpanel"
-          data-tab-panel="respawns"
-          hidden
-        >
-          <h2>Respawn window</h2>
-          <div class="settings-group">
-            <p class="hint">
-              Leave-zone hides timers in the overlay but they keep counting. Rares use per-camp timers when
-              defined.
-            </p>
-            <div class="settings-stack">
-              <label class="field checkbox">
-                <input id="ov-show-respawn-window" type="checkbox" checked />
-                <span>Show respawn overlay window</span>
-              </label>
-              <label class="field checkbox">
-                <input id="ov-track-all-kills" type="checkbox" checked />
-                <span>Track all kills (zone default respawn)</span>
-              </label>
-            </div>
-          </div>
-
-          <h2 class="panel-subhead">Zone &amp; rares</h2>
-          <div class="settings-group">
-            <p class="hint">
-              Pick your camping zone here, or wait for “You have entered …” in the log.
-            </p>
-            <label class="field field-wide">
-              <span>Current zone</span>
-              <select id="respawn-zone">
-                <option value="">— Select zone —</option>
-              </select>
-            </label>
-            <div id="rare-list" class="spell-list"></div>
-            <button id="btn-clear-respawns" type="button" class="secondary">Clear Respawn Timers</button>
-          </div>
-        </section>
-
-        <section
-          id="tab-spells"
-          class="panel settings-panel"
-          role="tabpanel"
-          data-tab-panel="spells"
-          hidden
-        >
-          <h2>Watched spells</h2>
-          <div class="settings-group">
-            <p class="hint">
-              Grouped by class, then level. Enable/Disable all on a class header. Multi-class spells share
-              watch state by name. Upgrade tier comes from the cast log (e.g. “Spirit of Wolf V” → tier 5).
-            </p>
-            <div class="spell-search-row">
-              <input id="spell-search" type="search" placeholder="Search spells…" autocomplete="off" />
-            </div>
-            <div id="spell-list" class="spell-list spell-list-tall"></div>
-          </div>
-        </section>
-      </div>
-
-      <footer class="footer-actions">
-        <button id="btn-save" type="button" class="primary">Save Settings</button>
-        <span id="status" class="status"></span>
-      </footer>
-
-      <section class="panel muted">
-        <h2>Live Timers</h2>
-        <div id="live-timers" class="live-timers empty">No active timers</div>
-      </section>
-    </div>
-
-    <div id="section-appearance" class="app-section" data-section-panel="appearance" hidden>
-      <section class="panel settings-panel is-active">
-        <h2>Theme &amp; colors</h2>
-        <div class="settings-group">
-          <p class="hint">
-            Themes set colors, chrome, and (for fantasy/terminal) a matching font. You can still tweak after
-            picking one. Changes apply live to the overlay and this window.
-          </p>
-          <div class="appearance-grid">
-            <label class="field">
-              <span>Theme</span>
-              <select id="ov-theme">
-                <optgroup label="Classic">
-                  <option value="berry">Berry (default)</option>
-                  <option value="parchment">Classic parchment</option>
-                  <option value="eq-chrome">Dark blue EQ chrome</option>
-                  <option value="velious">Velious ice</option>
-                  <option value="kunark">Kunark / swamp</option>
-                </optgroup>
-                <optgroup label="Fantasy">
-                  <option value="ironkeep">Ironkeep</option>
-                  <option value="grimoire">Grimoire</option>
-                </optgroup>
-                <optgroup label="Terminal / retro">
-                  <option value="phosphor">Phosphor CRT</option>
-                  <option value="amber">Amber CRT</option>
-                  <option value="vga">VGA night</option>
-                </optgroup>
-              </select>
-            </label>
-            <label class="field color-field">
-              <span>Text</span>
-              <input id="ov-text-color" type="color" value="#f6ebf1" />
-            </label>
-            <label class="field color-field">
-              <span>Panel</span>
-              <input id="ov-panel-color" type="color" value="#160e14" />
-            </label>
-            <label class="field color-field">
-              <span>Buff bar</span>
-              <input id="ov-buff-color" type="color" value="#7eb8a2" />
-            </label>
-            <label class="field color-field">
-              <span>Debuff bar</span>
-              <input id="ov-debuff-color" type="color" value="#c45c8a" />
-            </label>
-            <label class="field color-field">
-              <span>DoT bar</span>
-              <input id="ov-dot-color" type="color" value="#d4a05a" />
-            </label>
-            <label class="field">
-              <span>Panel opacity</span>
-              <input id="ov-panel-opacity" type="range" min="0" max="100" value="82" />
-              <span id="ov-panel-opacity-label" class="range-label">82%</span>
-            </label>
-            <label class="field">
-              <span>Bar opacity</span>
-              <input id="ov-bar-opacity" type="range" min="0" max="100" value="100" />
-              <span id="ov-bar-opacity-label" class="range-label">100%</span>
-            </label>
-          </div>
-        </div>
-
-        <h2 class="panel-subhead">Size &amp; type</h2>
-        <div class="settings-group">
-          <p class="hint">Density and font affect all timer overlay windows.</p>
-          <div class="appearance-grid">
-            <label class="field">
-              <span>Timer density</span>
-              <select id="ov-timer-size">
-                <option value="minimal">Minimal</option>
-                <option value="small">Small</option>
-                <option value="normal" selected>Normal</option>
-                <option value="large">Large</option>
-              </select>
-            </label>
-            <label class="field">
-              <span>Overlay font</span>
-              <select id="ov-font-family">
-                <option value="Segoe UI" selected>Segoe UI (default)</option>
-                <option value="Cascadia Mono">Cascadia Mono</option>
-                <option value="Consolas">Consolas</option>
-                <option value="Courier New">Courier New</option>
-                <option value="Lucida Console">Lucida Console</option>
-                <option value="Georgia">Georgia</option>
-                <option value="Palatino Linotype">Palatino Linotype</option>
-                <option value="Trebuchet MS">Trebuchet MS</option>
-                <option value="Arial">Arial</option>
-                <option value="Verdana">Verdana</option>
-                <option value="Calibri">Calibri</option>
-                <option value="Tahoma">Tahoma</option>
-              </select>
-            </label>
-            <label class="field checkbox">
-              <input id="ov-show-icons" type="checkbox" checked />
-              <span>Show spell icons on overlay</span>
-            </label>
-          </div>
-        </div>
-
-        <button id="btn-reset-appearance" type="button" class="secondary">Reset appearance</button>
-      </section>
-    </div>
-
-    <div id="section-loot" class="app-section" data-section-panel="loot" hidden>
-      <section class="panel settings-panel is-active">
-        <h2>Tracking</h2>
-        <div class="settings-group">
-          <p class="hint">
-            Drop rates use observation opportunities: your kills
-            (<code>You have slain</code> / pet when Pet name is set) plus corpses you loot that were not
-            already counted (e.g. group kills). Multiple items from the same corpse count as one
-            opportunity. Zone follows Timers → Respawns / log zone-ins. Requires a saved log path and
-            <code>/log</code> on in-game.
-          </p>
-          <div class="settings-stack">
-            <label class="field checkbox">
-              <input id="loot-tracking" type="checkbox" checked />
-              <span>Track loot from log</span>
-            </label>
-          </div>
-        </div>
-
-        <h2 class="panel-subhead">Community sync</h2>
-        <div class="settings-group">
-          <p class="hint">
-            Optional uploads to Norrath Roster
-            (<a href="https://norrathroster.com/loot" id="loot-web-link" target="_blank" rel="noopener"
-              >norrathroster.com/loot</a
-            >
-            after Discord sign-in. Sign-in opens your browser; uploads are tied to your Discord account
-            (idempotent re-uploads). Community rates on the site may still require the community_loot
-            feature flag.
-          </p>
-          <div class="settings-stack">
-            <label class="field checkbox">
-              <input id="loot-sync-enabled" type="checkbox" />
-              <span>Upload to Norrath Roster (community rates)</span>
-            </label>
-            <div class="loot-discord-row">
-              <div id="loot-discord-status" class="loot-discord-status">Not signed in</div>
-              <div class="row gap">
-                <button id="btn-loot-discord-login" type="button" class="primary">
-                  Sign in with Discord
-                </button>
-                <button id="btn-loot-discord-logout" type="button" class="secondary" hidden>
-                  Sign out
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <h2 class="panel-subhead">Session data</h2>
-        <div class="settings-group">
-          <div class="loot-summary" id="loot-summary">
-            <span>0 kills</span>
-            <span>0 item drops</span>
-            <span>0 mobs</span>
-          </div>
-          <div class="loot-toolbar">
-            <div class="spell-search-row loot-search-row">
-              <input
-                id="loot-search"
-                type="search"
-                placeholder="Search mobs, items, or zones…"
-                autocomplete="off"
+        <nav class="rail-nav" role="tablist" aria-label="Berryworks sections">
+          <button
+            type="button"
+            class="rail-item"
+            role="tab"
+            aria-selected="false"
+            data-section="combat"
+            data-title="Combat"
+            aria-controls="section-combat"
+          >
+            <svg class="rail-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 19V10M12 19V5M19 19V13" />
+            </svg>
+            Combat
+          </button>
+          <button
+            type="button"
+            class="rail-item"
+            role="tab"
+            aria-selected="false"
+            data-section="loot"
+            data-title="Loot"
+            aria-controls="section-loot"
+          >
+            <svg class="rail-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3 19 8.2v7.6L12 21l-7-5.2V8.2L12 3Z" />
+              <path d="M12 12 19 8.2M12 12v9M12 12 5 8.2" />
+            </svg>
+            Loot
+          </button>
+          <button
+            type="button"
+            class="rail-item is-active"
+            role="tab"
+            aria-selected="true"
+            data-section="timers"
+            data-title="Timers"
+            aria-controls="section-timers"
+          >
+            <svg class="rail-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="13" r="8" />
+              <path d="M12 9v4l2.5 1.5M9 3h6" />
+            </svg>
+            Timers
+          </button>
+          <button
+            type="button"
+            class="rail-item"
+            role="tab"
+            aria-selected="false"
+            data-section="respawns"
+            data-title="Respawns"
+            aria-controls="section-respawns"
+          >
+            <svg class="rail-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4.5 12a7.5 7.5 0 0 1 12.6-5.5L19 8.5" />
+              <path d="M19.5 4.5v4h-4M19.5 12a7.5 7.5 0 0 1-12.6 5.5L5 15.5" />
+              <path d="M4.5 19.5v-4h4" />
+            </svg>
+            Respawns
+          </button>
+          <button
+            type="button"
+            class="rail-item rail-item-prefs"
+            id="nav-preferences"
+            role="tab"
+            aria-selected="false"
+            data-section="preferences"
+            data-title="Preferences"
+            aria-controls="section-preferences"
+          >
+            <svg class="rail-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="3" />
+              <path
+                d="M12 3.5v2.2M12 18.3v2.2M4.9 7.1l1.9 1.1M17.2 15.8l1.9 1.1M3.5 12h2.2M18.3 12h2.2M4.9 16.9l1.9-1.1M17.2 8.2l1.9-1.1"
               />
-            </div>
-            <div class="loot-view-tabs" role="tablist" aria-label="Loot views">
-              <button type="button" class="settings-tab is-active" data-loot-view="mobs">By mob</button>
-              <button type="button" class="settings-tab" data-loot-view="items">By item</button>
-            </div>
-          </div>
-          <div id="loot-table" class="loot-table-wrap">
-            <div class="hint">No loot recorded yet — kill and loot while tracking is on.</div>
-          </div>
-          <div class="row gap loot-actions">
-            <button id="btn-save-loot" type="button" class="primary">Save Settings</button>
-            <button id="btn-upload-loot" type="button" class="secondary">Upload now</button>
-            <button id="btn-clear-loot" type="button" class="secondary">Clear Loot Data</button>
-            <span id="loot-status" class="status"></span>
-          </div>
-        </div>
-      </section>
-    </div>
+            </svg>
+            Preferences
+          </button>
+        </nav>
+        <a
+          class="rail-version"
+          href="https://github.com/jungleberrydev/berryworks/releases/latest"
+          target="_blank"
+          rel="noopener"
+          title="GitHub Releases"
+          >v<span id="app-version">…</span></a
+        >
+      </aside>
 
-    <div id="section-combat" class="app-section" data-section-panel="combat" hidden>
-      <section class="panel settings-panel is-active">
-        <h2>Session</h2>
-        <div class="settings-group">
-          <p class="hint">
-            Live parse of everyone nearby in your log. Distant raid members will be missing. Session
-            starts when the log produces lines after launch.
-          </p>
-          <div class="loot-summary" id="combat-session">
-            <span>0:00</span>
-            <span>0 kills</span>
-            <span>0p/hr</span>
+      <div class="app-main">
+        <header class="app-header">
+          <h2 class="page-title" id="page-title">Timers</h2>
+          <div class="header-actions">
+            <button id="btn-overlay-lock" type="button" class="secondary" aria-pressed="false">
+              Lock Overlays
+            </button>
           </div>
-          <div class="row gap">
-            <button id="btn-reset-session" type="button" class="secondary">Reset session</button>
-          </div>
-        </div>
+        </header>
 
-        <h2 class="panel-subhead">Overlay</h2>
-        <div class="settings-group">
-          <p class="hint">
-            Always-on-top DPS bars. Unlock overlays (Timers → General) to drag; each window is labeled
-            while unlocked.
-          </p>
-          <div class="settings-stack">
-            <label class="field checkbox">
-              <input id="combat-show-meter-window" type="checkbox" />
-              <span>Show DPS overlay window</span>
-            </label>
+        <div class="app-content">
+          <div id="section-combat" class="app-section" data-section-panel="combat" hidden>
+            <section class="panel settings-panel is-active">
+              <div class="page-toolbar">
+                <div class="loot-summary" id="combat-session">
+                  <span>0:00</span>
+                  <span>0 kills</span>
+                  <span>0p/hr</span>
+                </div>
+                <div class="row gap wrap">
+                  <label class="field checkbox">
+                    <input id="combat-show-meter-window" type="checkbox" />
+                    <span>DPS overlay</span>
+                  </label>
+                  <button id="btn-reset-session" type="button" class="secondary">Reset session</button>
+                </div>
+              </div>
+              <p class="hint">
+                Live parse of everyone nearby in your log. Distant raid members will be missing.
+                Session starts when the log produces lines after launch. Unlock overlays to drag the
+                DPS window — it is labeled while unlocked.
+              </p>
+              <div class="loot-toolbar">
+                <div class="loot-view-tabs" role="tablist" aria-label="Combat views">
+                  <button type="button" class="settings-tab is-active" data-combat-view="fight">
+                    Current fight
+                  </button>
+                  <button type="button" class="settings-tab" data-combat-view="overall">Overall</button>
+                </div>
+              </div>
+              <div id="combat-fight-meta" class="combat-fight-meta hint">Waiting for combat…</div>
+              <div id="combat-actors" class="combat-actors">
+                <div class="hint">Deal or take damage with /log on to fill the meter.</div>
+              </div>
+              <h3 class="combat-ability-head">Abilities</h3>
+              <div id="combat-abilities" class="loot-table-wrap">
+                <div class="hint">Click an actor (or Everyone) to see skill breakdown.</div>
+              </div>
+              <h3 class="combat-ability-head">Recent fights</h3>
+              <div id="combat-fights" class="combat-fights">
+                <div class="hint">Closed pulls appear here.</div>
+              </div>
+            </section>
           </div>
-        </div>
 
-        <h2 class="panel-subhead">Meter</h2>
-        <div class="settings-group">
-          <div class="loot-toolbar">
-            <div class="loot-view-tabs" role="tablist" aria-label="Combat views">
-              <button type="button" class="settings-tab is-active" data-combat-view="fight">
-                Current fight
+          <div id="section-loot" class="app-section" data-section-panel="loot" hidden>
+            <section class="panel settings-panel is-active">
+              <div class="page-toolbar">
+                <div class="loot-summary" id="loot-summary">
+                  <span>0 kills</span>
+                  <span>0 item drops</span>
+                  <span>0 mobs</span>
+                </div>
+                <label class="field checkbox">
+                  <input id="loot-tracking" type="checkbox" checked />
+                  <span>Track loot from log</span>
+                </label>
+              </div>
+              <p class="hint">
+                Drop rates use observation opportunities: your kills
+                (<code>You have slain</code> / pet when Pet name is set) plus corpses you loot that were
+                not already counted (e.g. group kills). Multiple items from the same corpse count as one
+                opportunity. Zone follows Respawns / log zone-ins. Requires a saved log path and
+                <code>/log</code> on in-game. Community upload lives in Preferences → Loot.
+              </p>
+              <div class="loot-toolbar">
+                <div class="spell-search-row loot-search-row">
+                  <input
+                    id="loot-search"
+                    type="search"
+                    placeholder="Search mobs, items, or zones…"
+                    autocomplete="off"
+                  />
+                </div>
+                <div class="loot-view-tabs" role="tablist" aria-label="Loot views">
+                  <button type="button" class="settings-tab is-active" data-loot-view="mobs">By mob</button>
+                  <button type="button" class="settings-tab" data-loot-view="items">By item</button>
+                </div>
+              </div>
+              <div id="loot-table" class="loot-table-wrap">
+                <div class="hint">No loot recorded yet — kill and loot while tracking is on.</div>
+              </div>
+              <div class="row gap loot-actions">
+                <button id="btn-upload-loot" type="button" class="secondary">Upload now</button>
+                <button id="btn-clear-loot" type="button" class="secondary">Clear Loot Data</button>
+                <span id="loot-status" class="status js-loot-status"></span>
+              </div>
+            </section>
+          </div>
+
+          <div id="section-timers" class="app-section is-active" data-section-panel="timers">
+            <section class="panel">
+              <div class="page-toolbar">
+                <p class="hint">
+                  Buff, debuff, and DoT timers from your log. Watched spells are in Preferences → Spells.
+                </p>
+                <button id="btn-clear" type="button" class="secondary">Clear Timers</button>
+              </div>
+              <div id="live-timers" class="live-timers empty">No active timers</div>
+            </section>
+          </div>
+
+          <div id="section-respawns" class="app-section" data-section-panel="respawns" hidden>
+            <section class="panel settings-panel is-active">
+              <h2>Respawn window</h2>
+              <div class="settings-group">
+                <p class="hint">
+                  Leave-zone hides timers in the overlay but they keep counting. Rares use per-camp
+                  timers when defined. Unlock overlays to drag the respawn window.
+                </p>
+                <div class="settings-stack">
+                  <label class="field checkbox">
+                    <input id="ov-show-respawn-window" type="checkbox" checked />
+                    <span>Show respawn overlay window</span>
+                  </label>
+                  <label class="field checkbox">
+                    <input id="ov-track-all-kills" type="checkbox" checked />
+                    <span>Track all kills (zone default respawn)</span>
+                  </label>
+                </div>
+              </div>
+
+              <h2 class="panel-subhead">Zone &amp; rares</h2>
+              <div class="settings-group">
+                <p class="hint">
+                  Pick your camping zone here, or wait for “You have entered …” in the log.
+                </p>
+                <label class="field field-wide">
+                  <span>Current zone</span>
+                  <select id="respawn-zone">
+                    <option value="">— Select zone —</option>
+                  </select>
+                </label>
+                <div id="rare-list" class="spell-list"></div>
+                <button id="btn-clear-respawns" type="button" class="secondary">Clear Respawn Timers</button>
+              </div>
+            </section>
+          </div>
+
+          <div id="section-preferences" class="app-section" data-section-panel="preferences" hidden>
+            <nav class="settings-tabs" role="tablist" aria-label="Preferences">
+              <button type="button" class="settings-tab is-active" role="tab" aria-selected="true" data-tab="general">
+                General
               </button>
-              <button type="button" class="settings-tab" data-combat-view="overall">Overall</button>
+              <button type="button" class="settings-tab" role="tab" aria-selected="false" data-tab="overlay">
+                Overlay
+              </button>
+              <button type="button" class="settings-tab" role="tab" aria-selected="false" data-tab="appearance">
+                Appearance
+              </button>
+              <button type="button" class="settings-tab" role="tab" aria-selected="false" data-tab="spells">
+                Spells
+              </button>
+              <button type="button" class="settings-tab" role="tab" aria-selected="false" data-tab="loot">
+                Loot
+              </button>
+              <button type="button" class="settings-tab" role="tab" aria-selected="false" data-tab="updates">
+                Updates
+              </button>
+            </nav>
+
+            <div class="settings-panels">
+              <section
+                id="tab-general"
+                class="panel settings-panel is-active"
+                role="tabpanel"
+                data-tab-panel="general"
+              >
+                <h2>Log file</h2>
+                <div class="settings-group">
+                  <p class="hint">
+                    Enable logging in-game with <code>/log on</code>, then pick a detected log or Browse to
+                    <code>eqlog_&lt;Character&gt;_&lt;Server&gt;.txt</code>.
+                  </p>
+                  <div id="log-suggest-wrap" class="log-suggest" hidden>
+                    <label class="field field-wide">
+                      <span>Detected logs</span>
+                      <div class="row gap">
+                        <select id="log-suggest"></select>
+                        <button id="btn-use-log" type="button">Use</button>
+                      </div>
+                    </label>
+                  </div>
+                  <p id="log-suggest-empty" class="hint log-suggest-empty" hidden>
+                    No logs found in common EverQuest folders — use Browse.
+                  </p>
+                  <div class="row gap">
+                    <input id="log-path" type="text" placeholder="Path to eqlog_Character_Server.txt" readonly />
+                    <button id="btn-browse" type="button">Browse…</button>
+                  </div>
+                </div>
+
+                <h2 class="panel-subhead">Character</h2>
+                <div class="settings-group">
+                  <label class="field">
+                    <span>Level</span>
+                    <input id="char-level" type="number" min="1" max="125" value="1" />
+                  </label>
+                  <label class="field field-scr">
+                    <span>Spell Casting Reinforcement</span>
+                    <select id="scr-rank">
+                      <option value="0">None</option>
+                      <option value="1">Rank 1 (+5%)</option>
+                      <option value="2">Rank 2 (+15%)</option>
+                      <option value="3">Rank 3 (+30%)</option>
+                      <option value="4">Rank 4 (+50%)</option>
+                    </select>
+                  </label>
+                  <p class="hint">
+                    Level is used for scaled buff durations and auto-updates from log level-ups.
+                    Spell Casting Reinforcement extends beneficial spells you cast; invulnerability
+                    and combat abilities are exempt.
+                  </p>
+                </div>
+
+                <h2 class="panel-subhead">Overlay lock</h2>
+                <div class="settings-group">
+                  <div class="settings-stack">
+                    <label class="field checkbox">
+                      <input id="overlay-locked" type="checkbox" />
+                      <span>Lock overlays (click-through to game)</span>
+                    </label>
+                  </div>
+                  <p class="hint">
+                    When locked, clicks pass through to the game and the OS window outline is hidden.
+                    Unlock to drag overlays or right-click dismiss timers. Same control as Lock Overlays
+                    in the header.
+                  </p>
+                </div>
+              </section>
+
+              <section
+                id="tab-overlay"
+                class="panel settings-panel"
+                role="tabpanel"
+                data-tab-panel="overlay"
+                hidden
+              >
+                <h2>Announcements &amp; voice</h2>
+                <div class="settings-group">
+                  <p class="hint">
+                    Spoken from the main overlay when a timer wears off or is dismissed. Charm-break and
+                    invis-drop alerts use the same voice and also appear on the alert overlay. Also used by
+                    verbal expiry warnings below.
+                  </p>
+                  <div class="settings-stack">
+                    <label class="field checkbox">
+                      <input id="ov-voice-announcements" type="checkbox" checked />
+                      <span>Voice announcements (worn off / dismissed)</span>
+                    </label>
+                    <label class="field checkbox">
+                      <input id="ov-charm-break-alerts" type="checkbox" checked />
+                      <span>Alert when charm breaks</span>
+                    </label>
+                    <label class="field checkbox">
+                      <input id="ov-invis-break-alerts" type="checkbox" checked />
+                      <span>Alert when invis fades or wears off</span>
+                    </label>
+                    <label class="field field-wide voice-field">
+                      <span>Announcement voice</span>
+                      <div class="row gap">
+                        <select id="ov-voice-uri">
+                          <option value="">System default</option>
+                        </select>
+                        <button id="btn-test-voice" type="button" class="secondary">Test voice</button>
+                      </div>
+                    </label>
+                    <label class="field field-wide">
+                      <span>Announcement volume</span>
+                      <input id="ov-voice-volume" type="range" min="0" max="100" step="1" value="100" />
+                      <span id="ov-voice-volume-label" class="range-label">100%</span>
+                    </label>
+                  </div>
+                </div>
+
+                <h2 class="panel-subhead">Alert overlay</h2>
+                <div class="settings-group">
+                  <p class="hint">
+                    A separate always-on-top window for short messages such as Charm break! and Invis wore
+                    off! Unlock overlays to drag it where you want; lock to click through. Size, font, and
+                    colors below apply only to this window.
+                  </p>
+                  <div class="settings-stack">
+                    <label class="field checkbox">
+                      <input id="ov-show-alert-window" type="checkbox" checked />
+                      <span>Show alert overlay window</span>
+                    </label>
+                    <label class="field field-wide">
+                      <span>Alert duration</span>
+                      <div class="row gap">
+                        <input id="ov-alert-secs" type="range" min="2" max="15" step="1" value="5" />
+                        <span id="ov-alert-secs-label" class="range-label">5s</span>
+                      </div>
+                    </label>
+                    <div class="appearance-grid">
+                      <label class="field">
+                        <span>Alert size</span>
+                        <select id="ov-alert-size">
+                          <option value="small">Small</option>
+                          <option value="normal">Normal</option>
+                          <option value="large" selected>Large</option>
+                          <option value="huge">Huge</option>
+                        </select>
+                      </label>
+                      <label class="field">
+                        <span>Alert font</span>
+                        <select id="ov-alert-font-family">
+                          <option value="" selected>Same as overlay</option>
+                        </select>
+                      </label>
+                      <label class="field color-field">
+                        <span>Charm color</span>
+                        <input id="ov-alert-charm-color" type="color" value="#ff3b3b" />
+                      </label>
+                      <label class="field color-field">
+                        <span>Invis color</span>
+                        <input id="ov-alert-invis-color" type="color" value="#6ec8ff" />
+                      </label>
+                    </div>
+                    <div class="row gap">
+                      <button id="btn-test-alert" type="button" class="secondary">Test charm</button>
+                      <button id="btn-test-invis-fading" type="button" class="secondary">Test fading</button>
+                      <button id="btn-test-invis-alert" type="button" class="secondary">Test invis</button>
+                    </div>
+                  </div>
+                </div>
+
+                <h2 class="panel-subhead">Expiry warnings</h2>
+                <div class="settings-group">
+                  <p class="hint">
+                    Flash and verbal share the warn lead time (1–120 seconds). Type or slide to set how many
+                    seconds before expiry. Short timers cap at half their duration so they don’t flash the whole
+                    time. Verbal speaks once when a timer crosses the threshold, using the announcement voice
+                    and volume above.
+                  </p>
+                  <div class="settings-stack">
+                    <label class="field checkbox">
+                      <input id="ov-flash-expiry-warn" type="checkbox" checked />
+                      <span>Flash timers near expiry</span>
+                    </label>
+                    <label class="field checkbox">
+                      <input id="ov-verbal-expiry-warn" type="checkbox" />
+                      <span>Verbal warning before expiry</span>
+                    </label>
+                    <label class="field field-wide">
+                      <span>Warn before expiry</span>
+                      <div class="row gap expiry-warn-row">
+                        <input id="ov-expiry-warn-secs" type="range" min="1" max="120" step="1" value="10" />
+                        <input
+                          id="ov-expiry-warn-secs-num"
+                          type="number"
+                          min="1"
+                          max="120"
+                          step="1"
+                          value="10"
+                          class="secs-input"
+                          aria-label="Warn seconds"
+                        />
+                        <span id="ov-expiry-warn-label" class="range-label">10s</span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                <h2 class="panel-subhead">Dismiss &amp; wore off</h2>
+                <div class="settings-group">
+                  <p class="hint">
+                    Right-click dismiss needs overlays unlocked. Recently wore off lists renew-relevant
+                    self/ally buffs (Clarity, Celerity, SOW, Chloroplast/regen, shields) — not
+                    blossom/celestial HoTs, invis, roots, or enemy debuffs.
+                  </p>
+                  <div class="settings-stack">
+                    <label class="field checkbox">
+                      <input id="ov-right-click-dismiss" type="checkbox" checked />
+                      <span>Right-click overlay timer to dismiss</span>
+                    </label>
+                    <label class="field checkbox">
+                      <input id="ov-show-recently-wore-off" type="checkbox" checked />
+                      <span>Show recently wore off</span>
+                    </label>
+                    <label class="field field-wide">
+                      <span>Recently wore off duration</span>
+                      <input id="ov-recently-wore-off-secs" type="range" min="15" max="300" step="15" value="300" />
+                      <span id="ov-recently-wore-off-label" class="range-label">5 min</span>
+                    </label>
+                  </div>
+                </div>
+
+                <h2 class="panel-subhead">Filters &amp; windows</h2>
+                <div class="settings-group">
+                  <p class="hint">
+                    Separate enemy overlay shows debuff/DoT timers on a second window. “Only show my buffs”
+                    still keeps your pet when My pet name is set. Use the exact log target for the pet (e.g.
+                    Gastik or OwnerName pet). Unlock overlays to drag windows — each shows a label while
+                    unlocked. Respawn overlay is on Respawns; DPS overlay is on Combat.
+                  </p>
+                  <div class="settings-stack">
+                    <label class="field checkbox">
+                      <input id="ov-separate-enemy-window" type="checkbox" />
+                      <span>Separate enemy overlay window</span>
+                    </label>
+                    <label class="field checkbox">
+                      <input id="ov-self-buffs-only" type="checkbox" />
+                      <span>Only show my buffs (hide buffs on others)</span>
+                    </label>
+                    <label class="field field-wide">
+                      <span>My pet name</span>
+                      <input id="my-pet-name" type="text" placeholder="Jungleberry pet" autocomplete="off" spellcheck="false" />
+                    </label>
+                    <label class="field checkbox">
+                      <input id="ov-hide-other-pets" type="checkbox" />
+                      <span>Hide other pets</span>
+                    </label>
+                  </div>
+                </div>
+              </section>
+
+              <section
+                id="tab-appearance"
+                class="panel settings-panel"
+                role="tabpanel"
+                data-tab-panel="appearance"
+                hidden
+              >
+                <h2>Theme &amp; colors</h2>
+                <div class="settings-group">
+                  <p class="hint">
+                    Themes set colors, chrome, and (for fantasy/terminal) a matching font. You can still tweak after
+                    picking one. Changes apply live to the overlay and this window.
+                  </p>
+                  <div class="appearance-grid">
+                    <label class="field">
+                      <span>Theme</span>
+                      <select id="ov-theme">
+                        <optgroup label="Classic">
+                          <option value="berry">Berry (default)</option>
+                          <option value="parchment">Classic parchment</option>
+                          <option value="eq-chrome">Dark blue EQ chrome</option>
+                          <option value="velious">Velious ice</option>
+                          <option value="kunark">Kunark / swamp</option>
+                        </optgroup>
+                        <optgroup label="Fantasy">
+                          <option value="ironkeep">Ironkeep</option>
+                          <option value="grimoire">Grimoire</option>
+                        </optgroup>
+                        <optgroup label="Terminal / retro">
+                          <option value="phosphor">Phosphor CRT</option>
+                          <option value="amber">Amber CRT</option>
+                          <option value="vga">VGA night</option>
+                        </optgroup>
+                      </select>
+                    </label>
+                    <label class="field color-field">
+                      <span>Text</span>
+                      <input id="ov-text-color" type="color" value="#f6ebf1" />
+                    </label>
+                    <label class="field color-field">
+                      <span>Panel</span>
+                      <input id="ov-panel-color" type="color" value="#160e14" />
+                    </label>
+                    <label class="field color-field">
+                      <span>Buff bar</span>
+                      <input id="ov-buff-color" type="color" value="#7eb8a2" />
+                    </label>
+                    <label class="field color-field">
+                      <span>Debuff bar</span>
+                      <input id="ov-debuff-color" type="color" value="#c45c8a" />
+                    </label>
+                    <label class="field color-field">
+                      <span>DoT bar</span>
+                      <input id="ov-dot-color" type="color" value="#d4a05a" />
+                    </label>
+                    <label class="field">
+                      <span>Panel opacity</span>
+                      <input id="ov-panel-opacity" type="range" min="0" max="100" value="82" />
+                      <span id="ov-panel-opacity-label" class="range-label">82%</span>
+                    </label>
+                    <label class="field">
+                      <span>Bar opacity</span>
+                      <input id="ov-bar-opacity" type="range" min="0" max="100" value="100" />
+                      <span id="ov-bar-opacity-label" class="range-label">100%</span>
+                    </label>
+                  </div>
+                </div>
+
+                <h2 class="panel-subhead">Size &amp; type</h2>
+                <div class="settings-group">
+                  <p class="hint">Density and font affect all timer overlay windows.</p>
+                  <div class="appearance-grid">
+                    <label class="field">
+                      <span>Timer density</span>
+                      <select id="ov-timer-size">
+                        <option value="minimal">Minimal</option>
+                        <option value="small">Small</option>
+                        <option value="normal" selected>Normal</option>
+                        <option value="large">Large</option>
+                      </select>
+                    </label>
+                    <label class="field">
+                      <span>Overlay font</span>
+                      <select id="ov-font-family">
+                        <option value="Segoe UI" selected>Segoe UI (default)</option>
+                        <option value="Cascadia Mono">Cascadia Mono</option>
+                        <option value="Consolas">Consolas</option>
+                        <option value="Courier New">Courier New</option>
+                        <option value="Lucida Console">Lucida Console</option>
+                        <option value="Georgia">Georgia</option>
+                        <option value="Palatino Linotype">Palatino Linotype</option>
+                        <option value="Trebuchet MS">Trebuchet MS</option>
+                        <option value="Arial">Arial</option>
+                        <option value="Verdana">Verdana</option>
+                        <option value="Calibri">Calibri</option>
+                        <option value="Tahoma">Tahoma</option>
+                      </select>
+                    </label>
+                    <label class="field checkbox">
+                      <input id="ov-show-icons" type="checkbox" checked />
+                      <span>Show spell icons on overlay</span>
+                    </label>
+                  </div>
+                </div>
+
+                <button id="btn-reset-appearance" type="button" class="secondary">Reset appearance</button>
+              </section>
+
+              <section
+                id="tab-spells"
+                class="panel settings-panel"
+                role="tabpanel"
+                data-tab-panel="spells"
+                hidden
+              >
+                <h2>Watched spells</h2>
+                <div class="settings-group">
+                  <p class="hint">
+                    Grouped by class, then level. Enable/Disable all on a class header. Multi-class spells share
+                    watch state by name. Upgrade tier comes from the cast log (e.g. “Spirit of Wolf V” → tier 5).
+                  </p>
+                  <div class="spell-search-row">
+                    <input id="spell-search" type="search" placeholder="Search spells…" autocomplete="off" />
+                  </div>
+                  <div id="spell-list" class="spell-list spell-list-tall"></div>
+                </div>
+              </section>
+
+              <section
+                id="tab-loot"
+                class="panel settings-panel"
+                role="tabpanel"
+                data-tab-panel="loot"
+                hidden
+              >
+                <h2>Community sync</h2>
+                <div class="settings-group">
+                  <p class="hint">
+                    Optional uploads to Norrath Roster
+                    (<a href="https://norrathroster.com/loot" id="loot-web-link" target="_blank" rel="noopener"
+                      >norrathroster.com/loot</a
+                    >
+                    after Discord sign-in. Sign-in opens your browser; uploads are tied to your Discord account
+                    (idempotent re-uploads). Community rates on the site may still require the community_loot
+                    feature flag. Tracking itself is on the Loot page.
+                  </p>
+                  <div class="settings-stack">
+                    <label class="field checkbox">
+                      <input id="loot-sync-enabled" type="checkbox" />
+                      <span>Upload to Norrath Roster (community rates)</span>
+                    </label>
+                    <div class="loot-discord-row">
+                      <div id="loot-discord-status" class="loot-discord-status">Not signed in</div>
+                      <div class="row gap">
+                        <button id="btn-loot-discord-login" type="button" class="primary">
+                          Sign in with Discord
+                        </button>
+                        <button id="btn-loot-discord-logout" type="button" class="secondary" hidden>
+                          Sign out
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row gap loot-actions">
+                    <button id="btn-save-loot" type="button" class="primary">Save Settings</button>
+                    <span class="status js-loot-status"></span>
+                  </div>
+                </div>
+              </section>
+
+              <section
+                id="tab-updates"
+                class="panel settings-panel"
+                role="tabpanel"
+                data-tab-panel="updates"
+                hidden
+              >
+                <h2>App updates</h2>
+                <div class="settings-group">
+                  <p class="hint">
+                    Installed builds can check GitHub Releases and install from here. A quiet check also runs a
+                    few seconds after launch.
+                  </p>
+                  <div class="header-updates">
+                    <button id="btn-check-updates" type="button" class="secondary">Check for updates</button>
+                    <button id="btn-whats-new" type="button" class="secondary">What's new</button>
+                    <span id="update-status" class="status header-update-status" role="status" aria-live="polite"></span>
+                  </div>
+                </div>
+                <h2 class="panel-subhead">Release notes</h2>
+                <div id="changelog-list" class="changelog"></div>
+              </section>
             </div>
-          </div>
-          <div id="combat-fight-meta" class="combat-fight-meta hint">Waiting for combat…</div>
-          <div id="combat-actors" class="combat-actors">
-            <div class="hint">Deal or take damage with /log on to fill the meter.</div>
-          </div>
-          <h3 class="combat-ability-head">Abilities</h3>
-          <div id="combat-abilities" class="loot-table-wrap">
-            <div class="hint">Click an actor (or Everyone) to see skill breakdown.</div>
-          </div>
-          <h3 class="combat-ability-head">Recent fights</h3>
-          <div id="combat-fights" class="combat-fights">
-            <div class="hint">Closed pulls appear here.</div>
+
+            <footer class="footer-actions">
+              <button id="btn-save" type="button" class="primary">Save Settings</button>
+              <span id="status" class="status"></span>
+            </footer>
           </div>
         </div>
-      </section>
+      </div>
     </div>
 
     <dialog id="whats-new-dialog" class="whats-new-dialog" aria-labelledby="whats-new-title">

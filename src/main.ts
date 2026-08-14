@@ -1425,20 +1425,51 @@ function scheduleLootRefresh() {
   }, 180);
 }
 
+const SECTION_KEY = "berryworks-section";
+const SECTIONS = ["combat", "loot", "timers", "respawns", "preferences"] as const;
+type AppSection = (typeof SECTIONS)[number];
+
+function isAppSection(id: string | undefined | null): id is AppSection {
+  return !!id && (SECTIONS as readonly string[]).includes(id);
+}
+
+function rememberedSection(): AppSection {
+  try {
+    const saved = localStorage.getItem(SECTION_KEY);
+    if (isAppSection(saved)) return saved;
+  } catch {
+    /* ignore */
+  }
+  return "timers";
+}
+
+function rememberSection(id: AppSection) {
+  try {
+    localStorage.setItem(SECTION_KEY, id);
+  } catch {
+    /* ignore */
+  }
+}
+
 function initSectionNav() {
-  const tabs = document.querySelectorAll<HTMLButtonElement>(".section-tab");
+  const tabs = document.querySelectorAll<HTMLButtonElement>(".rail-item[data-section]");
   const panels = document.querySelectorAll<HTMLElement>("[data-section-panel]");
-  const activate = (id: string) => {
+  const titleEl = document.getElementById("page-title");
+  const activate = (id: AppSection) => {
     for (const tab of tabs) {
       const on = tab.dataset.section === id;
       tab.classList.toggle("is-active", on);
       tab.setAttribute("aria-selected", on ? "true" : "false");
+      if (on && titleEl) {
+        titleEl.textContent = tab.dataset.title || tab.textContent?.trim() || id;
+      }
     }
     for (const panel of panels) {
       const on = panel.dataset.sectionPanel === id;
       panel.classList.toggle("is-active", on);
       panel.hidden = !on;
     }
+    rememberSection(id);
     if (id === "loot") {
       void refreshLoot();
     }
@@ -1449,9 +1480,10 @@ function initSectionNav() {
   for (const tab of tabs) {
     tab.addEventListener("click", () => {
       const id = tab.dataset.section;
-      if (id) activate(id);
+      if (isAppSection(id)) activate(id);
     });
   }
+  activate(rememberedSection());
 }
 
 function updateLootDiscordUi(cfg: AppConfig | null) {
@@ -1482,6 +1514,12 @@ function updateLootDiscordUi(cfg: AppConfig | null) {
   }
 }
 
+function setLootStatus(text: string) {
+  document.querySelectorAll<HTMLElement>(".js-loot-status").forEach((el) => {
+    el.textContent = text;
+  });
+}
+
 function initLootUi() {
   const search = document.getElementById("loot-search") as HTMLInputElement | null;
   if (search) {
@@ -1506,13 +1544,11 @@ function initLootUi() {
     if (!confirm("Clear all local loot tracking data?")) return;
     await invoke("clear_loot");
     await refreshLoot();
-    const status = $("loot-status");
-    status.textContent = "Cleared";
-    setTimeout(() => (status.textContent = ""), 2000);
+    setLootStatus("Cleared");
+    setTimeout(() => setLootStatus(""), 2000);
   });
   $("btn-upload-loot").addEventListener("click", async () => {
-    const status = $("loot-status");
-    status.textContent = "Uploading…";
+    setLootStatus("Uploading…");
     try {
       const next = readFormIntoConfig();
       config = await invoke<AppConfig>("save_settings", { config: next });
@@ -1522,41 +1558,47 @@ function initLootUi() {
         kills_added: number | null;
         drops_added: number | null;
       }>("upload_loot");
-      status.textContent = result.ok
-        ? `${result.message}${
-            result.kills_added != null || result.drops_added != null
-              ? ` (+${result.kills_added ?? 0} kills, +${result.drops_added ?? 0} drops)`
-              : ""
-          }`
-        : result.message;
+      setLootStatus(
+        result.ok
+          ? `${result.message}${
+              result.kills_added != null || result.drops_added != null
+                ? ` (+${result.kills_added ?? 0} kills, +${result.drops_added ?? 0} drops)`
+                : ""
+            }`
+          : result.message
+      );
     } catch (err) {
-      status.textContent = err instanceof Error ? err.message : String(err);
+      setLootStatus(err instanceof Error ? err.message : String(err));
     }
     setTimeout(() => {
-      if (status.textContent?.startsWith("Uploaded") || status.textContent === "Cleared") {
-        status.textContent = "";
+      const current = document.getElementById("loot-status")?.textContent ?? "";
+      if (current.startsWith("Uploaded") || current === "Cleared") {
+        setLootStatus("");
       }
     }, 5000);
   });
   $("btn-save-loot").addEventListener("click", async () => {
     const next = readFormIntoConfig();
     config = await invoke<AppConfig>("save_settings", { config: next });
-    const status = $("loot-status");
-    status.textContent = "Saved";
-    setTimeout(() => (status.textContent = ""), 2000);
+    setLootStatus("Saved");
+    setTimeout(() => setLootStatus(""), 2000);
   });
   $("loot-tracking").addEventListener("change", async () => {
     if (!config) return;
     const next = readFormIntoConfig();
     config = await invoke<AppConfig>("save_settings", { config: next });
   });
+  $("loot-sync-enabled").addEventListener("change", async () => {
+    if (!config) return;
+    const next = readFormIntoConfig();
+    config = await invoke<AppConfig>("save_settings", { config: next });
+  });
   $("btn-loot-discord-login").addEventListener("click", async () => {
-    const status = $("loot-status");
     const loginBtn = document.getElementById(
       "btn-loot-discord-login"
     ) as HTMLButtonElement;
     loginBtn.disabled = true;
-    status.textContent = "Waiting for Discord in your browser…";
+    setLootStatus("Waiting for Discord in your browser…");
     try {
       // Persist sync URL first so Rust polls the correct host.
       const next = readFormIntoConfig();
@@ -1568,31 +1610,30 @@ function initLootUi() {
       (document.getElementById("loot-sync-enabled") as HTMLInputElement).checked = true;
       updateLootDiscordUi(config);
       const name = result.user.globalName || result.user.username;
-      status.textContent = `Signed in as ${name}`;
+      setLootStatus(`Signed in as ${name}`);
     } catch (err) {
-      status.textContent = err instanceof Error ? err.message : String(err);
+      setLootStatus(err instanceof Error ? err.message : String(err));
     } finally {
       loginBtn.disabled = false;
     }
   });
   $("btn-loot-discord-logout").addEventListener("click", async () => {
-    const status = $("loot-status");
     try {
       await invoke("logout_loot_discord");
       config = await invoke<AppConfig>("get_config");
       updateLootDiscordUi(config);
-      status.textContent = "Signed out";
-      setTimeout(() => (status.textContent = ""), 2000);
+      setLootStatus("Signed out");
+      setTimeout(() => setLootStatus(""), 2000);
     } catch (err) {
-      status.textContent = err instanceof Error ? err.message : String(err);
+      setLootStatus(err instanceof Error ? err.message : String(err));
     }
   });
 }
 
 function initSettingsTabs() {
-  const root = document.getElementById("section-timers");
+  const root = document.getElementById("section-preferences");
   if (!root) return;
-  const tabs = root.querySelectorAll<HTMLButtonElement>(".settings-tab");
+  const tabs = root.querySelectorAll<HTMLButtonElement>("[data-tab]");
   const panels = root.querySelectorAll<HTMLElement>("[data-tab-panel]");
   const activate = (id: string) => {
     for (const tab of tabs) {
@@ -1647,6 +1688,7 @@ function updateCheckButton(): HTMLButtonElement | null {
 function setUpdateHint(hasUpdate: boolean) {
   const btn = updateCheckButton();
   btn?.classList.toggle("has-update", hasUpdate);
+  document.getElementById("nav-preferences")?.classList.toggle("has-update", hasUpdate);
   const status = document.getElementById("update-status");
   status?.classList.toggle("is-action", hasUpdate);
 }
@@ -1848,6 +1890,8 @@ function openWhatsNewDialog(html: string, heading: string) {
 
 async function initChangelogUi(currentVersion: string) {
   const entries = loadChangelog();
+  const list = document.getElementById("changelog-list");
+  if (list) list.innerHTML = renderChangelogHtml(entries);
 
   const dialog = document.getElementById("whats-new-dialog") as HTMLDialogElement | null;
   dialog?.addEventListener("click", (event) => {
@@ -1899,7 +1943,7 @@ async function initUpdaterUi() {
   btn?.addEventListener("click", () => {
     void runUpdateCheck({ interactive: true });
   });
-  // Quiet check after launch: hint in the header only — never a modal.
+  // Quiet check after launch: hint on Preferences only — never a modal.
   window.setTimeout(() => {
     void runUpdateCheck({ interactive: false });
   }, 2500);

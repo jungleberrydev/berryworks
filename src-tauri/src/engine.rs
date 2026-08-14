@@ -88,6 +88,14 @@ fn strip_leading_article(t: &str) -> &str {
     t
 }
 
+/// Charm land lines and combat lines often disagree on capitalization and
+/// whether the article is present (`A gnoll` / `a gnoll` / `gnoll`).
+pub fn npc_names_match(a: &str, b: &str) -> bool {
+    let al = a.trim().to_ascii_lowercase();
+    let bl = b.trim().to_ascii_lowercase();
+    al == bl || strip_leading_article(&al) == strip_leading_article(&bl)
+}
+
 /// Class / rank titles used by generic EQ NPCs: `Cleric of Innoruuk`,
 /// `priest of Nagafen`, `Lord of Ire`.
 const GENERIC_NPC_TITLES: &[&str] = &[
@@ -189,9 +197,9 @@ fn looks_like_titled_npc(rest: &str) -> bool {
     if before.is_empty() || after.is_empty() {
         return false;
     }
-    GENERIC_NPC_TITLES.iter().any(|title| {
-        before == *title || before.ends_with(&format!(" {title}"))
-    })
+    GENERIC_NPC_TITLES
+        .iter()
+        .any(|title| before == *title || before.ends_with(&format!(" {title}")))
 }
 
 fn looks_like_creature_type_npc(rest: &str) -> bool {
@@ -357,8 +365,7 @@ fn is_invis_spell(spell: &str) -> bool {
 
 fn is_ivu_spell(spell: &str) -> bool {
     let n = spell.to_ascii_lowercase();
-    n == "sunskin"
-        || (n.contains("invis") && (n.contains("undead") || n.contains("invis vs")))
+    n == "sunskin" || (n.contains("invis") && (n.contains("undead") || n.contains("invis vs")))
 }
 
 fn is_iva_spell(spell: &str) -> bool {
@@ -397,8 +404,10 @@ const AE_LAND_WINDOW: Duration = Duration::from_secs(2);
 
 /// Own-cast window for binding a charm broadcast (`has been charmed` / `blinks` /
 /// `moans`). Longest charm cast in the DB is Allure at 6s; log timestamps are
-/// whole seconds, so 8s covers cast time plus slack. The general pending timeout
-/// is 15s (AE mez) and is too wide — a nearby enchanter's charm would steal it.
+/// whole seconds, so 8s covers cast time plus slack. Compared using the log
+/// stamp, not wall clock, so tail delay cannot miss a land. The general pending
+/// timeout is 15s (AE mez) and is too wide — a nearby enchanter's charm would
+/// steal it.
 const CHARM_ARM_WINDOW: Duration = Duration::from_secs(8);
 
 #[derive(Debug, Clone)]
@@ -505,15 +514,22 @@ impl TimerEngine {
         }
     }
 
-    pub fn handle(
+    pub fn handle(&mut self, event: LogEvent, spells: &[SpellDef], config: &AppConfig) -> bool {
+        self.handle_at(event, spells, config, Utc::now())
+    }
+
+    /// Like `handle`, but charm-arm and pending windows are measured from `at`
+    /// (log timestamps) instead of wall clock — tail delay must not miss a land.
+    pub fn handle_at(
         &mut self,
         event: LogEvent,
         spells: &[SpellDef],
         config: &AppConfig,
+        at: DateTime<Utc>,
     ) -> bool {
         let recent_ttl_secs = config.overlay.recently_wore_off_secs_clamped();
         self.clear_expired(recent_ttl_secs);
-        self.expire_stale_pending();
+        self.expire_stale_pending(at);
 
         let changed = match event {
             LogEvent::BeginCast { spell } => {
@@ -523,7 +539,7 @@ impl TimerEngine {
                         self.pending = Some(PendingCast {
                             spell: def.name.clone(),
                             tier,
-                            started_at: Utc::now(),
+                            started_at: at,
                             first_land_at: None,
                         });
                     }
@@ -544,7 +560,7 @@ impl TimerEngine {
                     // heuristics; still try land_you before land_other.
                     true
                 } else {
-                    self.try_land_other(&message, spells, config, recent_ttl_secs)
+                    self.try_land_other(&message, spells, config, recent_ttl_secs, at)
                 }
             }
             LogEvent::LandYou { message } => {
@@ -561,7 +577,7 @@ impl TimerEngine {
                     // Land lines that contain "fades" (Shade/Shadow/Umbra) used to be
                     // misclassified as wear-off; still try to start a timer.
                     self.try_land_you(&message, spells, config)
-                        || self.try_land_other(&message, spells, config, recent_ttl_secs)
+                        || self.try_land_other(&message, spells, config, recent_ttl_secs, at)
                 }
             }
             LogEvent::MezBreak { target, .. } => self.cancel_by_target(&target, recent_ttl_secs),
@@ -582,7 +598,8 @@ impl TimerEngine {
                 ..
             } => {
                 // Charm break often prints after the pet already swung at you.
-                if incoming && kind != "heal" {
+                // Melee hit/miss only — DS/DoT/spell from a same-name add is not a break.
+                if incoming && kind == "melee" {
                     self.apply_charm_hostile_break(&attacker, recent_ttl_secs)
                 } else {
                     false
@@ -596,9 +613,8 @@ impl TimerEngine {
         changed
     }
 
-    fn expire_stale_pending(&mut self) {
+    fn expire_stale_pending(&mut self, now: DateTime<Utc>) {
         if let Some(p) = &self.pending {
-            let now = Utc::now();
             let stale = if let Some(first) = p.first_land_at {
                 // After the first AE land, only keep pending briefly for siblings.
                 now.signed_duration_since(first)
@@ -617,12 +633,25 @@ impl TimerEngine {
         }
     }
 
-    fn charm_arm_fresh(pending: &PendingCast) -> bool {
-        Utc::now()
-            .signed_duration_since(pending.started_at)
-            .to_std()
-            .unwrap_or(Duration::MAX)
-            <= CHARM_ARM_WINDOW
+    fn charm_arm_fresh(pending: &PendingCast, at: DateTime<Utc>) -> bool {
+        let dt = at.signed_duration_since(pending.started_at);
+        if dt < chrono::Duration::zero() {
+            // Same-second reorder: land stamped before begin.
+            return true;
+        }
+        dt.to_std().unwrap_or(Duration::MAX) <= CHARM_ARM_WINDOW
+    }
+
+    /// Drop the pending cast only when this land is that same spell.
+    /// Group-mate buffs during a charm cast must not consume the own-charm arm.
+    fn consume_pending_if_spell(&mut self, spell_name: &str) {
+        let same = self
+            .pending
+            .as_ref()
+            .is_some_and(|p| p.spell.eq_ignore_ascii_case(spell_name));
+        if same {
+            self.pending = None;
+        }
     }
 
     /// Bind an NPC as your charm pet. Consumes the pending own-cast arm.
@@ -634,12 +663,13 @@ impl TimerEngine {
         config: &AppConfig,
         pending: &PendingCast,
         recent_ttl_secs: u64,
+        at: DateTime<Utc>,
     ) -> bool {
         self.pending = None;
         if target.eq_ignore_ascii_case("You") {
             return false;
         }
-        if !Self::charm_arm_fresh(pending) {
+        if !Self::charm_arm_fresh(pending, at) {
             return false;
         }
         self.drop_own_charms(recent_ttl_secs);
@@ -664,7 +694,7 @@ impl TimerEngine {
                 return true;
             }
             let by_spell = is_charm_spell(&t.spell);
-            let by_roster = binds.iter().any(|c| c.name.eq_ignore_ascii_case(&t.target));
+            let by_roster = binds.iter().any(|c| npc_names_match(&c.name, &t.target));
             if by_spell || by_roster {
                 removed.push(t.clone());
                 false
@@ -683,15 +713,14 @@ impl TimerEngine {
         let had = self
             .charmed
             .iter()
-            .any(|c| c.name.eq_ignore_ascii_case(attacker));
+            .any(|c| npc_names_match(&c.name, attacker));
         if !had {
             return false;
         }
-        self.charmed
-            .retain(|c| !c.name.eq_ignore_ascii_case(attacker));
+        self.charmed.retain(|c| !npc_names_match(&c.name, attacker));
         let mut removed = Vec::new();
         self.timers.retain(|t| {
-            if t.target.eq_ignore_ascii_case("You") || !t.target.eq_ignore_ascii_case(attacker) {
+            if t.target.eq_ignore_ascii_case("You") || !npc_names_match(&t.target, attacker) {
                 return true;
             }
             if !is_charm_spell(&t.spell) {
@@ -713,6 +742,7 @@ impl TimerEngine {
         spells: &[SpellDef],
         config: &AppConfig,
         recent_ttl_secs: u64,
+        at: DateTime<Utc>,
     ) -> bool {
         let lower = message.to_lowercase();
 
@@ -727,6 +757,7 @@ impl TimerEngine {
                             config,
                             &pending,
                             recent_ttl_secs,
+                            at,
                         );
                     }
                     if is_watched(config, &spell.name) {
@@ -738,7 +769,7 @@ impl TimerEngine {
                             // the first watched spell sharing the land text (e.g. Dazzle).
                             if let Some(p) = self.pending.as_mut() {
                                 if p.first_land_at.is_none() {
-                                    p.first_land_at = Some(Utc::now());
+                                    p.first_land_at = Some(at);
                                 }
                             }
                             return true;
@@ -787,25 +818,20 @@ impl TimerEngine {
         }
         if let Some((spell, target)) = best_other {
             self.start_timer(spell, &target, config, 0, false);
-            self.pending = None;
+            self.consume_pending_if_spell(&spell.name);
             return true;
         }
 
         // Other caster buffed you, or land_you not caught by parser prefixes
         if let Some(spell) = best_watched_land_you(spells, config, &lower) {
             self.start_timer(spell, "You", config, 0, false);
-            self.pending = None;
+            self.consume_pending_if_spell(&spell.name);
             return true;
         }
         false
     }
 
-    fn try_land_you(
-        &mut self,
-        message: &str,
-        spells: &[SpellDef],
-        config: &AppConfig,
-    ) -> bool {
+    fn try_land_you(&mut self, message: &str, spells: &[SpellDef], config: &AppConfig) -> bool {
         let lower = message.to_lowercase();
 
         if let Some(pending) = self.pending.clone() {
@@ -825,7 +851,7 @@ impl TimerEngine {
         // Natureskin / Protection of the Glades ("Your skin shimmers").
         if let Some(spell) = best_watched_land_you(spells, config, &lower) {
             self.start_timer(spell, "You", config, 0, false);
-            self.pending = None;
+            self.consume_pending_if_spell(&spell.name);
             return true;
         }
         false
@@ -948,7 +974,7 @@ impl TimerEngine {
             if specific && !t.spell.eq_ignore_ascii_case(named) {
                 return false;
             }
-            if require_target && !line_tgt.is_empty() && !t.target.eq_ignore_ascii_case(line_tgt) {
+            if require_target && !line_tgt.is_empty() && !npc_names_match(&t.target, line_tgt) {
                 return false;
             }
             true
@@ -979,14 +1005,13 @@ impl TimerEngine {
         } else {
             self.charmed
                 .iter()
-                .find(|c| c.name.eq_ignore_ascii_case(line_tgt))
+                .find(|c| npc_names_match(&c.name, line_tgt))
                 .cloned()
         };
         if line_tgt.is_empty() {
             self.charmed.clear();
         } else {
-            self.charmed
-                .retain(|c| !c.name.eq_ignore_ascii_case(line_tgt));
+            self.charmed.retain(|c| !npc_names_match(&c.name, line_tgt));
         }
         self.last_charm_break = Some(match removed.first() {
             Some(t) => CharmBreakAlert {
@@ -1035,18 +1060,20 @@ impl TimerEngine {
     }
 
     /// Remove every timer for `target` (death). A slain mob loses all DoTs/debuffs.
+    /// Charm binds and charm overlay timers stay: another NPC of the same name
+    /// dying is not your pet dying. Wear-off / melee-you / zone / recast drop those.
     fn cancel_all_by_target(&mut self, target: &str, recent_ttl_secs: u64) -> bool {
         let mut removed = Vec::new();
         self.timers.retain(|t| {
-            if t.target.eq_ignore_ascii_case(target) {
-                removed.push(t.clone());
-                false
-            } else {
-                true
+            if !npc_names_match(&t.target, target) {
+                return true;
             }
+            if is_charm_spell(&t.spell) {
+                return true;
+            }
+            removed.push(t.clone());
+            false
         });
-        self.charmed
-            .retain(|c| !c.name.eq_ignore_ascii_case(target));
         if removed.is_empty() {
             return false;
         }
@@ -1329,9 +1356,7 @@ mod tests {
         let config = AppConfig::default();
         let mut engine = TimerEngine::new();
         let changed = engine.handle(
-            parse_line(
-                "[Thu Aug 13 09:54:58 2026] Your Allure spell has worn off of an azarack.",
-            ),
+            parse_line("[Thu Aug 13 09:54:58 2026] Your Allure spell has worn off of an azarack."),
             &spells,
             &config,
         );
@@ -1530,7 +1555,9 @@ mod tests {
             &config,
         );
         engine.handle(
-            parse_line("[Wed Aug 5 23:00:08 2026] A gnoll slashes an orc pawn for 12 points of damage."),
+            parse_line(
+                "[Wed Aug 5 23:00:08 2026] A gnoll slashes an orc pawn for 12 points of damage.",
+            ),
             &spells,
             &config,
         );
@@ -1570,6 +1597,122 @@ mod tests {
         assert_eq!(engine.timers().len(), 1);
         assert_eq!(engine.timers()[0].target, "An orc pawn");
         assert!(engine.take_charm_break_alert().is_none());
+    }
+
+    #[test]
+    fn charm_pending_survives_unrelated_land() {
+        let spells = load_spells().expect("spells");
+        let mut config = AppConfig::default();
+        config.watched.insert("Beguile".into(), true);
+        config.watched.insert("Clarity".into(), true);
+
+        let mut engine = TimerEngine::new();
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:00 2026] You begin casting Beguile."),
+            &spells,
+            &config,
+        );
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:01 2026] A cool breeze slips through your mind."),
+            &spells,
+            &config,
+        );
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:03 2026] A gnoll has been charmed."),
+            &spells,
+            &config,
+        );
+        assert_eq!(engine.charmed_targets(), vec!["A gnoll"]);
+        assert!(engine.timers().iter().any(|t| t.spell == "Beguile"));
+        assert!(engine.timers().iter().any(|t| t.spell == "Clarity"));
+    }
+
+    #[test]
+    fn charm_same_name_death_does_not_drop_roster() {
+        let spells = load_spells().expect("spells");
+        let mut config = AppConfig::default();
+        config.watched.insert("Beguile".into(), true);
+
+        let mut engine = TimerEngine::new();
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:00 2026] You begin casting Beguile."),
+            &spells,
+            &config,
+        );
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:03 2026] A gnoll has been charmed."),
+            &spells,
+            &config,
+        );
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:08 2026] You have slain a gnoll!"),
+            &spells,
+            &config,
+        );
+        assert_eq!(engine.charmed_targets(), vec!["A gnoll"]);
+        assert_eq!(engine.timers().len(), 1);
+        assert_eq!(engine.timers()[0].spell, "Beguile");
+        assert!(engine.take_charm_break_alert().is_none());
+    }
+
+    #[test]
+    fn charm_damage_shield_on_you_does_not_break_bind() {
+        let spells = load_spells().expect("spells");
+        let mut config = AppConfig::default();
+        config.watched.insert("Beguile".into(), true);
+
+        let mut engine = TimerEngine::new();
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:00 2026] You begin casting Beguile."),
+            &spells,
+            &config,
+        );
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:03 2026] A gnoll has been charmed."),
+            &spells,
+            &config,
+        );
+        engine.handle(
+            parse_line(
+                "[Wed Aug 5 23:00:08 2026] YOU are pierced by a gnoll's thorns for 14 points of non-melee damage!",
+            ),
+            &spells,
+            &config,
+        );
+        assert_eq!(engine.charmed_targets(), vec!["A gnoll"]);
+        assert!(engine.take_charm_break_alert().is_none());
+    }
+
+    #[test]
+    fn charm_arm_uses_log_timestamps() {
+        let spells = load_spells().expect("spells");
+        let mut config = AppConfig::default();
+        config.watched.insert("Allure".into(), true);
+
+        let begin = "[Wed Aug 5 23:00:00 2026] You begin casting Allure.";
+        let land_ok = "[Wed Aug 5 23:00:07 2026] A gnoll has been charmed.";
+        let land_late = "[Wed Aug 5 23:00:09 2026] A gnoll has been charmed.";
+        let t0 = crate::parser::parse_log_timestamp(begin).expect("begin stamp");
+        let t_ok = crate::parser::parse_log_timestamp(land_ok).expect("land stamp");
+        let t_late = crate::parser::parse_log_timestamp(land_late).expect("late stamp");
+
+        let mut engine = TimerEngine::new();
+        engine.handle_at(parse_line(begin), &spells, &config, t0);
+        engine.handle_at(parse_line(land_ok), &spells, &config, t_ok);
+        assert_eq!(engine.charmed_targets(), vec!["A gnoll"]);
+
+        let mut late = TimerEngine::new();
+        late.handle_at(parse_line(begin), &spells, &config, t0);
+        late.handle_at(parse_line(land_late), &spells, &config, t_late);
+        assert!(late.charmed_targets().is_empty());
+    }
+
+    #[test]
+    fn npc_names_match_articles_and_case() {
+        assert!(npc_names_match("A gnoll", "a gnoll"));
+        assert!(npc_names_match("A gnoll", "gnoll"));
+        assert!(npc_names_match("an orc pawn", "An orc pawn"));
+        assert!(!npc_names_match("A gnoll", "An orc pawn"));
     }
 
     #[test]
@@ -1784,9 +1927,7 @@ mod tests {
 
         let mut engine = TimerEngine::new();
         engine.handle(
-            parse_line(
-                "[Wed Aug 05 21:41:26 2026] You begin casting Mesmerization IV.",
-            ),
+            parse_line("[Wed Aug 05 21:41:26 2026] You begin casting Mesmerization IV."),
             &spells,
             &config,
         );
@@ -1829,9 +1970,8 @@ mod tests {
         }
 
         let path = fixture_path();
-        let raw = fs::read_to_string(&path).unwrap_or_else(|_| {
-            fs::read_to_string("../fixtures/sample_mez.log").expect("fixture")
-        });
+        let raw = fs::read_to_string(&path)
+            .unwrap_or_else(|_| fs::read_to_string("../fixtures/sample_mez.log").expect("fixture"));
 
         let mut engine = TimerEngine::new();
         for line in raw.lines() {
@@ -2153,7 +2293,11 @@ mod tests {
         assert!(is_enemy_timer("buff", "a frenzied ghoul", "Soothe"));
         assert!(is_enemy_timer("buff", "a frenzied ghoul", "Lull"));
         assert!(is_enemy_timer("buff", "a frenzied ghoul", "Pacify"));
-        assert!(is_enemy_timer("buff", "a frenzied ghoul", "Wake of Tranquility"));
+        assert!(is_enemy_timer(
+            "buff",
+            "a frenzied ghoul",
+            "Wake of Tranquility"
+        ));
         assert!(is_friendly_timer("buff", "You", "Clarity"));
         assert!(is_friendly_timer("buff", "You", "Calming Visage"));
         assert!(should_record_recent("buff", "Vebn", "Clarity"));
@@ -2183,7 +2327,11 @@ mod tests {
             "Cleric of Innoruuk",
             "Swift Like The Wind"
         ));
-        assert!(!should_record_recent("buff", "spite golem", "Spirit of Wolf"));
+        assert!(!should_record_recent(
+            "buff",
+            "spite golem",
+            "Spirit of Wolf"
+        ));
         // Enemy lulls must not enter recently wore off under the mob name.
         assert!(!should_record_recent("buff", "a frenzied ghoul", "Calm"));
         // Self-debuffs (e.g. Ghoul Root on You) must not enter recently wore off.
@@ -2202,7 +2350,11 @@ mod tests {
         assert!(!should_record_recent("buff", "You", "Celestial Health"));
         assert!(!should_record_recent("debuff", "You", "Invisibility"));
         assert!(!should_record_recent("buff", "You", "Camouflage"));
-        assert!(!should_record_recent("buff", "You", "Improved Invisibility"));
+        assert!(!should_record_recent(
+            "buff",
+            "You",
+            "Improved Invisibility"
+        ));
 
         // Must record — renew-relevant self / ally buffs (including regen line)
         assert!(should_record_recent("buff", "You", "Clarity"));
@@ -2551,9 +2703,7 @@ mod tests {
         candidates
             .into_iter()
             .find(|p| p.exists())
-            .unwrap_or_else(|| {
-                std::path::PathBuf::from("../fixtures/clarity_jungleberry.log")
-            })
+            .unwrap_or_else(|| std::path::PathBuf::from("../fixtures/clarity_jungleberry.log"))
     }
 
     fn celerity_fixture_path() -> std::path::PathBuf {
@@ -2565,9 +2715,7 @@ mod tests {
         candidates
             .into_iter()
             .find(|p| p.exists())
-            .unwrap_or_else(|| {
-                std::path::PathBuf::from("../fixtures/celerity_wear_off.log")
-            })
+            .unwrap_or_else(|| std::path::PathBuf::from("../fixtures/celerity_wear_off.log"))
     }
 
     fn hate_npc_buff_fixture_path() -> std::path::PathBuf {
@@ -2579,9 +2727,7 @@ mod tests {
         candidates
             .into_iter()
             .find(|p| p.exists())
-            .unwrap_or_else(|| {
-                std::path::PathBuf::from("../fixtures/hate_npc_buff_collision.log")
-            })
+            .unwrap_or_else(|| std::path::PathBuf::from("../fixtures/hate_npc_buff_collision.log"))
     }
 
     fn cleric_innoruuk_buff_fixture_path() -> std::path::PathBuf {
@@ -2621,14 +2767,16 @@ mod tests {
                 continue;
             }
             saw_slow |= engine.timers().iter().any(|t| {
-                t.spell == "Shiftless Deeds"
-                    && t.target.eq_ignore_ascii_case("Cleric of Innoruuk")
+                t.spell == "Shiftless Deeds" && t.target.eq_ignore_ascii_case("Cleric of Innoruuk")
             });
             saw_snare |= engine.timers().iter().any(|t| {
                 t.spell == "Ensnare" && t.target.eq_ignore_ascii_case("Cleric of Innoruuk")
             });
         }
-        assert!(saw_slow, "Shiftless Deeds must still land on Cleric of Innoruuk");
+        assert!(
+            saw_slow,
+            "Shiftless Deeds must still land on Cleric of Innoruuk"
+        );
         assert!(saw_snare, "Ensnare must still land on Cleric of Innoruuk");
 
         let rows: Vec<_> = engine
@@ -2658,8 +2806,7 @@ mod tests {
         );
         assert!(
             !rows.iter().any(|(s, t)| {
-                (*s == "Swift Like The Wind" || *s == "Spirit of Wolf")
-                    && looks_like_unnamed_npc(t)
+                (*s == "Swift Like The Wind" || *s == "Spirit of Wolf") && looks_like_unnamed_npc(t)
             }),
             "generic NPC haste/SoW must not start timers, got {rows:?}"
         );
@@ -2753,9 +2900,7 @@ mod tests {
         candidates
             .into_iter()
             .find(|p| p.exists())
-            .unwrap_or_else(|| {
-                std::path::PathBuf::from("../fixtures/drifting_death_hoptor.log")
-            })
+            .unwrap_or_else(|| std::path::PathBuf::from("../fixtures/drifting_death_hoptor.log"))
     }
 
     fn tepid_deeds_slain_fixture_path() -> std::path::PathBuf {
@@ -2767,9 +2912,7 @@ mod tests {
         candidates
             .into_iter()
             .find(|p| p.exists())
-            .unwrap_or_else(|| {
-                std::path::PathBuf::from("../fixtures/tepid_deeds_slain.log")
-            })
+            .unwrap_or_else(|| std::path::PathBuf::from("../fixtures/tepid_deeds_slain.log"))
     }
 
     /// EQL logs `engulfed by a swarm`; classic wiki often says `in`. Must still
@@ -2792,7 +2935,11 @@ mod tests {
             engine.handle(parse_line(line), &spells, &config);
         }
 
-        assert_eq!(engine.timers().len(), 1, "expected one Drifting Death timer");
+        assert_eq!(
+            engine.timers().len(),
+            1,
+            "expected one Drifting Death timer"
+        );
         let t = &engine.timers()[0];
         assert_eq!(t.spell, "Drifting Death");
         assert_eq!(t.target, "Hoptor Thaggelum");
@@ -2815,11 +2962,9 @@ mod tests {
         let mut saw_timer = false;
         for line in raw.lines() {
             engine.handle(parse_line(line), &spells, &config);
-            if engine
-                .timers()
-                .iter()
-                .any(|t| t.spell == "Tepid Deeds" && t.target.eq_ignore_ascii_case("a frenzied ghoul"))
-            {
+            if engine.timers().iter().any(|t| {
+                t.spell == "Tepid Deeds" && t.target.eq_ignore_ascii_case("a frenzied ghoul")
+            }) {
                 saw_timer = true;
             }
         }
@@ -2890,7 +3035,9 @@ mod tests {
         let mut config = AppConfig::default();
         config.character_level = 46;
         config.watched.insert("Skin Like Nature".into(), true);
-        config.watched.insert("Protection of the Glades".into(), true);
+        config
+            .watched
+            .insert("Protection of the Glades".into(), true);
         config.watched.insert("Natureskin".into(), true);
         config.watched.insert("Skin Like Diamond".into(), true);
 
@@ -2919,14 +3066,14 @@ mod tests {
         let mut config = AppConfig::default();
         config.character_level = 46;
         config.watched.insert("Skin Like Nature".into(), true);
-        config.watched.insert("Protection of the Glades".into(), true);
+        config
+            .watched
+            .insert("Protection of the Glades".into(), true);
         config.watched.insert("Natureskin".into(), true);
 
         let mut engine = TimerEngine::new();
         let changed = engine.handle(
-            parse_line(
-                "[Fri Jul 17 20:36:22 2026] Faldimir's skin shimmers with divine power.",
-            ),
+            parse_line("[Fri Jul 17 20:36:22 2026] Faldimir's skin shimmers with divine power."),
             &spells,
             &config,
         );
@@ -2954,9 +3101,7 @@ mod tests {
             &config,
         );
         let changed = engine.handle(
-            parse_line(
-                "[Thu Jul 16 21:31:12 2026] Your thoughts begin to race and flow faster.",
-            ),
+            parse_line("[Thu Jul 16 21:31:12 2026] Your thoughts begin to race and flow faster."),
             &spells,
             &config,
         );
@@ -2985,9 +3130,7 @@ mod tests {
             &config,
         );
         let changed = engine.handle(
-            parse_line(
-                "[Thu Jul 16 21:36:51 2026] Gastik appears to be staring into nothingness.",
-            ),
+            parse_line("[Thu Jul 16 21:36:51 2026] Gastik appears to be staring into nothingness."),
             &spells,
             &config,
         );
@@ -3022,9 +3165,7 @@ mod tests {
             &config,
         );
         let changed = engine.handle(
-            parse_line(
-                "[Thu Jul 16 21:07:21 2026] You are surrounded by a thorny barrier.",
-            ),
+            parse_line("[Thu Jul 16 21:07:21 2026] You are surrounded by a thorny barrier."),
             &spells,
             &config,
         );
@@ -3054,9 +3195,7 @@ mod tests {
             &config,
         );
         let changed = engine.handle(
-            parse_line(
-                "[Thu Jul 16 22:03:08 2026] Gastik is surrounded by a thorny barrier.",
-            ),
+            parse_line("[Thu Jul 16 22:03:08 2026] Gastik is surrounded by a thorny barrier."),
             &spells,
             &config,
         );
@@ -3088,7 +3227,11 @@ mod tests {
             engine.handle(parse_line(line), &spells, &config);
         }
 
-        assert_eq!(engine.timers().len(), 1, "expected Symbol of Pinzarn on You");
+        assert_eq!(
+            engine.timers().len(),
+            1,
+            "expected Symbol of Pinzarn on You"
+        );
         let t = &engine.timers()[0];
         assert_eq!(t.spell, "Symbol of Pinzarn");
         assert_eq!(t.target, "You");

@@ -93,7 +93,7 @@ git push origin v0.1.0
 
 ### In-app updates
 
-Installed builds can check **General → Check for updates** (also checks quietly a few seconds after launch). Updates are verified with a Tauri signing keypair.
+Installed builds can check **Preferences → Updates** (also checks quietly a few seconds after launch). Updates are verified with a Tauri signing keypair.
 
 One-time setup (maintainers):
 

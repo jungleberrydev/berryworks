@@ -9,6 +9,21 @@ The in-app **What's new** dialog and General → Updates list are generated from
 
 ## [Unreleased]
 
+### Added
+
+- Combat meter: live group/raid DPS from the character log, ability breakdown, optional always-on-top overlay, and a session tracker (kills, plat, /hr rates).
+- Unlocked overlays show a small Timers / Enemies / Respawns / Alerts / DPS label so windows are easy to tell apart.
+- Header **Lock Overlays** / **Unlock Overlays** button (same as Timers → General).
+
+### Fixed
+
+- DPS overlay can be dragged and shows its **DPS** label when unlocked (the window was missing from Tauri permissions).
+
+### Changed
+
+- Charm pets for the meter (and overlay charm timers) bind only when your own recent cast resolved the broadcast, stop crediting if that mob hits you, and drop on zone. Nearby enchanters' charms are no longer treated as yours.
+- DPS overlay toggle lives on Combat. Timer overlay settings stay under Timers → Overlay. The header Show Overlay button is gone; the timer overlay stays visible, and other overlays follow their section toggles.
+
 ## [0.2.5] - 2026-08-13
 
 ### Added

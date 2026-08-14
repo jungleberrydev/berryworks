@@ -26,7 +26,9 @@
           <button id="btn-whats-new" type="button" class="secondary">What's new</button>
           <span id="update-status" class="status header-update-status" role="status" aria-live="polite"></span>
         </div>
-        <button id="btn-show-overlay" type="button" class="secondary">Show Overlay</button>
+        <button id="btn-overlay-lock" type="button" class="secondary" aria-pressed="false">
+          Lock Overlays
+        </button>
         <button id="btn-clear" type="button" class="secondary">Clear Timers</button>
       </div>
     </header>
@@ -58,6 +60,15 @@
         data-section="loot"
       >
         Loot
+      </button>
+      <button
+        type="button"
+        class="section-tab"
+        role="tab"
+        aria-selected="false"
+        data-section="combat"
+      >
+        Combat
       </button>
     </nav>
 
@@ -308,7 +319,7 @@
             <p class="hint">
               Separate enemy overlay shows debuff/DoT timers on a second window. “Only show my buffs” still
               keeps your pet when My pet name is set. Use the exact log target for the pet (e.g. Gastik or
-              OwnerName pet).
+              OwnerName pet). Unlock overlays (General) to drag windows — each shows a label while unlocked.
             </p>
             <div class="settings-stack">
               <label class="field checkbox">
@@ -586,6 +597,64 @@
             <button id="btn-upload-loot" type="button" class="secondary">Upload now</button>
             <button id="btn-clear-loot" type="button" class="secondary">Clear Loot Data</button>
             <span id="loot-status" class="status"></span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div id="section-combat" class="app-section" data-section-panel="combat" hidden>
+      <section class="panel settings-panel is-active">
+        <h2>Session</h2>
+        <div class="settings-group">
+          <p class="hint">
+            Live parse of everyone nearby in your log. Distant raid members will be missing. Session
+            starts when the log produces lines after launch.
+          </p>
+          <div class="loot-summary" id="combat-session">
+            <span>0:00</span>
+            <span>0 kills</span>
+            <span>0p/hr</span>
+          </div>
+          <div class="row gap">
+            <button id="btn-reset-session" type="button" class="secondary">Reset session</button>
+          </div>
+        </div>
+
+        <h2 class="panel-subhead">Overlay</h2>
+        <div class="settings-group">
+          <p class="hint">
+            Always-on-top DPS bars. Unlock overlays (Timers → General) to drag; each window is labeled
+            while unlocked.
+          </p>
+          <div class="settings-stack">
+            <label class="field checkbox">
+              <input id="combat-show-meter-window" type="checkbox" />
+              <span>Show DPS overlay window</span>
+            </label>
+          </div>
+        </div>
+
+        <h2 class="panel-subhead">Meter</h2>
+        <div class="settings-group">
+          <div class="loot-toolbar">
+            <div class="loot-view-tabs" role="tablist" aria-label="Combat views">
+              <button type="button" class="settings-tab is-active" data-combat-view="fight">
+                Current fight
+              </button>
+              <button type="button" class="settings-tab" data-combat-view="overall">Overall</button>
+            </div>
+          </div>
+          <div id="combat-fight-meta" class="combat-fight-meta hint">Waiting for combat…</div>
+          <div id="combat-actors" class="combat-actors">
+            <div class="hint">Deal or take damage with /log on to fill the meter.</div>
+          </div>
+          <h3 class="combat-ability-head">Abilities</h3>
+          <div id="combat-abilities" class="loot-table-wrap">
+            <div class="hint">Click an actor (or Everyone) to see skill breakdown.</div>
+          </div>
+          <h3 class="combat-ability-head">Recent fights</h3>
+          <div id="combat-fights" class="combat-fights">
+            <div class="hint">Closed pulls appear here.</div>
           </div>
         </div>
       </section>

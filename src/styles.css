@@ -828,6 +828,104 @@ button:disabled:hover {
   color: var(--accent-2);
 }
 
+.combat-fight-meta {
+  margin: 0 0 0.75rem;
+}
+
+.combat-actors {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.combat-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.35rem 0.75rem;
+  align-items: center;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--input) 88%, black);
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  width: 100%;
+}
+
+.combat-bar:hover,
+.combat-bar.is-selected {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+
+.combat-bar.is-you .combat-bar-name {
+  font-weight: 650;
+}
+
+.combat-bar-track {
+  grid-column: 1 / -1;
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--border) 80%, black);
+  overflow: hidden;
+}
+
+.combat-bar-fill {
+  height: 100%;
+  background: var(--accent-2);
+  border-radius: inherit;
+}
+
+.combat-bar-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.combat-bar-stats {
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.combat-ability-head {
+  font-size: 0.92rem;
+  margin: 0.85rem 0 0.45rem;
+}
+
+.combat-fights {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.combat-fight-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.4rem 0.55rem;
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--input) 88%, black);
+  cursor: pointer;
+  border: 1px solid transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  width: 100%;
+}
+
+.combat-fight-row:hover,
+.combat-fight-row.is-selected {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+
+.combat-fight-row.is-active {
+  border-color: var(--accent-2);
+}
+
 /* Named appearance themes also restyle the settings window. */
 body[data-theme="parchment"] {
   --bg: #cbb892;

@@ -1,6 +1,8 @@
+mod combat_parse;
 mod engine;
 mod log_suggest;
 mod loot;
+mod meter;
 mod parser;
 mod pets;
 mod respawn;
@@ -10,6 +12,7 @@ mod tailer;
 
 use engine::{ActiveTimer, RecentExpired, TimerEngine};
 use loot::{LootEngine, LootSnapshot, LootSyncResult};
+use meter::{MeterEngine, MeterSnapshot};
 use parser::parse_line;
 use respawn::{RespawnEngine, RespawnTimer};
 use spawn_db::{load_camps, CampsFile};
@@ -32,11 +35,13 @@ const OVERLAY_MAIN: &str = "overlay";
 const OVERLAY_ENEMIES: &str = "overlay-enemies";
 const OVERLAY_RESPAWNS: &str = "overlay-respawns";
 const OVERLAY_ALERTS: &str = "overlay-alerts";
-const OVERLAY_WINDOWS: [&str; 4] = [
+const OVERLAY_METER: &str = "overlay-meter";
+const OVERLAY_WINDOWS: [&str; 5] = [
     OVERLAY_MAIN,
     OVERLAY_ENEMIES,
     OVERLAY_RESPAWNS,
     OVERLAY_ALERTS,
+    OVERLAY_METER,
 ];
 const WINDOW_STATE_FILE: &str = ".window-state.json";
 
@@ -69,6 +74,7 @@ struct AppState {
     engine: Mutex<TimerEngine>,
     respawn: Mutex<RespawnEngine>,
     loot: Mutex<LootEngine>,
+    meter: Mutex<MeterEngine>,
     tail_cmd: Mutex<Option<mpsc::Sender<TailCommand>>>,
 }
 
@@ -150,6 +156,24 @@ fn emit_loot(app: &AppHandle, state: &AppState) {
     let _ = app.emit("loot-updated", payload);
 }
 
+fn emit_meter(app: &AppHandle, state: &AppState) {
+    let payload = {
+        let mut meter = state.meter.lock().unwrap();
+        meter.mark_emitted();
+        meter.snapshot()
+    };
+    let _ = app.emit("meter-updated", payload);
+}
+
+fn apply_meter_identity(state: &AppState, config: &AppConfig) {
+    let name = log_suggest::character_name_from_log_path(&config.log_path);
+    state
+        .meter
+        .lock()
+        .unwrap()
+        .set_identity(&name, &config.my_pet_name);
+}
+
 fn apply_line(app: &AppHandle, state: &AppState, line: &str) {
     let event = parse_line(line);
 
@@ -190,6 +214,18 @@ fn apply_line(app: &AppHandle, state: &AppState, line: &str) {
         }
         changed
     };
+    let charmed = {
+        let engine = state.engine.lock().unwrap();
+        engine.charmed_targets()
+    };
+    apply_meter_identity(state, &config);
+    let meter_changed = {
+        let mut meter = state.meter.lock().unwrap();
+        if meter.current_zone().is_none() && !config.respawn_zone.is_empty() {
+            meter.set_zone(&config.respawn_zone);
+        }
+        meter.handle(&event, &charmed)
+    };
     if spell_changed {
         emit_timers(app, state);
     }
@@ -228,6 +264,10 @@ fn apply_line(app: &AppHandle, state: &AppState, line: &str) {
                 let mut loot = state.loot.lock().unwrap();
                 loot.set_zone(&zone_name);
             }
+            {
+                let mut meter = state.meter.lock().unwrap();
+                meter.set_zone(&zone_name);
+            }
             let mut cfg = state.config.lock().unwrap();
             if cfg.respawn_zone != zone_name {
                 cfg.respawn_zone = zone_name;
@@ -241,6 +281,12 @@ fn apply_line(app: &AppHandle, state: &AppState, line: &str) {
     }
     if loot_changed {
         emit_loot(app, state);
+    }
+    if meter_changed {
+        let should = state.meter.lock().unwrap().should_emit();
+        if should {
+            emit_meter(app, state);
+        }
     }
 }
 
@@ -581,6 +627,23 @@ fn sync_alert_overlay(app: &AppHandle, show: bool, locked: bool) {
     }
 }
 
+/// Show or hide the DPS meter overlay based on `overlay.show_meter_window`.
+fn sync_meter_overlay(app: &AppHandle, show: bool, locked: bool) {
+    let Some(win) = app.get_webview_window(OVERLAY_METER) else {
+        return;
+    };
+    if show {
+        let _ = win.show();
+        let _ = win.set_always_on_top(true);
+        let _ = win.set_ignore_cursor_events(locked);
+        let _ = win.set_shadow(!locked);
+        let _ = win.set_decorations(false);
+        restore_overlay_geom(app, OVERLAY_METER);
+    } else {
+        let _ = win.hide();
+    }
+}
+
 #[tauri::command]
 fn get_spells(state: State<'_, AppState>) -> Vec<SpellDef> {
     state.spells.clone()
@@ -607,6 +670,7 @@ fn save_settings(
     let separate = config.overlay.separate_enemy_window;
     let show_respawn = config.overlay.show_respawn_window;
     let show_alerts = config.overlay.show_alert_window;
+    let show_meter = config.overlay.show_meter_window;
     let locked = config.overlay_locked;
     let respawn_zone = config.respawn_zone.clone();
     {
@@ -621,6 +685,11 @@ fn save_settings(
         let mut loot = state.loot.lock().unwrap();
         loot.set_zone(&respawn_zone);
     }
+    apply_meter_identity(&state, &config);
+    {
+        let mut meter = state.meter.lock().unwrap();
+        meter.set_zone(&respawn_zone);
+    }
 
     if let Some(tx) = state.tail_cmd.lock().unwrap().as_ref() {
         if !config.log_path.is_empty() {
@@ -630,9 +699,11 @@ fn save_settings(
     sync_enemy_overlay(&app, separate, locked);
     sync_respawn_overlay(&app, show_respawn, locked);
     sync_alert_overlay(&app, show_alerts, locked);
+    sync_meter_overlay(&app, show_meter, locked);
     apply_overlay_lock(&app, locked);
     let _ = app.emit("config-updated", &config);
     emit_respawns(&app, &state);
+    emit_meter(&app, &state);
     Ok(config)
 }
 
@@ -664,10 +735,14 @@ fn set_respawn_zone(
         let mut engine = state.respawn.lock().unwrap();
         engine.set_zone(&zone, &state.camps);
     }
-    {
-        let mut loot = state.loot.lock().unwrap();
-        loot.set_zone(&zone);
-    }
+            {
+                let mut loot = state.loot.lock().unwrap();
+                loot.set_zone(&zone);
+            }
+            {
+                let mut meter = state.meter.lock().unwrap();
+                meter.set_zone(&zone);
+            }
     let snapshot = {
         let mut config = state.config.lock().unwrap();
         config.respawn_zone = zone.trim().to_string();
@@ -709,6 +784,28 @@ fn clear_loot(app: AppHandle, state: State<'_, AppState>) -> Result<(), String> 
     }
     emit_loot(&app, &state);
     Ok(())
+}
+
+#[tauri::command]
+fn get_meter(state: State<'_, AppState>) -> MeterSnapshot {
+    let config = state.config.lock().unwrap().clone();
+    apply_meter_identity(&state, &config);
+    state.meter.lock().unwrap().snapshot()
+}
+
+#[tauri::command]
+fn reset_meter_session(app: AppHandle, state: State<'_, AppState>) -> MeterSnapshot {
+    let config = state.config.lock().unwrap().clone();
+    apply_meter_identity(&state, &config);
+    {
+        let mut meter = state.meter.lock().unwrap();
+        meter.reset_session();
+        if !config.respawn_zone.is_empty() {
+            meter.set_zone(&config.respawn_zone);
+        }
+    }
+    emit_meter(&app, &state);
+    state.meter.lock().unwrap().snapshot()
 }
 
 #[tauri::command]
@@ -997,35 +1094,6 @@ fn set_overlay_locked(app: AppHandle, state: State<'_, AppState>, locked: bool) 
 }
 
 #[tauri::command]
-fn show_overlay(app: AppHandle, state: State<'_, AppState>) -> Result<(), String> {
-    let (separate, show_respawn, show_alerts, locked) = {
-        let config = state.config.lock().unwrap();
-        (
-            config.overlay.separate_enemy_window,
-            config.overlay.show_respawn_window,
-            config.overlay.show_alert_window,
-            config.overlay_locked,
-        )
-    };
-    if let Some(win) = app.get_webview_window(OVERLAY_MAIN) {
-        win.show().map_err(|e| e.to_string())?;
-        win.set_always_on_top(true).map_err(|e| e.to_string())?;
-        restore_overlay_geom(&app, OVERLAY_MAIN);
-    }
-    apply_overlay_lock(&app, locked);
-    if separate {
-        sync_enemy_overlay(&app, true, locked);
-    }
-    if show_respawn {
-        sync_respawn_overlay(&app, true, locked);
-    }
-    if show_alerts {
-        sync_alert_overlay(&app, true, locked);
-    }
-    Ok(())
-}
-
-#[tauri::command]
 fn preview_overlay_alert(app: AppHandle, state: State<'_, AppState>, kind: Option<String>) {
     let locked = state.config.lock().unwrap().overlay_locked;
     sync_alert_overlay(&app, true, locked);
@@ -1076,6 +1144,7 @@ pub fn run() {
                 .skip_initial_state(OVERLAY_ENEMIES)
                 .skip_initial_state(OVERLAY_RESPAWNS)
                 .skip_initial_state(OVERLAY_ALERTS)
+                .skip_initial_state(OVERLAY_METER)
                 .build(),
         )
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
@@ -1093,6 +1162,7 @@ pub fn run() {
             engine: Mutex::new(TimerEngine::new()),
             respawn: Mutex::new(RespawnEngine::new()),
             loot: Mutex::new(LootEngine::new()),
+            meter: Mutex::new(MeterEngine::new()),
             tail_cmd: Mutex::new(None),
         })
         .invoke_handler(tauri::generate_handler![
@@ -1107,13 +1177,14 @@ pub fn run() {
             clear_respawns,
             get_loot,
             clear_loot,
+            get_meter,
+            reset_meter_session,
             upload_loot,
             login_loot_discord,
             logout_loot_discord,
             dismiss_timer,
             dismiss_respawn,
             set_overlay_locked,
-            show_overlay,
             preview_overlay_alert,
             inject_log_line,
             suggest_log_paths
@@ -1142,7 +1213,9 @@ pub fn run() {
                         .unwrap()
                         .set_zone(&config.respawn_zone, &state.camps);
                     state.loot.lock().unwrap().set_zone(&config.respawn_zone);
+                    state.meter.lock().unwrap().set_zone(&config.respawn_zone);
                 }
+                apply_meter_identity(&state, &config);
                 apply_overlay_lock(app.handle(), config.overlay_locked);
                 sync_enemy_overlay(
                     app.handle(),
@@ -1157,6 +1230,11 @@ pub fn run() {
                 sync_alert_overlay(
                     app.handle(),
                     config.overlay.show_alert_window,
+                    config.overlay_locked,
+                );
+                sync_meter_overlay(
+                    app.handle(),
+                    config.overlay.show_meter_window,
                     config.overlay_locked,
                 );
             }
@@ -1212,6 +1290,14 @@ pub fn run() {
                     engine.clear_expired();
                 }
                 emit_respawns(&handle3, &state);
+                let meter_tick = {
+                    let mut meter = state.meter.lock().unwrap();
+                    let closed = meter.tick();
+                    closed || meter.has_active_fight()
+                };
+                if meter_tick {
+                    emit_meter(&handle3, &state);
+                }
             });
 
             // Keep only the canonical overlay windows; destroy any stray overlay*.
@@ -1242,10 +1328,15 @@ pub fn run() {
                     shutdown_with_overlay(window.app_handle());
                     return;
                 }
-                // Overlay close: hide so Show Overlay / toggles can reopen it.
+                // Overlay close: optional windows hide (toggles reopen them).
+                // The main timer overlay stays up.
                 if is_overlay_label(&label) {
                     api.prevent_close();
-                    let _ = window.hide();
+                    if label == OVERLAY_MAIN {
+                        let _ = window.show();
+                    } else {
+                        let _ = window.hide();
+                    }
                 }
             }
         })

@@ -52,6 +52,8 @@ export interface OverlayAppearance {
   show_respawn_window: boolean;
   /** Show the fading-message alert overlay window. */
   show_alert_window: boolean;
+  /** Show the compact DPS meter overlay window. */
+  show_meter_window: boolean;
   /** How long alert overlay toasts stay (seconds). Clamped 2..=15. */
   alert_secs: number;
   /** Alert overlay font; empty = same as overlay font_family. */
@@ -144,6 +146,7 @@ export interface ThemePreset {
     | "expiry_warn_secs"
     | "show_respawn_window"
     | "show_alert_window"
+    | "show_meter_window"
     | "alert_secs"
     | "alert_font_family"
     | "alert_size"
@@ -189,6 +192,7 @@ export const DEFAULT_OVERLAY: OverlayAppearance = {
   expiry_warn_secs: 10,
   show_respawn_window: true,
   show_alert_window: true,
+  show_meter_window: false,
   alert_secs: 5,
   alert_font_family: "",
   alert_size: "large",
@@ -470,6 +474,7 @@ export function applyThemePreset(
     expiry_warn_secs: current.expiry_warn_secs,
     show_respawn_window: current.show_respawn_window,
     show_alert_window: current.show_alert_window,
+    show_meter_window: current.show_meter_window,
     alert_secs: current.alert_secs,
     alert_font_family: current.alert_font_family,
     alert_size: current.alert_size,

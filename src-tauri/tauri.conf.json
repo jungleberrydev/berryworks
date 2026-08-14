@@ -82,6 +82,22 @@
         "skipTaskbar": true,
         "resizable": true,
         "visible": true
+      },
+      {
+        "label": "overlay-meter",
+        "title": "Berryworks — DPS",
+        "url": "overlay.html",
+        "width": 280,
+        "height": 320,
+        "x": 1060,
+        "y": 80,
+        "decorations": false,
+        "transparent": true,
+        "shadow": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "resizable": true,
+        "visible": false
       }
     ],
     "security": {

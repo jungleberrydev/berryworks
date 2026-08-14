@@ -111,6 +111,9 @@ pub struct OverlayAppearance {
     /// Show the fading-message alert overlay (`overlay-alerts`).
     #[serde(default = "default_show_alert_window")]
     pub show_alert_window: bool,
+    /// Show the compact DPS meter overlay (`overlay-meter`). Off by default.
+    #[serde(default = "default_show_meter_window")]
+    pub show_meter_window: bool,
     /// How long alert overlay toasts stay (seconds). Clamped 2..=15.
     #[serde(default = "default_alert_secs")]
     pub alert_secs: u64,
@@ -251,6 +254,10 @@ fn default_show_alert_window() -> bool {
     true
 }
 
+fn default_show_meter_window() -> bool {
+    false
+}
+
 fn default_alert_secs() -> u64 {
     5
 }
@@ -316,6 +323,7 @@ impl Default for OverlayAppearance {
             expiry_warn_secs: default_expiry_warn_secs(),
             show_respawn_window: true,
             show_alert_window: true,
+            show_meter_window: false,
             alert_secs: default_alert_secs(),
             alert_font_family: default_alert_font_family(),
             alert_size: default_alert_size(),

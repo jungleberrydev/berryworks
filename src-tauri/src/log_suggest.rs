@@ -151,6 +151,22 @@ fn collect_eq_logs(dir: &Path, seen: &mut HashSet<PathBuf>, out: &mut Vec<(PathB
     }
 }
 
+/// Character name from `eqlog_Character_Server.txt`, or empty if unknown.
+pub fn character_name_from_log_path(path: &str) -> String {
+    let file = Path::new(path)
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or("");
+    let stem = file.trim_end_matches(".txt").trim_end_matches(".TXT");
+    let rest = stem.strip_prefix("eqlog_").unwrap_or(stem);
+    if let Some((character, server)) = rest.rsplit_once('_') {
+        if !character.is_empty() && !server.is_empty() {
+            return character.to_string();
+        }
+    }
+    String::new()
+}
+
 fn label_for(path: &Path) -> String {
     let file = path
         .file_name()
@@ -177,6 +193,10 @@ mod tests {
     fn label_parses_character_and_server() {
         let path = PathBuf::from(r"C:\Games\Logs\eqlog_Jungleberry_Povar.txt");
         assert_eq!(label_for(&path), "Jungleberry (Povar)");
+        assert_eq!(
+            character_name_from_log_path(r"C:\Games\Logs\eqlog_Jungleberry_Povar.txt"),
+            "Jungleberry"
+        );
     }
 
     #[test]

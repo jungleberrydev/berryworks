@@ -284,9 +284,9 @@
     "base_ticks": 148,
     "max_ticks": 205,
     "tier_duration_pct": 10,
-    "land_other": "",
-    "land_you": "",
-    "wear_off_you": "",
+    "land_other": "has been charmed",
+    "land_you": "You have been charmed",
+    "wear_off_you": "You are no longer charmed",
     "watched_by_default": false,
     "classes": [
       {

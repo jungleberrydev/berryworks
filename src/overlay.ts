@@ -5,9 +5,13 @@ import {
   DEFAULT_OVERLAY,
   TIMER_SIZES,
   bindIconErrorHandling,
+  clampAlertSecs,
+  clampAlertSize,
   clampExpiryWarnSecs,
+  clampHexColor,
   expiryWarnThresholdMs,
   iconImgHtml,
+  overlayAlertFontCss,
   overlayFontCss,
   type OverlayAppearance,
 } from "./themes";
@@ -71,8 +75,8 @@ interface RespawnsPayload {
   zone: string | null;
 }
 
-/** Window role: main, enemies-only, or respawns. */
-type OverlayRole = "main" | "enemies" | "respawns";
+/** Window role: main, enemies-only, respawns, or fading alerts. */
+type OverlayRole = "main" | "enemies" | "respawns" | "alerts";
 
 let locked = false;
 let appearance: OverlayAppearance = { ...DEFAULT_OVERLAY };
@@ -83,6 +87,10 @@ let separateEnemyWindow = false;
 let selfBuffsOnly = false;
 let hideOtherPets = false;
 let voiceAnnouncements = true;
+/** Speak on `Your charm spell has worn off` even if wear-off voice is off. */
+let charmBreakAlerts = true;
+/** Speak on invis fade/drop even if wear-off voice is off. */
+let invisBreakAlerts = true;
 /** Web Speech voiceURI; empty = system default. */
 let voiceUri = "";
 /** TTS volume 0–1. */
@@ -90,6 +98,7 @@ let voiceVolume = 1;
 let flashExpiryWarn = true;
 let verbalExpiryWarn = false;
 let expiryWarnSecs = 30;
+let alertSecs = 5;
 let myPetName = "";
 let overlayRole: OverlayRole = "main";
 let lastTimers: ActiveTimer[] = [];
@@ -145,12 +154,15 @@ function applyAppearance(ov: OverlayAppearance) {
   selfBuffsOnly = !!appearance.self_buffs_only;
   hideOtherPets = !!appearance.hide_other_pets;
   voiceAnnouncements = appearance.voice_announcements !== false;
+  charmBreakAlerts = appearance.charm_break_alerts !== false;
+  invisBreakAlerts = appearance.invis_break_alerts !== false;
   voiceUri = (appearance.voice_uri ?? "").trim();
   const vol = Number(appearance.voice_volume);
   voiceVolume = Number.isFinite(vol) ? Math.min(1, Math.max(0, vol)) : 1;
   flashExpiryWarn = appearance.flash_expiry_warn !== false;
   verbalExpiryWarn = !!appearance.verbal_expiry_warn;
   expiryWarnSecs = clampExpiryWarnSecs(appearance.expiry_warn_secs);
+  alertSecs = clampAlertSecs(appearance.alert_secs);
   const root = document.documentElement;
   root.style.setProperty("--ov-text", appearance.text_color);
   root.style.setProperty("--ov-panel", withAlpha(appearance.panel_color, appearance.panel_opacity));
@@ -160,6 +172,37 @@ function applyAppearance(ov: OverlayAppearance) {
   root.style.setProperty("--ov-muted", withAlpha(appearance.text_color, 0.7));
   root.style.setProperty("--ov-faint", withAlpha(appearance.text_color, 0.55));
   root.style.setProperty("--overlay-font", overlayFontCss(appearance.font_family));
+  root.style.setProperty(
+    "--alert-font",
+    overlayAlertFontCss(appearance.alert_font_family, appearance.font_family)
+  );
+  const alertSize = clampAlertSize(appearance.alert_size);
+  const alertTitle =
+    alertSize === "small"
+      ? "1.35rem"
+      : alertSize === "huge"
+        ? "3.1rem"
+        : alertSize === "normal"
+          ? "1.85rem"
+          : "2.35rem";
+  const alertDetail =
+    alertSize === "small"
+      ? "0.85rem"
+      : alertSize === "huge"
+        ? "1.35rem"
+        : alertSize === "normal"
+          ? "1rem"
+          : "1.15rem";
+  root.style.setProperty("--alert-title", alertTitle);
+  root.style.setProperty("--alert-detail", alertDetail);
+  root.style.setProperty(
+    "--alert-charm",
+    clampHexColor(appearance.alert_charm_color, DEFAULT_OVERLAY.alert_charm_color)
+  );
+  root.style.setProperty(
+    "--alert-invis",
+    clampHexColor(appearance.alert_invis_color, DEFAULT_OVERLAY.alert_invis_color)
+  );
   const size = (TIMER_SIZES as readonly string[]).includes(appearance.timer_size)
     ? appearance.timer_size
     : "normal";
@@ -170,6 +213,7 @@ function applyAppearance(ov: OverlayAppearance) {
   document.body.classList.toggle("show-icons", appearance.show_icons !== false);
   document.body.classList.toggle("is-enemies", overlayRole === "enemies");
   document.body.classList.toggle("is-respawns", overlayRole === "respawns");
+  document.body.classList.toggle("is-alerts", overlayRole === "alerts");
   const roleLabel = document.getElementById("role-label");
   if (roleLabel) {
     if (overlayRole === "enemies") {
@@ -177,6 +221,9 @@ function applyAppearance(ov: OverlayAppearance) {
       roleLabel.hidden = false;
     } else if (overlayRole === "respawns") {
       roleLabel.textContent = "Respawns";
+      roleLabel.hidden = false;
+    } else if (overlayRole === "alerts") {
+      roleLabel.textContent = "Alerts";
       roleLabel.hidden = false;
     } else {
       roleLabel.textContent = "";
@@ -186,6 +233,13 @@ function applyAppearance(ov: OverlayAppearance) {
   const zoneSelect = document.getElementById("zone-select") as HTMLSelectElement | null;
   if (zoneSelect) {
     zoneSelect.hidden = overlayRole !== "respawns";
+  }
+  const timers = document.getElementById("timers");
+  const alerts = document.getElementById("alerts");
+  if (timers) timers.hidden = overlayRole === "alerts";
+  if (alerts) alerts.hidden = overlayRole !== "alerts";
+  if (overlayRole === "alerts") {
+    syncAlertsIdle();
   }
 }
 function formatRemain(endsAt: string): string {
@@ -488,6 +542,25 @@ function speakAnnouncement(text: string) {
   speak(text);
 }
 
+function announceCharmBreak(target: string) {
+  if (!charmBreakAlerts) return;
+  const tgt = (target || "").trim();
+  const text =
+    tgt && tgt.toLowerCase() !== "you" ? `Charm broke on ${tgt}` : "Charm broke";
+  speak(text);
+}
+
+function announceInvisBreak(kind: string, fading: boolean) {
+  if (!invisBreakAlerts) return;
+  if (fading) {
+    speak("Invis fading");
+    return;
+  }
+  const k = (kind || "").trim().toLowerCase();
+  const text = k === "ivu" ? "IVU wore off" : k === "iva" ? "IVA wore off" : "Invis wore off";
+  speak(text);
+}
+
 /** Announce newly worn-off renew buffs (main overlay only). */
 function announceNewWornOff(recent: RecentExpired[]) {
   if (overlayRole !== "main") return;
@@ -622,7 +695,7 @@ function renderRespawns(timers: RespawnTimer[], zone: string | null) {
 }
 
 function render(timers: ActiveTimer[], recent: RecentExpired[] = []) {
-  if (overlayRole === "respawns") return;
+  if (overlayRole === "respawns" || overlayRole === "alerts") return;
   lastTimers = timers;
   lastRecent = recent;
   const visibleTimers = filterForRole(timers);
@@ -665,6 +738,50 @@ function render(timers: ActiveTimer[], recent: RecentExpired[] = []) {
 }
 function syncLockedChrome() {
   document.body.classList.toggle("is-locked", locked);
+  if (overlayRole === "alerts") syncAlertsIdle();
+}
+
+interface OverlayAlertPayload {
+  id: string;
+  title: string;
+  detail: string;
+  kind: string;
+}
+
+function liveAlertToasts(): HTMLElement[] {
+  return [...document.querySelectorAll<HTMLElement>(".alert-toast")];
+}
+
+function syncAlertsIdle() {
+  if (overlayRole !== "alerts") return;
+  const empty = document.getElementById("alerts-empty");
+  const idle = liveAlertToasts().length === 0;
+  if (empty) empty.hidden = locked || !idle;
+  document.body.classList.toggle("alerts-idle", idle);
+}
+
+function pushOverlayAlert(payload: OverlayAlertPayload) {
+  if (overlayRole !== "alerts") return;
+  const box = document.getElementById("alerts");
+  if (!box) return;
+  const title = (payload.title || "").trim() || "Alert";
+  const detail = (payload.detail || "").trim();
+  const kind = (payload.kind || "info").replace(/[^\w-]/g, "") || "info";
+  const toast = document.createElement("div");
+  toast.className = `alert-toast kind-${kind}`;
+  toast.dataset.alertId = payload.id || "";
+  toast.style.setProperty("--alert-life", `${alertSecs}s`);
+  toast.innerHTML = `<div class="alert-title">${escapeHtml(title)}</div>${
+    detail ? `<div class="alert-detail">${escapeHtml(detail)}</div>` : ""
+  }`;
+  toast.addEventListener("animationend", () => {
+    toast.remove();
+    syncAlertsIdle();
+  });
+  const empty = document.getElementById("alerts-empty");
+  if (empty) empty.insertAdjacentElement("afterend", toast);
+  else box.prepend(toast);
+  syncAlertsIdle();
 }
 async function loadSpellIcons() {
   try {
@@ -681,9 +798,10 @@ window.addEventListener("DOMContentLoaded", async () => {
   const win = getCurrentWindow();
   if (win.label === "overlay-enemies") overlayRole = "enemies";
   else if (win.label === "overlay-respawns") overlayRole = "respawns";
+  else if (win.label === "overlay-alerts") overlayRole = "alerts";
   else overlayRole = "main";
 
-  if (overlayRole !== "respawns") {
+  if (overlayRole !== "respawns" && overlayRole !== "alerts") {
     await loadSpellIcons();
   }
 
@@ -746,6 +864,15 @@ window.addEventListener("DOMContentLoaded", async () => {
       }
       renderRespawns(lastRespawns, lastRespawnZone);
     });
+  } else if (overlayRole === "alerts") {
+    syncAlertsIdle();
+    await listen<OverlayAlertPayload>("overlay-alert", (event) => {
+      pushOverlayAlert(event.payload);
+    });
+    await listen<AppConfig>("config-updated", (event) => {
+      applyConfig(event.payload);
+      syncAlertsIdle();
+    });
   } else {
     const payload = await invoke<TimersPayload>("get_timers");
     seedAnnouncedRecent(filterForRole(payload.recent_expired ?? []));
@@ -760,6 +887,12 @@ window.addEventListener("DOMContentLoaded", async () => {
         const spell = (event.payload.spell || "").trim();
         if (!spell) return;
         speakAnnouncement(`${spell} dismissed`);
+      });
+      await listen<{ spell: string; target: string }>("charm-broke", (event) => {
+        announceCharmBreak(event.payload?.target ?? "");
+      });
+      await listen<{ kind: string; fading?: boolean }>("invis-broke", (event) => {
+        announceInvisBreak(event.payload?.kind ?? "invis", !!event.payload?.fading);
       });
     }
     await listen<AppConfig>("config-updated", (event) => {

@@ -12,9 +12,13 @@ import {
   TIMER_SIZES,
   applyThemePreset,
   bindIconErrorHandling,
+  clampAlertSecs,
+  clampAlertSize,
   clampExpiryWarnSecs,
+  clampHexColor,
   clampRecentlyWoreOffSecs,
   expiryWarnThresholdMs,
+  formatAlertSecsLabel,
   formatExpiryWarnLabel,
   formatRecentlyWoreOffLabel,
   iconImgHtml,
@@ -533,6 +537,25 @@ function populateFontSelect(selected?: string) {
   select.value = value;
 }
 
+function populateAlertFontSelect(selected?: string) {
+  const select = document.getElementById("ov-alert-font-family") as HTMLSelectElement | null;
+  if (!select) return;
+  const raw = (selected ?? select.value ?? "").trim();
+  const value = !raw ? "" : resolveFontFamily(raw);
+  select.innerHTML = "";
+  const inherit = document.createElement("option");
+  inherit.value = "";
+  inherit.textContent = "Same as overlay";
+  select.appendChild(inherit);
+  for (const font of OVERLAY_FONTS) {
+    const opt = document.createElement("option");
+    opt.value = font.id;
+    opt.textContent = font.label;
+    select.appendChild(opt);
+  }
+  select.value = value;
+}
+
 function applySettingsChrome(theme: string) {
   document.body.dataset.theme = theme || "berry";
 }
@@ -564,6 +587,12 @@ function readAppearanceFromForm(): OverlayAppearance {
   const voiceAnnouncements = (
     document.getElementById("ov-voice-announcements") as HTMLInputElement
   ).checked;
+  const charmBreakAlerts = (
+    document.getElementById("ov-charm-break-alerts") as HTMLInputElement
+  ).checked;
+  const invisBreakAlerts = (
+    document.getElementById("ov-invis-break-alerts") as HTMLInputElement
+  ).checked;
   const voiceUri = (document.getElementById("ov-voice-uri") as HTMLSelectElement).value.trim();
   const voiceVolumePct = Number(
     (document.getElementById("ov-voice-volume") as HTMLInputElement).value
@@ -577,6 +606,25 @@ function readAppearanceFromForm(): OverlayAppearance {
   );
   const showRespawnWindow = (document.getElementById("ov-show-respawn-window") as HTMLInputElement)
     .checked;
+  const showAlertWindow = (document.getElementById("ov-show-alert-window") as HTMLInputElement)
+    .checked;
+  const alertSecs = clampAlertSecs(
+    Number((document.getElementById("ov-alert-secs") as HTMLInputElement).value)
+  );
+  const alertSize = clampAlertSize(
+    (document.getElementById("ov-alert-size") as HTMLSelectElement).value
+  );
+  const alertFontFamily = (
+    document.getElementById("ov-alert-font-family") as HTMLSelectElement
+  ).value.trim();
+  const alertCharmColor = clampHexColor(
+    (document.getElementById("ov-alert-charm-color") as HTMLInputElement).value,
+    DEFAULT_OVERLAY.alert_charm_color
+  );
+  const alertInvisColor = clampHexColor(
+    (document.getElementById("ov-alert-invis-color") as HTMLInputElement).value,
+    DEFAULT_OVERLAY.alert_invis_color
+  );
   const trackAllKills = (document.getElementById("ov-track-all-kills") as HTMLInputElement)
     .checked;
   return {
@@ -598,6 +646,8 @@ function readAppearanceFromForm(): OverlayAppearance {
     self_buffs_only: selfBuffsOnly,
     hide_other_pets: hideOtherPets,
     voice_announcements: voiceAnnouncements,
+    charm_break_alerts: charmBreakAlerts,
+    invis_break_alerts: invisBreakAlerts,
     voice_uri: voiceUri,
     voice_volume: Math.min(
       1,
@@ -607,6 +657,12 @@ function readAppearanceFromForm(): OverlayAppearance {
     verbal_expiry_warn: verbalExpiryWarn,
     expiry_warn_secs: expiryWarnSecs,
     show_respawn_window: showRespawnWindow,
+    show_alert_window: showAlertWindow,
+    alert_secs: alertSecs,
+    alert_font_family: alertFontFamily,
+    alert_size: alertSize,
+    alert_charm_color: alertCharmColor,
+    alert_invis_color: alertInvisColor,
     track_all_kills: trackAllKills,
     // Native DWM border is tied to lock state; keep prior value for config compat.
     show_window_border: config?.overlay?.show_window_border ?? DEFAULT_OVERLAY.show_window_border,
@@ -649,6 +705,10 @@ function writeAppearanceToForm(ov: OverlayAppearance) {
     !!merged.hide_other_pets;
   (document.getElementById("ov-voice-announcements") as HTMLInputElement).checked =
     merged.voice_announcements !== false;
+  (document.getElementById("ov-charm-break-alerts") as HTMLInputElement).checked =
+    merged.charm_break_alerts !== false;
+  (document.getElementById("ov-invis-break-alerts") as HTMLInputElement).checked =
+    merged.invis_break_alerts !== false;
   populateVoiceSelect(merged.voice_uri ?? "");
   const voiceVol = Math.round(
     Math.min(1, Math.max(0, Number.isFinite(merged.voice_volume) ? merged.voice_volume : 1)) * 100
@@ -666,6 +726,23 @@ function writeAppearanceToForm(ov: OverlayAppearance) {
   $("ov-expiry-warn-label").textContent = formatExpiryWarnLabel(warnSecs);
   (document.getElementById("ov-show-respawn-window") as HTMLInputElement).checked =
     merged.show_respawn_window !== false;
+  (document.getElementById("ov-show-alert-window") as HTMLInputElement).checked =
+    merged.show_alert_window !== false;
+  const alertSecs = clampAlertSecs(merged.alert_secs);
+  (document.getElementById("ov-alert-secs") as HTMLInputElement).value = String(alertSecs);
+  $("ov-alert-secs-label").textContent = formatAlertSecsLabel(alertSecs);
+  (document.getElementById("ov-alert-size") as HTMLSelectElement).value = clampAlertSize(
+    merged.alert_size
+  );
+  populateAlertFontSelect(merged.alert_font_family ?? "");
+  (document.getElementById("ov-alert-charm-color") as HTMLInputElement).value = clampHexColor(
+    merged.alert_charm_color,
+    DEFAULT_OVERLAY.alert_charm_color
+  );
+  (document.getElementById("ov-alert-invis-color") as HTMLInputElement).value = clampHexColor(
+    merged.alert_invis_color,
+    DEFAULT_OVERLAY.alert_invis_color
+  );
   (document.getElementById("ov-track-all-kills") as HTMLInputElement).checked =
     merged.track_all_kills !== false;
 }
@@ -786,6 +863,11 @@ function scheduleAppearanceSave() {
   const warnNum = document.getElementById("ov-expiry-warn-secs-num") as HTMLInputElement | null;
   if (warnNum && document.activeElement !== warnNum) warnNum.value = String(warnSecs);
   $("ov-expiry-warn-label").textContent = formatExpiryWarnLabel(warnSecs);
+  const alertSecs = clampAlertSecs(
+    Number((document.getElementById("ov-alert-secs") as HTMLInputElement).value)
+  );
+  (document.getElementById("ov-alert-secs") as HTMLInputElement).value = String(alertSecs);
+  $("ov-alert-secs-label").textContent = formatAlertSecsLabel(alertSecs);
   if (appearanceSaveTimer) clearTimeout(appearanceSaveTimer);
   appearanceSaveTimer = setTimeout(() => {
     void persistAppearanceLive();
@@ -1527,6 +1609,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   bindIconErrorHandling();
   populateThemeSelect();
   populateFontSelect();
+  populateAlertFontSelect();
   initSectionNav();
   initSettingsTabs();
   initLootUi();
@@ -1608,6 +1691,8 @@ window.addEventListener("DOMContentLoaded", async () => {
     "ov-self-buffs-only",
     "ov-hide-other-pets",
     "ov-voice-announcements",
+    "ov-charm-break-alerts",
+    "ov-invis-break-alerts",
     "ov-voice-uri",
     "ov-voice-volume",
     "ov-flash-expiry-warn",
@@ -1615,6 +1700,12 @@ window.addEventListener("DOMContentLoaded", async () => {
     "ov-expiry-warn-secs",
     "my-pet-name",
     "ov-show-respawn-window",
+    "ov-show-alert-window",
+    "ov-alert-secs",
+    "ov-alert-size",
+    "ov-alert-font-family",
+    "ov-alert-charm-color",
+    "ov-alert-invis-color",
     "ov-track-all-kills",
   ];
   for (const id of appearanceIds) {
@@ -1647,6 +1738,16 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   $("btn-test-voice").addEventListener("click", () => {
     testAnnouncementVoice();
+  });
+
+  $("btn-test-alert").addEventListener("click", () => {
+    void invoke("preview_overlay_alert", { kind: "charm" });
+  });
+  $("btn-test-invis-fading").addEventListener("click", () => {
+    void invoke("preview_overlay_alert", { kind: "invis-fading" });
+  });
+  $("btn-test-invis-alert").addEventListener("click", () => {
+    void invoke("preview_overlay_alert", { kind: "invis" });
   });
 
   $("btn-reset-appearance").addEventListener("click", () => {

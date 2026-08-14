@@ -156,13 +156,22 @@
           <h2>Announcements &amp; voice</h2>
           <div class="settings-group">
             <p class="hint">
-              Spoken from the main overlay when a timer wears off or is dismissed. Also used by verbal expiry
-              warnings below.
+              Spoken from the main overlay when a timer wears off or is dismissed. Charm-break and
+              invis-drop alerts use the same voice and also appear on the alert overlay. Also used by
+              verbal expiry warnings below.
             </p>
             <div class="settings-stack">
               <label class="field checkbox">
                 <input id="ov-voice-announcements" type="checkbox" checked />
                 <span>Voice announcements (worn off / dismissed)</span>
+              </label>
+              <label class="field checkbox">
+                <input id="ov-charm-break-alerts" type="checkbox" checked />
+                <span>Alert when charm breaks</span>
+              </label>
+              <label class="field checkbox">
+                <input id="ov-invis-break-alerts" type="checkbox" checked />
+                <span>Alert when invis fades or wears off</span>
               </label>
               <label class="field field-wide voice-field">
                 <span>Announcement voice</span>
@@ -178,6 +187,58 @@
                 <input id="ov-voice-volume" type="range" min="0" max="100" step="1" value="100" />
                 <span id="ov-voice-volume-label" class="range-label">100%</span>
               </label>
+            </div>
+          </div>
+
+          <h2 class="panel-subhead">Alert overlay</h2>
+          <div class="settings-group">
+            <p class="hint">
+              A separate always-on-top window for short messages such as Charm break! and Invis wore
+              off! Unlock overlays to drag it where you want; lock to click through. Size, font, and
+              colors below apply only to this window.
+            </p>
+            <div class="settings-stack">
+              <label class="field checkbox">
+                <input id="ov-show-alert-window" type="checkbox" checked />
+                <span>Show alert overlay window</span>
+              </label>
+              <label class="field field-wide">
+                <span>Alert duration</span>
+                <div class="row gap">
+                  <input id="ov-alert-secs" type="range" min="2" max="15" step="1" value="5" />
+                  <span id="ov-alert-secs-label" class="range-label">5s</span>
+                </div>
+              </label>
+              <div class="appearance-grid">
+                <label class="field">
+                  <span>Alert size</span>
+                  <select id="ov-alert-size">
+                    <option value="small">Small</option>
+                    <option value="normal">Normal</option>
+                    <option value="large" selected>Large</option>
+                    <option value="huge">Huge</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Alert font</span>
+                  <select id="ov-alert-font-family">
+                    <option value="" selected>Same as overlay</option>
+                  </select>
+                </label>
+                <label class="field color-field">
+                  <span>Charm color</span>
+                  <input id="ov-alert-charm-color" type="color" value="#ff3b3b" />
+                </label>
+                <label class="field color-field">
+                  <span>Invis color</span>
+                  <input id="ov-alert-invis-color" type="color" value="#6ec8ff" />
+                </label>
+              </div>
+              <div class="row gap">
+                <button id="btn-test-alert" type="button" class="secondary">Test charm</button>
+                <button id="btn-test-invis-fading" type="button" class="secondary">Test fading</button>
+                <button id="btn-test-invis-alert" type="button" class="secondary">Test invis</button>
+              </div>
             </div>
           </div>
 

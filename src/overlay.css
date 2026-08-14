@@ -21,6 +21,11 @@
   --ov-bar-radius: 999px;
   --ov-strip-radius: 999px;
   --overlay-font: "Segoe UI", sans-serif;
+  --alert-font: var(--overlay-font);
+  --alert-title: 2.35rem;
+  --alert-detail: 1.15rem;
+  --alert-charm: #ff3b3b;
+  --alert-invis: #6ec8ff;
 }
 
 html,
@@ -460,6 +465,10 @@ body.is-respawns .role-label {
   color: var(--ov-dot);
 }
 
+body.is-alerts .role-label {
+  color: #ff6a6a;
+}
+
 .orecent-section {
   margin-top: 0.35rem;
   padding-top: 0.45rem;
@@ -534,4 +543,93 @@ body.panel-clear .orecent-section {
 
 .otimer-urgent .ofill {
   animation: otimer-urgent-bar 0.85s ease-in-out infinite;
+}
+
+.overlay-alerts {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: var(--ov-timers-pad);
+  overflow: hidden;
+  font-family: var(--alert-font);
+}
+
+.overlay-alerts[hidden],
+.overlay-timers[hidden] {
+  display: none !important;
+}
+
+@keyframes alert-fade {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+  8% {
+    opacity: 1;
+    transform: none;
+  }
+  72% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+.alert-toast {
+  text-align: center;
+  animation: alert-fade var(--alert-life, 5s) ease-in-out forwards;
+}
+
+.alert-title {
+  font-weight: 800;
+  font-size: var(--alert-title);
+  letter-spacing: 0.03em;
+  line-height: 1.15;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.85);
+}
+
+.alert-detail {
+  margin-top: 0.2rem;
+  font-weight: 650;
+  font-size: var(--alert-detail);
+  color: var(--ov-text);
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.8);
+}
+
+.alert-toast.kind-charm .alert-title {
+  color: var(--alert-charm);
+}
+
+.alert-toast.kind-invis .alert-title,
+.alert-toast.kind-invis-fading .alert-title,
+.alert-toast.kind-ivu .alert-title,
+.alert-toast.kind-iva .alert-title {
+  color: var(--alert-invis);
+}
+
+body.is-alerts.is-locked .overlay-panel {
+  background: transparent;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+body.is-alerts.is-locked .overlay-panel::after {
+  display: none;
+}
+
+body.is-alerts.is-locked .overlay-titlebar,
+body.is-alerts.is-locked .empty-state {
+  display: none;
+}
+
+body.is-alerts.is-locked .overlay-alerts {
+  justify-content: center;
 }

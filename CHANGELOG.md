@@ -9,6 +9,14 @@ The in-app **What's new** dialog and General → Updates list are generated from
 
 ## [Unreleased]
 
+## [0.2.5] - 2026-08-13
+
+### Added
+
+- Voice and overlay alert when your charm breaks (`Your Allure spell has worn off of a gnoll`, `Your charm spell has worn off`, and the same pattern for other charm names).
+- Voice and overlay alert when invis starts fading (`You feel yourself starting to appear`) or drops (`You appear`, plus Camouflage / Gather Shadows / IVU / IVA wear-off lines).
+- Positionable **alert overlay** for fading on-screen messages. Unlock to drag it; size, font, and charm/invis colors are configurable. Messages fade after a set duration.
+
 ## [0.2.4] - 2026-08-12
 
 ### Added
@@ -75,7 +83,8 @@ Initial public release of Berryworks — an EverQuest Legends timers toolkit tha
 - Windows NSIS installer bundle and GitHub Actions release workflow (tag-driven builds uploading `Berryworks_*_x64-setup.exe`).
 - MIT license and README install / in-game / development docs.
 
-[Unreleased]: https://github.com/jungleberrydev/berryworks/compare/v0.2.4...HEAD
+[Unreleased]: https://github.com/jungleberrydev/berryworks/compare/v0.2.5...HEAD
+[0.2.5]: https://github.com/jungleberrydev/berryworks/compare/v0.2.4...v0.2.5
 [0.2.4]: https://github.com/jungleberrydev/berryworks/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/jungleberrydev/berryworks/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/jungleberrydev/berryworks/compare/v0.2.1...v0.2.2

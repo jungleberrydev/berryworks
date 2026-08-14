@@ -113,6 +113,70 @@ export interface LootSnapshot {
   items: LootItemRow[];
 }
 
+export interface MeterAbility {
+  name: string;
+  kind: string;
+  damage: number;
+  healing: number;
+  hits: number;
+  misses: number;
+  resists: number;
+}
+
+export interface MeterActor {
+  key: string;
+  name: string;
+  is_you: boolean;
+  is_pet: boolean;
+  is_charm_pet: boolean;
+  damage: number;
+  healing: number;
+  taken: number;
+  dps: number;
+  hits: number;
+  misses: number;
+  resists: number;
+  abilities: MeterAbility[];
+}
+
+export interface MeterFight {
+  id: string;
+  title: string;
+  zone: string | null;
+  started_at: string;
+  ended_at: string | null;
+  duration_secs: number;
+  active: boolean;
+  damage: number;
+  healing: number;
+  dps: number;
+  actors: MeterActor[];
+}
+
+export interface MeterSession {
+  started_at: string;
+  elapsed_secs: number;
+  kills: number;
+  kills_per_hour: number;
+  plat_copper: number;
+  plat_per_hour_copper: number;
+  deaths: number;
+  fights: number;
+  damage: number;
+  session_dps: number;
+  combat_secs: number;
+  zone: string | null;
+}
+
+export interface MeterSnapshot {
+  character: string;
+  zone: string | null;
+  session: MeterSession;
+  current: MeterFight | null;
+  overall: MeterFight;
+  recent: MeterFight[];
+}
+
 export interface RareCamp {
   id: string;
   label: string;
@@ -156,6 +220,10 @@ let lootView: "mobs" | "items" = "mobs";
 let lootSnapshot: LootSnapshot | null = null;
 let appearanceSaveTimer: ReturnType<typeof setTimeout> | null = null;
 let lootSearchTimer: ReturnType<typeof setTimeout> | null = null;
+let combatView: "fight" | "overall" = "fight";
+let combatSnapshot: MeterSnapshot | null = null;
+let selectedFightId: string | null = null;
+let selectedActorKey: string | null = null;
 
 function $(id: string): HTMLElement {
   const el = document.getElementById(id);
@@ -207,6 +275,16 @@ function rememberClass(name: string) {
 
 function overlayOf(cfg: AppConfig | null): OverlayAppearance {
   return { ...DEFAULT_OVERLAY, ...(cfg?.overlay ?? {}) };
+}
+
+function syncOverlayLockUi(locked: boolean) {
+  const box = document.getElementById("overlay-locked") as HTMLInputElement | null;
+  if (box) box.checked = locked;
+  const btn = document.getElementById("btn-overlay-lock");
+  if (btn) {
+    btn.textContent = locked ? "Unlock Overlays" : "Lock Overlays";
+    btn.setAttribute("aria-pressed", locked ? "true" : "false");
+  }
 }
 
 function spellIconByName(name: string): string | undefined {
@@ -658,6 +736,8 @@ function readAppearanceFromForm(): OverlayAppearance {
     expiry_warn_secs: expiryWarnSecs,
     show_respawn_window: showRespawnWindow,
     show_alert_window: showAlertWindow,
+    show_meter_window: (document.getElementById("combat-show-meter-window") as HTMLInputElement)
+      .checked,
     alert_secs: alertSecs,
     alert_font_family: alertFontFamily,
     alert_size: alertSize,
@@ -728,6 +808,8 @@ function writeAppearanceToForm(ov: OverlayAppearance) {
     merged.show_respawn_window !== false;
   (document.getElementById("ov-show-alert-window") as HTMLInputElement).checked =
     merged.show_alert_window !== false;
+  (document.getElementById("combat-show-meter-window") as HTMLInputElement).checked =
+    !!merged.show_meter_window;
   const alertSecs = clampAlertSecs(merged.alert_secs);
   (document.getElementById("ov-alert-secs") as HTMLInputElement).value = String(alertSecs);
   $("ov-alert-secs-label").textContent = formatAlertSecsLabel(alertSecs);
@@ -998,7 +1080,7 @@ async function load() {
   );
   (document.getElementById("my-pet-name") as HTMLInputElement).value = config.my_pet_name ?? "";
   (document.getElementById("my-pet-name") as HTMLInputElement).title = PET_NAME_HINT;
-  (document.getElementById("overlay-locked") as HTMLInputElement).checked = config.overlay_locked;
+  syncOverlayLockUi(config.overlay_locked);
   (document.getElementById("loot-tracking") as HTMLInputElement).checked =
     config.loot_tracking !== false;
   (document.getElementById("loot-sync-enabled") as HTMLInputElement).checked =
@@ -1031,6 +1113,221 @@ function formatCopper(copper: number): string {
   if (s) parts.push(`${s}s`);
   if (c || parts.length === 0) parts.push(`${c}c`);
   return parts.join(" ");
+}
+
+function formatDuration(secs: number): string {
+  const s = Math.max(0, Math.floor(secs));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const r = s % 60;
+  if (h > 0) return `${h}:${m.toString().padStart(2, "0")}:${r.toString().padStart(2, "0")}`;
+  return `${m}:${r.toString().padStart(2, "0")}`;
+}
+
+function formatDps(n: number): string {
+  if (!Number.isFinite(n) || n <= 0) return "0";
+  if (n >= 1000) return n.toFixed(0);
+  return n.toFixed(1);
+}
+
+function combatFightForView(snap: MeterSnapshot): MeterFight | null {
+  if (combatView === "overall") return snap.overall;
+  if (selectedFightId && snap.current?.id === selectedFightId) return snap.current;
+  if (selectedFightId) {
+    const recent = snap.recent.find((f) => f.id === selectedFightId);
+    if (recent) return recent;
+  }
+  return snap.current ?? snap.recent[0] ?? null;
+}
+
+function renderCombat(snap: MeterSnapshot | null) {
+  combatSnapshot = snap;
+  const sessionEl = document.getElementById("combat-session");
+  if (!sessionEl) return;
+  if (!snap) {
+    sessionEl.innerHTML = `<span>Waiting for log…</span>`;
+    return;
+  }
+  const s = snap.session;
+  const elapsed = Math.max(
+    0,
+    (Date.now() - new Date(s.started_at).getTime()) / 1000
+  );
+  const hours = Math.max(elapsed / 3600, 1 / 3600);
+  sessionEl.innerHTML = `
+    <span><strong>${formatDuration(elapsed)}</strong></span>
+    <span><strong>${s.kills}</strong> kills (${(s.kills / hours).toFixed(0)}/hr)</span>
+    <span><strong>${escapeHtml(formatCopper(s.plat_copper))}</strong> (${escapeHtml(
+      formatCopper(Math.round(s.plat_copper / hours))
+    )}/hr)</span>
+    <span><strong>${formatDps(s.damage / Math.max(elapsed, 0.001))}</strong> DPS</span>
+    <span><strong>${s.deaths}</strong> deaths</span>
+    <span><strong>${s.fights}</strong> fights</span>
+    ${s.zone ? `<span class="hint" style="margin:0">${escapeHtml(s.zone)}</span>` : ""}
+  `;
+
+  const fight = combatFightForView(snap);
+  const meta = document.getElementById("combat-fight-meta");
+  if (meta) {
+    if (!fight || (fight.actors.length === 0 && fight.damage === 0)) {
+      meta.textContent = combatView === "overall" ? "No zone damage yet." : "Waiting for combat…";
+    } else {
+      const label = combatView === "overall" ? "Overall" : fight.title;
+      meta.textContent = `${label} · ${formatDuration(fight.duration_secs)} · ${fight.damage} dmg · ${formatDps(fight.dps)} DPS`;
+    }
+  }
+
+  const actorsEl = document.getElementById("combat-actors");
+  if (actorsEl) {
+    const actors = fight?.actors ?? [];
+    const max = Math.max(1, ...actors.map((a) => a.damage));
+    const everyoneSelected = !selectedActorKey;
+    const rows = [
+      `<button type="button" class="combat-bar${everyoneSelected ? " is-selected" : ""}" data-actor="">
+        <span class="combat-bar-name">Everyone</span>
+        <span class="combat-bar-stats">${fight?.damage ?? 0} · ${formatDps(fight?.dps ?? 0)} DPS</span>
+        <div class="combat-bar-track"><div class="combat-bar-fill" style="width:100%"></div></div>
+      </button>`,
+      ...actors.map((a) => {
+        const pct = Math.max(2, Math.round((a.damage / max) * 100));
+        const selected = selectedActorKey === a.key ? " is-selected" : "";
+        const you = a.is_you ? " is-you" : "";
+        const tag = a.is_charm_pet ? " (charm)" : a.is_pet ? " (pet)" : "";
+        return `<button type="button" class="combat-bar${selected}${you}" data-actor="${escapeHtml(a.key)}">
+          <span class="combat-bar-name">${escapeHtml(a.name)}${tag}</span>
+          <span class="combat-bar-stats">${a.damage} · ${formatDps(a.dps)} DPS</span>
+          <div class="combat-bar-track"><div class="combat-bar-fill" style="width:${pct}%"></div></div>
+        </button>`;
+      }),
+    ];
+    actorsEl.innerHTML =
+      actors.length || (fight && fight.damage)
+        ? rows.join("")
+        : `<div class="hint">Deal or take damage with /log on to fill the meter.</div>`;
+    actorsEl.querySelectorAll<HTMLButtonElement>("[data-actor]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        selectedActorKey = btn.dataset.actor || null;
+        renderCombat(combatSnapshot);
+      });
+    });
+  }
+
+  const abilitiesEl = document.getElementById("combat-abilities");
+  if (abilitiesEl) {
+    const actor = selectedActorKey
+      ? fight?.actors.find((a) => a.key === selectedActorKey)
+      : null;
+    const abilities = actor
+      ? actor.abilities
+      : mergeAbilities(fight?.actors ?? []);
+    if (!abilities.length) {
+      abilitiesEl.innerHTML = `<div class="hint">Click an actor (or Everyone) to see skill breakdown.</div>`;
+    } else {
+      const total = abilities.reduce((n, a) => n + a.damage, 0) || 1;
+      abilitiesEl.innerHTML = `<table class="loot-table">
+        <thead><tr><th>Ability</th><th class="num">Dmg</th><th class="num">Hits</th><th class="num">Miss</th><th class="num">Resist</th><th class="num">%</th></tr></thead>
+        <tbody>
+          ${abilities
+            .map(
+              (a) => `<tr>
+            <td>${escapeHtml(a.name)}</td>
+            <td class="num">${a.damage || a.healing}</td>
+            <td class="num">${a.hits}</td>
+            <td class="num">${a.misses}</td>
+            <td class="num">${a.resists}</td>
+            <td class="num loot-rate">${((a.damage / total) * 100).toFixed(0)}%</td>
+          </tr>`
+            )
+            .join("")}
+        </tbody>
+      </table>`;
+    }
+  }
+
+  const fightsEl = document.getElementById("combat-fights");
+  if (fightsEl) {
+    const list = [
+      ...(snap.current ? [snap.current] : []),
+      ...snap.recent,
+    ];
+    if (!list.length) {
+      fightsEl.innerHTML = `<div class="hint">Closed pulls appear here.</div>`;
+    } else {
+      fightsEl.innerHTML = list
+        .map((f) => {
+          const selected = f.id === (selectedFightId || snap.current?.id) ? " is-selected" : "";
+          const active = f.active ? " is-active" : "";
+          return `<button type="button" class="combat-fight-row${selected}${active}" data-fight="${escapeHtml(f.id)}">
+            <span>${escapeHtml(f.title)}${f.active ? " (live)" : ""}</span>
+            <span>${f.damage} · ${formatDps(f.dps)} DPS · ${formatDuration(f.duration_secs)}</span>
+          </button>`;
+        })
+        .join("");
+      fightsEl.querySelectorAll<HTMLButtonElement>("[data-fight]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          selectedFightId = btn.dataset.fight || null;
+          combatView = "fight";
+          document.querySelectorAll<HTMLButtonElement>("[data-combat-view]").forEach((b) => {
+            b.classList.toggle("is-active", b.dataset.combatView === "fight");
+          });
+          selectedActorKey = null;
+          renderCombat(combatSnapshot);
+        });
+      });
+    }
+  }
+}
+
+function mergeAbilities(actors: MeterActor[]): MeterAbility[] {
+  const map = new Map<string, MeterAbility>();
+  for (const actor of actors) {
+    for (const a of actor.abilities) {
+      const key = a.name.toLowerCase();
+      const cur = map.get(key);
+      if (!cur) {
+        map.set(key, { ...a });
+      } else {
+        cur.damage += a.damage;
+        cur.healing += a.healing;
+        cur.hits += a.hits;
+        cur.misses += a.misses;
+        cur.resists += a.resists;
+      }
+    }
+  }
+  return [...map.values()].sort((a, b) => b.damage - a.damage || a.name.localeCompare(b.name));
+}
+
+async function refreshCombat() {
+  combatSnapshot = await invoke<MeterSnapshot>("get_meter");
+  renderCombat(combatSnapshot);
+}
+
+function initCombatUi() {
+  document.querySelectorAll<HTMLButtonElement>("[data-combat-view]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const view = btn.dataset.combatView;
+      if (view !== "fight" && view !== "overall") return;
+      combatView = view;
+      document.querySelectorAll<HTMLButtonElement>("[data-combat-view]").forEach((b) => {
+        b.classList.toggle("is-active", b.dataset.combatView === view);
+      });
+      if (view === "overall") selectedFightId = null;
+      selectedActorKey = null;
+      renderCombat(combatSnapshot);
+    });
+  });
+  document.getElementById("btn-reset-session")?.addEventListener("click", async () => {
+    selectedFightId = null;
+    selectedActorKey = null;
+    combatSnapshot = await invoke<MeterSnapshot>("reset_meter_session");
+    renderCombat(combatSnapshot);
+  });
+  window.setInterval(() => {
+    const panel = document.getElementById("section-combat");
+    if (!panel || panel.hidden || !combatSnapshot) return;
+    renderCombat(combatSnapshot);
+  }, 1000);
 }
 
 function renderLootSummary(snap: LootSnapshot) {
@@ -1144,6 +1441,9 @@ function initSectionNav() {
     }
     if (id === "loot") {
       void refreshLoot();
+    }
+    if (id === "combat") {
+      void refreshCombat();
     }
   };
   for (const tab of tabs) {
@@ -1613,6 +1913,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   initSectionNav();
   initSettingsTabs();
   initLootUi();
+  initCombatUi();
   await load();
   initVoiceSelect();
   await initUpdaterUi();
@@ -1659,12 +1960,15 @@ window.addEventListener("DOMContentLoaded", async () => {
     await applyRespawnZone(zone);
   });
 
-  $("btn-show-overlay").addEventListener("click", async () => {
-    await invoke("show_overlay");
-  });
-
   $("overlay-locked").addEventListener("change", async (e) => {
     const locked = (e.target as HTMLInputElement).checked;
+    syncOverlayLockUi(locked);
+    await invoke("set_overlay_locked", { locked });
+  });
+
+  $("btn-overlay-lock").addEventListener("click", async () => {
+    const locked = !(document.getElementById("overlay-locked") as HTMLInputElement).checked;
+    syncOverlayLockUi(locked);
     await invoke("set_overlay_locked", { locked });
   });
 
@@ -1701,6 +2005,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     "my-pet-name",
     "ov-show-respawn-window",
     "ov-show-alert-window",
+    "combat-show-meter-window",
     "ov-alert-secs",
     "ov-alert-size",
     "ov-alert-font-family",
@@ -1769,8 +2074,13 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
+  await listen<MeterSnapshot>("meter-updated", (event) => {
+    renderCombat(event.payload);
+  });
+
   await listen<AppConfig>("config-updated", (event) => {
     config = event.payload;
+    syncOverlayLockUi(config.overlay_locked);
     (document.getElementById("my-pet-name") as HTMLInputElement).value =
       config.my_pet_name ?? "";
     (document.getElementById("loot-tracking") as HTMLInputElement).checked =

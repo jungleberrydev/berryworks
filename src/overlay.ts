@@ -75,8 +75,8 @@ interface RespawnsPayload {
   zone: string | null;
 }
 
-/** Window role: main, enemies-only, respawns, or fading alerts. */
-type OverlayRole = "main" | "enemies" | "respawns" | "alerts";
+/** Window role: main, enemies-only, respawns, fading alerts, or DPS meter. */
+type OverlayRole = "main" | "enemies" | "respawns" | "alerts" | "meter";
 
 let locked = false;
 let appearance: OverlayAppearance = { ...DEFAULT_OVERLAY };
@@ -214,30 +214,23 @@ function applyAppearance(ov: OverlayAppearance) {
   document.body.classList.toggle("is-enemies", overlayRole === "enemies");
   document.body.classList.toggle("is-respawns", overlayRole === "respawns");
   document.body.classList.toggle("is-alerts", overlayRole === "alerts");
-  const roleLabel = document.getElementById("role-label");
-  if (roleLabel) {
-    if (overlayRole === "enemies") {
-      roleLabel.textContent = "Enemies";
-      roleLabel.hidden = false;
-    } else if (overlayRole === "respawns") {
-      roleLabel.textContent = "Respawns";
-      roleLabel.hidden = false;
-    } else if (overlayRole === "alerts") {
-      roleLabel.textContent = "Alerts";
-      roleLabel.hidden = false;
-    } else {
-      roleLabel.textContent = "";
-      roleLabel.hidden = true;
-    }
-  }
+  document.body.classList.toggle("is-meter", overlayRole === "meter");
+  document.body.classList.toggle("is-main", overlayRole === "main");
+  syncRoleLabel();
   const zoneSelect = document.getElementById("zone-select") as HTMLSelectElement | null;
   if (zoneSelect) {
     zoneSelect.hidden = overlayRole !== "respawns";
   }
+  const meterScope = document.getElementById("meter-scope") as HTMLSelectElement | null;
+  if (meterScope) {
+    meterScope.hidden = overlayRole !== "meter";
+  }
   const timers = document.getElementById("timers");
   const alerts = document.getElementById("alerts");
-  if (timers) timers.hidden = overlayRole === "alerts";
+  const meter = document.getElementById("meter");
+  if (timers) timers.hidden = overlayRole === "alerts" || overlayRole === "meter";
   if (alerts) alerts.hidden = overlayRole !== "alerts";
+  if (meter) meter.hidden = overlayRole !== "meter";
   if (overlayRole === "alerts") {
     syncAlertsIdle();
   }
@@ -261,6 +254,62 @@ function escapeHtml(s: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+interface OverlayMeterActor {
+  key: string;
+  name: string;
+  is_you: boolean;
+  is_pet: boolean;
+  is_charm_pet: boolean;
+  damage: number;
+  dps: number;
+}
+
+interface OverlayMeterFight {
+  title: string;
+  damage: number;
+  dps: number;
+  duration_secs: number;
+  actors: OverlayMeterActor[];
+}
+
+interface OverlayMeterSnapshot {
+  current: OverlayMeterFight | null;
+  overall: OverlayMeterFight;
+}
+
+let meterScope: "fight" | "zone" = "fight";
+
+function formatOverlayDps(n: number): string {
+  if (!Number.isFinite(n) || n <= 0) return "0";
+  return n >= 100 ? n.toFixed(0) : n.toFixed(1);
+}
+
+function renderMeter(snap: OverlayMeterSnapshot) {
+  const box = document.getElementById("meter");
+  if (!box || overlayRole !== "meter") return;
+  const fight = meterScope === "zone" ? snap.overall : snap.current ?? snap.overall;
+  const actors = (fight?.actors ?? []).filter((a) => a.damage > 0).slice(0, 8);
+  if (!actors.length) {
+    box.innerHTML = `<div class="empty-state">Waiting for combat…</div>`;
+    return;
+  }
+  const max = Math.max(1, ...actors.map((a) => a.damage));
+  const header = `${formatOverlayDps(fight.dps)} DPS · ${fight.damage}`;
+  box.innerHTML = `<div class="ometer-head">${escapeHtml(header)}</div>${actors
+    .map((a) => {
+      const pct = Math.max(4, Math.round((a.damage / max) * 100));
+      const you = a.is_you ? " is-you" : "";
+      return `<div class="ometer-row${you}">
+        <div class="ometer-meta">
+          <span class="ometer-name">${escapeHtml(a.name)}</span>
+          <span class="ometer-dps">${formatOverlayDps(a.dps)}</span>
+        </div>
+        <div class="ometer-track"><div class="ometer-fill" style="width:${pct}%"></div></div>
+      </div>`;
+    })
+    .join("")}`;
 }
 function spellIconHtml(spellName: string): string {
   if (appearance.show_icons === false) return "";
@@ -666,11 +715,7 @@ function patchOverlayRows(
 function renderRespawns(timers: RespawnTimer[], zone: string | null) {
   lastRespawns = timers;
   lastRespawnZone = zone;
-  const roleLabel = document.getElementById("role-label");
-  if (roleLabel && overlayRole === "respawns") {
-    roleLabel.textContent = "Respawns";
-    roleLabel.hidden = false;
-  }
+  syncRoleLabel();
   syncOverlayZoneSelect(zone);
   const box = document.getElementById("timers")!;
   if (!timers.length) {
@@ -736,8 +781,31 @@ function render(timers: ActiveTimer[], recent: RecentExpired[] = []) {
   }
   box.innerHTML = parts.join("");
 }
+function overlayRoleTitle(role: OverlayRole): string {
+  switch (role) {
+    case "enemies":
+      return "Enemies";
+    case "respawns":
+      return "Respawns";
+    case "alerts":
+      return "Alerts";
+    case "meter":
+      return "DPS";
+    default:
+      return "Timers";
+  }
+}
+
+function syncRoleLabel() {
+  const roleLabel = document.getElementById("role-label");
+  if (!roleLabel) return;
+  roleLabel.textContent = overlayRoleTitle(overlayRole);
+  roleLabel.hidden = locked;
+}
+
 function syncLockedChrome() {
   document.body.classList.toggle("is-locked", locked);
+  syncRoleLabel();
   if (overlayRole === "alerts") syncAlertsIdle();
 }
 
@@ -799,15 +867,10 @@ window.addEventListener("DOMContentLoaded", async () => {
   if (win.label === "overlay-enemies") overlayRole = "enemies";
   else if (win.label === "overlay-respawns") overlayRole = "respawns";
   else if (win.label === "overlay-alerts") overlayRole = "alerts";
+  else if (win.label === "overlay-meter") overlayRole = "meter";
   else overlayRole = "main";
 
-  if (overlayRole !== "respawns" && overlayRole !== "alerts") {
-    await loadSpellIcons();
-  }
-
-  const config = await invoke<AppConfig>("get_config");
-  locked = config.overlay_locked;
-  applyConfig(config);
+  applyAppearance(DEFAULT_OVERLAY);
   syncLockedChrome();
 
   document.querySelector(".overlay-titlebar")?.addEventListener("mousedown", async (e) => {
@@ -819,6 +882,19 @@ window.addEventListener("DOMContentLoaded", async () => {
       /* ignore */
     }
   });
+
+  if (overlayRole !== "respawns" && overlayRole !== "alerts" && overlayRole !== "meter") {
+    await loadSpellIcons();
+  }
+
+  try {
+    const config = await invoke<AppConfig>("get_config");
+    locked = config.overlay_locked;
+    applyConfig(config);
+    syncLockedChrome();
+  } catch {
+    /* still show labels / allow drag */
+  }
 
   document.getElementById("timers")!.addEventListener("contextmenu", async (e) => {
     if (locked || !rightClickDismiss) return;
@@ -872,6 +948,21 @@ window.addEventListener("DOMContentLoaded", async () => {
     await listen<AppConfig>("config-updated", (event) => {
       applyConfig(event.payload);
       syncAlertsIdle();
+    });
+  } else if (overlayRole === "meter") {
+    const scopeSelect = document.getElementById("meter-scope") as HTMLSelectElement;
+    scopeSelect.addEventListener("mousedown", (e) => e.stopPropagation());
+    scopeSelect.addEventListener("change", () => {
+      meterScope = scopeSelect.value === "zone" ? "zone" : "fight";
+      void invoke<OverlayMeterSnapshot>("get_meter").then(renderMeter);
+    });
+    const payload = await invoke<OverlayMeterSnapshot>("get_meter");
+    renderMeter(payload);
+    await listen<OverlayMeterSnapshot>("meter-updated", (event) => {
+      renderMeter(event.payload);
+    });
+    await listen<AppConfig>("config-updated", (event) => {
+      applyConfig(event.payload);
     });
   } else {
     const payload = await invoke<TimersPayload>("get_timers");

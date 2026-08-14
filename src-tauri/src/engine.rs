@@ -263,6 +263,17 @@ pub fn is_lull_spell(spell: &str) -> bool {
 
 pub use crate::parser::is_charm_spell;
 
+fn is_charm_land_phrase(land_other: &str) -> bool {
+    matches!(
+        land_other.trim().to_ascii_lowercase().as_str(),
+        "has been charmed" | "blinks" | "moans"
+    )
+}
+
+fn is_own_charm_cast(spell: &SpellDef) -> bool {
+    is_charm_spell(&spell.name) || is_charm_land_phrase(&spell.land_other)
+}
+
 /// Recently-wore-off list: renew-relevant self / ally buffs only.
 ///
 /// Never enemy-targeted (debuff/DoT/lull on NPCs). Also never raw `debuff`/`dot`
@@ -384,6 +395,18 @@ fn is_root_spell(spell: &str) -> bool {
 /// the same spell/tier for this long (AE mez / multi-target land spam).
 const AE_LAND_WINDOW: Duration = Duration::from_secs(2);
 
+/// Own-cast window for binding a charm broadcast (`has been charmed` / `blinks` /
+/// `moans`). Longest charm cast in the DB is Allure at 6s; log timestamps are
+/// whole seconds, so 8s covers cast time plus slack. The general pending timeout
+/// is 15s (AE mez) and is too wide — a nearby enchanter's charm would steal it.
+const CHARM_ARM_WINDOW: Duration = Duration::from_secs(8);
+
+#[derive(Debug, Clone)]
+struct CharmedBind {
+    name: String,
+    spell: String,
+}
+
 #[derive(Debug, Clone)]
 struct PendingCast {
     spell: String,
@@ -401,6 +424,9 @@ pub struct TimerEngine {
     pending_timeout: Duration,
     last_charm_break: Option<CharmBreakAlert>,
     last_invis_break: Option<InvisBreakAlert>,
+    /// NPCs bound as *your* charm pets (own-cast resolved). Independent of
+    /// overlay timers so the meter still attributes when charm isn't watched.
+    charmed: Vec<CharmedBind>,
 }
 
 impl TimerEngine {
@@ -412,6 +438,7 @@ impl TimerEngine {
             pending_timeout: Duration::from_secs(15),
             last_charm_break: None,
             last_invis_break: None,
+            charmed: Vec::new(),
         }
     }
 
@@ -423,6 +450,11 @@ impl TimerEngine {
     /// Drain the alert produced by the last `InvisBreak` (if any).
     pub fn take_invis_break_alert(&mut self) -> Option<InvisBreakAlert> {
         self.last_invis_break.take()
+    }
+
+    /// NPC names currently bound as your charm pets (own-cast, not You).
+    pub fn charmed_targets(&self) -> Vec<String> {
+        self.charmed.iter().map(|c| c.name.clone()).collect()
     }
 
     pub fn timers(&self) -> &[ActiveTimer] {
@@ -486,7 +518,8 @@ impl TimerEngine {
         let changed = match event {
             LogEvent::BeginCast { spell } => {
                 if let Some((def, tier)) = resolve_cast_spell(spells, &spell) {
-                    if is_watched(config, &def.name) {
+                    // Charm arms even when unwatched so the meter can bind the pet.
+                    if is_watched(config, &def.name) || is_own_charm_cast(&def) {
                         self.pending = Some(PendingCast {
                             spell: def.name.clone(),
                             tier,
@@ -511,7 +544,7 @@ impl TimerEngine {
                     // heuristics; still try land_you before land_other.
                     true
                 } else {
-                    self.try_land_other(&message, spells, config)
+                    self.try_land_other(&message, spells, config, recent_ttl_secs)
                 }
             }
             LogEvent::LandYou { message } => {
@@ -528,7 +561,7 @@ impl TimerEngine {
                     // Land lines that contain "fades" (Shade/Shadow/Umbra) used to be
                     // misclassified as wear-off; still try to start a timer.
                     self.try_land_you(&message, spells, config)
-                        || self.try_land_other(&message, spells, config)
+                        || self.try_land_other(&message, spells, config, recent_ttl_secs)
                 }
             }
             LogEvent::MezBreak { target, .. } => self.cancel_by_target(&target, recent_ttl_secs),
@@ -538,9 +571,22 @@ impl TimerEngine {
             // Dead mobs lose every DoT/debuff; clear all timers for that name.
             LogEvent::Death { target, .. } => self.cancel_all_by_target(&target, recent_ttl_secs),
             LogEvent::ZoneChange { .. } => {
-                // Keep timers across zones; only clear pending cast
+                // Buffs persist; charmed pets are left behind.
                 self.pending = None;
-                false
+                self.drop_own_charms(recent_ttl_secs)
+            }
+            LogEvent::CombatHit {
+                attacker,
+                kind,
+                incoming,
+                ..
+            } => {
+                // Charm break often prints after the pet already swung at you.
+                if incoming && kind != "heal" {
+                    self.apply_charm_hostile_break(&attacker, recent_ttl_secs)
+                } else {
+                    false
+                }
             }
             // Level-ups are applied to AppConfig in lib.rs (duration formulas).
             LogEvent::LevelUp { .. } => false,
@@ -571,11 +617,102 @@ impl TimerEngine {
         }
     }
 
+    fn charm_arm_fresh(pending: &PendingCast) -> bool {
+        Utc::now()
+            .signed_duration_since(pending.started_at)
+            .to_std()
+            .unwrap_or(Duration::MAX)
+            <= CHARM_ARM_WINDOW
+    }
+
+    /// Bind an NPC as your charm pet. Consumes the pending own-cast arm.
+    /// Overlay timer still requires the spell to be watched.
+    fn bind_own_charm(
+        &mut self,
+        spell: &SpellDef,
+        target: &str,
+        config: &AppConfig,
+        pending: &PendingCast,
+        recent_ttl_secs: u64,
+    ) -> bool {
+        self.pending = None;
+        if target.eq_ignore_ascii_case("You") {
+            return false;
+        }
+        if !Self::charm_arm_fresh(pending) {
+            return false;
+        }
+        self.drop_own_charms(recent_ttl_secs);
+        self.charmed.push(CharmedBind {
+            name: target.to_string(),
+            spell: spell.name.clone(),
+        });
+        if is_watched(config, &spell.name) && should_track_land_target(spell, target, config) {
+            self.start_timer(spell, target, config, pending.tier, true);
+            return true;
+        }
+        false
+    }
+
+    /// Drop every live own-charm bind and its overlay timer (recast / zone).
+    /// Wear-off and hostile breaks go through `apply_charm_break` so they alert.
+    fn drop_own_charms(&mut self, recent_ttl_secs: u64) -> bool {
+        let binds = std::mem::take(&mut self.charmed);
+        let mut removed = Vec::new();
+        self.timers.retain(|t| {
+            if t.target.eq_ignore_ascii_case("You") {
+                return true;
+            }
+            let by_spell = is_charm_spell(&t.spell);
+            let by_roster = binds.iter().any(|c| c.name.eq_ignore_ascii_case(&t.target));
+            if by_spell || by_roster {
+                removed.push(t.clone());
+                false
+            } else {
+                true
+            }
+        });
+        if removed.is_empty() {
+            return false;
+        }
+        self.record_ended(removed, recent_ttl_secs);
+        true
+    }
+
+    fn apply_charm_hostile_break(&mut self, attacker: &str, recent_ttl_secs: u64) -> bool {
+        let had = self
+            .charmed
+            .iter()
+            .any(|c| c.name.eq_ignore_ascii_case(attacker));
+        if !had {
+            return false;
+        }
+        self.charmed
+            .retain(|c| !c.name.eq_ignore_ascii_case(attacker));
+        let mut removed = Vec::new();
+        self.timers.retain(|t| {
+            if t.target.eq_ignore_ascii_case("You") || !t.target.eq_ignore_ascii_case(attacker) {
+                return true;
+            }
+            if !is_charm_spell(&t.spell) {
+                return true;
+            }
+            removed.push(t.clone());
+            false
+        });
+        if removed.is_empty() {
+            return false;
+        }
+        self.record_ended(removed, recent_ttl_secs);
+        true
+    }
+
     fn try_land_other(
         &mut self,
         message: &str,
         spells: &[SpellDef],
         config: &AppConfig,
+        recent_ttl_secs: u64,
     ) -> bool {
         let lower = message.to_lowercase();
 
@@ -583,6 +720,15 @@ impl TimerEngine {
         if let Some(pending) = self.pending.clone() {
             if let Some(spell) = find_spell_by_name(spells, &pending.spell) {
                 if let Some(target) = extract_target(message, &spell.land_other) {
+                    if is_own_charm_cast(spell) {
+                        return self.bind_own_charm(
+                            spell,
+                            &target,
+                            config,
+                            &pending,
+                            recent_ttl_secs,
+                        );
+                    }
                     if is_watched(config, &spell.name) {
                         if should_track_land_target(spell, &target, config) {
                             self.start_timer(spell, &target, config, pending.tier, true);
@@ -617,8 +763,12 @@ impl TimerEngine {
         // Fallback: scan watched spells for land_other match (group member cast / missed begin).
         // Prefer the longest land_other phrase so "'s skin shimmers with divine power"
         // is not stolen by the shorter "'s skin shimmers" (Natureskin / PotG).
+        // Charm broadcasts name no caster — never bind one without an own-cast arm.
         let mut best_other: Option<(&SpellDef, String)> = None;
         for spell in spells {
+            if is_own_charm_cast(spell) {
+                continue;
+            }
             if !is_watched(config, &spell.name) || spell.land_other.is_empty() {
                 continue;
             }
@@ -824,14 +974,34 @@ impl TimerEngine {
             });
         }
         removed.sort_by_key(|t| t.ends_at);
+        let roster_bind = if line_tgt.is_empty() {
+            self.charmed.first().cloned()
+        } else {
+            self.charmed
+                .iter()
+                .find(|c| c.name.eq_ignore_ascii_case(line_tgt))
+                .cloned()
+        };
+        if line_tgt.is_empty() {
+            self.charmed.clear();
+        } else {
+            self.charmed
+                .retain(|c| !c.name.eq_ignore_ascii_case(line_tgt));
+        }
         self.last_charm_break = Some(match removed.first() {
             Some(t) => CharmBreakAlert {
                 spell: t.spell.clone(),
                 target: t.target.clone(),
             },
-            None => CharmBreakAlert {
-                spell: named.to_string(),
-                target: line_tgt.to_string(),
+            None => match roster_bind {
+                Some(c) => CharmBreakAlert {
+                    spell: c.spell.clone(),
+                    target: c.name.clone(),
+                },
+                None => CharmBreakAlert {
+                    spell: named.to_string(),
+                    target: line_tgt.to_string(),
+                },
             },
         });
         !removed.is_empty()
@@ -875,6 +1045,8 @@ impl TimerEngine {
                 true
             }
         });
+        self.charmed
+            .retain(|c| !c.name.eq_ignore_ascii_case(target));
         if removed.is_empty() {
             return false;
         }
@@ -902,6 +1074,7 @@ impl TimerEngine {
         self.timers.clear();
         self.recent_expired.clear();
         self.pending = None;
+        self.charmed.clear();
     }
 
     #[cfg(test)]
@@ -1202,6 +1375,204 @@ mod tests {
     }
 
     #[test]
+    fn foreign_charm_broadcast_is_not_yours() {
+        let spells = load_spells().expect("spells");
+        let mut config = AppConfig::default();
+        config.watched.insert("Charm".into(), true);
+        config.watched.insert("Beguile".into(), true);
+
+        let mut engine = TimerEngine::new();
+        let changed = engine.handle(
+            parse_line("[Wed Aug 5 23:00:03 2026] A gnoll has been charmed."),
+            &spells,
+            &config,
+        );
+        assert!(!changed);
+        assert!(engine.timers().is_empty());
+        assert!(engine.charmed_targets().is_empty());
+    }
+
+    #[test]
+    fn unwatched_own_charm_still_binds_for_meter() {
+        let spells = load_spells().expect("spells");
+        let mut config = AppConfig::default();
+        config.watched.insert("Beguile".into(), false);
+
+        let mut engine = TimerEngine::new();
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:00 2026] You begin casting Beguile."),
+            &spells,
+            &config,
+        );
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:03 2026] A gnoll has been charmed."),
+            &spells,
+            &config,
+        );
+        assert!(engine.timers().is_empty());
+        assert_eq!(engine.charmed_targets(), vec!["A gnoll"]);
+    }
+
+    #[test]
+    fn zone_drops_charm_keeps_other_timers() {
+        let spells = load_spells().expect("spells");
+        let mut config = AppConfig::default();
+        config.watched.insert("Beguile".into(), true);
+        config.watched.insert("Mesmerize".into(), true);
+
+        let mut engine = TimerEngine::new();
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:00 2026] You begin casting Beguile."),
+            &spells,
+            &config,
+        );
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:03 2026] A gnoll has been charmed."),
+            &spells,
+            &config,
+        );
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:04 2026] You begin casting Mesmerize."),
+            &spells,
+            &config,
+        );
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:06 2026] An orc pawn has been mesmerized."),
+            &spells,
+            &config,
+        );
+        assert_eq!(engine.timers().len(), 2);
+        assert_eq!(engine.charmed_targets(), vec!["A gnoll"]);
+
+        let changed = engine.handle(
+            parse_line("[Wed Aug 5 23:00:10 2026] You have entered The Greater Faydark."),
+            &spells,
+            &config,
+        );
+        assert!(changed);
+        assert!(engine.charmed_targets().is_empty());
+        assert_eq!(engine.timers().len(), 1);
+        assert_eq!(engine.timers()[0].spell, "Mesmerize");
+        assert!(engine.take_charm_break_alert().is_none());
+    }
+
+    #[test]
+    fn charm_hitting_you_breaks_bind() {
+        let spells = load_spells().expect("spells");
+        let mut config = AppConfig::default();
+        config.watched.insert("Beguile".into(), true);
+
+        let mut engine = TimerEngine::new();
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:00 2026] You begin casting Beguile."),
+            &spells,
+            &config,
+        );
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:03 2026] A gnoll has been charmed."),
+            &spells,
+            &config,
+        );
+        assert_eq!(engine.charmed_targets(), vec!["A gnoll"]);
+
+        let changed = engine.handle(
+            parse_line("[Wed Aug 5 23:00:08 2026] A gnoll slashes YOU for 12 points of damage."),
+            &spells,
+            &config,
+        );
+        assert!(changed);
+        assert!(engine.charmed_targets().is_empty());
+        assert!(engine.timers().is_empty());
+        assert!(engine.take_charm_break_alert().is_none());
+    }
+
+    #[test]
+    fn charm_missing_you_also_breaks_bind() {
+        let spells = load_spells().expect("spells");
+        let mut config = AppConfig::default();
+        config.watched.insert("Beguile".into(), true);
+
+        let mut engine = TimerEngine::new();
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:00 2026] You begin casting Beguile."),
+            &spells,
+            &config,
+        );
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:03 2026] A gnoll has been charmed."),
+            &spells,
+            &config,
+        );
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:08 2026] A gnoll tries to slash YOU, but misses!"),
+            &spells,
+            &config,
+        );
+        assert!(engine.charmed_targets().is_empty());
+        assert!(engine.take_charm_break_alert().is_none());
+    }
+
+    #[test]
+    fn charm_hitting_a_mob_does_not_break() {
+        let spells = load_spells().expect("spells");
+        let mut config = AppConfig::default();
+        config.watched.insert("Beguile".into(), true);
+
+        let mut engine = TimerEngine::new();
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:00 2026] You begin casting Beguile."),
+            &spells,
+            &config,
+        );
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:03 2026] A gnoll has been charmed."),
+            &spells,
+            &config,
+        );
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:08 2026] A gnoll slashes an orc pawn for 12 points of damage."),
+            &spells,
+            &config,
+        );
+        assert_eq!(engine.charmed_targets(), vec!["A gnoll"]);
+        assert_eq!(engine.timers().len(), 1);
+        assert!(engine.take_charm_break_alert().is_none());
+    }
+
+    #[test]
+    fn new_own_charm_replaces_the_previous() {
+        let spells = load_spells().expect("spells");
+        let mut config = AppConfig::default();
+        config.watched.insert("Beguile".into(), true);
+
+        let mut engine = TimerEngine::new();
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:00 2026] You begin casting Beguile."),
+            &spells,
+            &config,
+        );
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:03 2026] A gnoll has been charmed."),
+            &spells,
+            &config,
+        );
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:10 2026] You begin casting Beguile."),
+            &spells,
+            &config,
+        );
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:13 2026] An orc pawn has been charmed."),
+            &spells,
+            &config,
+        );
+        assert_eq!(engine.charmed_targets(), vec!["An orc pawn"]);
+        assert_eq!(engine.timers().len(), 1);
+        assert_eq!(engine.timers()[0].target, "An orc pawn");
+        assert!(engine.take_charm_break_alert().is_none());
+    }
+
+    #[test]
     fn you_appear_alerts_without_a_timer() {
         let spells = load_spells().expect("spells");
         let config = AppConfig::default();
@@ -1291,6 +1662,8 @@ mod tests {
         assert!(!is_charm_spell("Entrance"));
         assert!(!is_charm_spell("Alluring Aura"));
         assert!(!is_charm_spell("Mesmerize"));
+        assert!(is_charm_spell("Tunare's Request"));
+        assert!(is_charm_spell("Tunare`s Request"));
     }
 
     #[test]

@@ -10,12 +10,19 @@
   <body class="overlay-body" data-size="normal">
     <div id="panel" class="overlay-panel">
       <div class="overlay-titlebar" data-tauri-drag-region>
+        <span id="role-label" class="role-label">Timers</span>
         <div class="drag-strip" aria-hidden="true"></div>
-        <span id="role-label" class="role-label" hidden></span>
         <select id="zone-select" class="zone-select" hidden title="Camping zone"></select>
+        <select id="meter-scope" class="zone-select" hidden title="Meter scope">
+          <option value="fight">Fight</option>
+          <option value="zone">Zone</option>
+        </select>
       </div>
       <div id="timers" class="overlay-timers">
         <div class="empty-state">Waiting for spells…</div>
+      </div>
+      <div id="meter" class="overlay-meter" hidden>
+        <div class="empty-state">Waiting for combat…</div>
       </div>
       <div id="alerts" class="overlay-alerts" hidden>
         <div id="alerts-empty" class="empty-state">Alerts appear here…</div>

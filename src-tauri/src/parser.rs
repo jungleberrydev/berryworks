@@ -54,6 +54,20 @@ pub enum LogEvent {
     },
     /// `You receive … from the corpse.` (no mob name — correlate via recent kill).
     CorpseCoin { copper: u64 },
+    /// Melee/spell/DoT/DS hit, miss, resist, or heal.
+    CombatHit {
+        attacker: String,
+        target: String,
+        amount: u64,
+        /// Skill or spell name (`slash`, `Drifting Death`, `Heal`, …).
+        ability: String,
+        /// melee | spell | dot | ds | heal
+        kind: String,
+        /// hit | miss | dodge | parry | block | riposte | resist
+        outcome: String,
+        /// True when YOU are the target (incoming damage or a heal on you).
+        incoming: bool,
+    },
     Other,
 }
 
@@ -78,6 +92,12 @@ fn re_fizzle() -> &'static Regex {
 fn re_zone() -> &'static Regex {
     static RE: OnceLock<Regex> = OnceLock::new();
     RE.get_or_init(|| Regex::new(r"(?i)^You have entered (.+)\.?$").unwrap())
+}
+
+/// You died: `You have been slain by a gnoll!`
+fn re_you_slain_by() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| Regex::new(r"(?i)^You have been slain by (.+?)!?\s*$").unwrap())
 }
 
 /// Self-kill: `You have slain a frenzied ghoul!` (EQL primary death line).
@@ -146,6 +166,8 @@ pub fn is_charm_spell(spell: &str) -> bool {
         "dragon charm",
         "enslave death",
         "thrall of bones",
+        "tunare's request",
+        "tunare`s request",
         "vampire charm",
     ];
     NAMES.iter().any(|s| n == *s)
@@ -374,6 +396,13 @@ pub fn parse_line(line: &str) -> LogEvent {
             kind: invis_break_kind(&caps[1]).to_string(),
         };
     }
+    if let Some(caps) = re_you_slain_by().captures(msg) {
+        return LogEvent::Death {
+            target: "You".into(),
+            by_you: false,
+            killer: Some(caps[1].trim().trim_end_matches('!').trim().to_string()),
+        };
+    }
     // Prefer "You have slain X!" — the common EQL self-kill line — before the
     // other-kill / "died" patterns (which do not match "You have slain …").
     if let Some(caps) = re_you_slain().captures(msg) {
@@ -427,6 +456,10 @@ pub fn parse_line(line: &str) -> LogEvent {
         if let Some(copper) = parse_coin_to_copper(&caps[1]) {
             return LogEvent::CorpseCoin { copper };
         }
+    }
+
+    if let Some(combat) = crate::combat_parse::parse_combat_line(msg) {
+        return combat;
     }
 
     // Wear-off lines (self buffs / DoTs ending). Keep ahead of generic LandOther,
@@ -892,6 +925,51 @@ mod tests {
         match e {
             LogEvent::WearOff { .. } => {}
             other => panic!("expected WearOff, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn drifting_death_tick_is_combat_not_land() {
+        let e = parse_line(
+            "[Wed Aug 05 22:06:06 2026] Hoptor Thaggelum has taken 213 damage from your Drifting Death.",
+        );
+        match e {
+            LogEvent::CombatHit {
+                attacker,
+                amount,
+                kind,
+                ..
+            } => {
+                assert_eq!(attacker, "You");
+                assert_eq!(amount, 213);
+                assert_eq!(kind, "dot");
+            }
+            other => panic!("expected CombatHit, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn parses_you_have_been_slain() {
+        let e = parse_line("[Wed Aug 5 23:00:10 2026] You have been slain by a gnoll!");
+        assert_eq!(
+            e,
+            LogEvent::Death {
+                target: "You".into(),
+                by_you: false,
+                killer: Some("a gnoll".into()),
+            }
+        );
+    }
+
+    #[test]
+    fn heal_is_combat_not_land_you() {
+        let e = parse_line("[Wed Aug 5 23:00:10 2026] You have been healed for 200 points.");
+        match e {
+            LogEvent::CombatHit { kind, amount, .. } => {
+                assert_eq!(kind, "heal");
+                assert_eq!(amount, 200);
+            }
+            other => panic!("expected CombatHit, got {other:?}"),
         }
     }
 }

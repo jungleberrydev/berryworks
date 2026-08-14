@@ -27,6 +27,14 @@ export interface OverlayAppearance {
   hide_other_pets: boolean;
   /** Speak when a timer wears off or is dismissed (main overlay). */
   voice_announcements: boolean;
+  /** Speak when your charm ends (`Your charm spell has worn off`), even if
+   * general wear-off announcements are off.
+   */
+  charm_break_alerts: boolean;
+  /** Speak/show when self invis fades (`You feel yourself starting to appear`)
+   * or drops (`You appear`, Camouflage, IVU, IVA).
+   */
+  invis_break_alerts: boolean;
   /**
    * Web Speech `SpeechSynthesisVoice.voiceURI` for announcements.
    * Empty string = system default voice.
@@ -42,6 +50,18 @@ export interface OverlayAppearance {
   expiry_warn_secs: number;
   /** Show the independent respawn overlay window. */
   show_respawn_window: boolean;
+  /** Show the fading-message alert overlay window. */
+  show_alert_window: boolean;
+  /** How long alert overlay toasts stay (seconds). Clamped 2..=15. */
+  alert_secs: number;
+  /** Alert overlay font; empty = same as overlay font_family. */
+  alert_font_family: string;
+  /** Alert toast size: small | normal | large | huge. */
+  alert_size: string;
+  /** Charm-break toast title color. */
+  alert_charm_color: string;
+  /** Invis / IVU / IVA toast title color. */
+  alert_invis_color: string;
   /** Start a zone-default respawn timer on every kill (rares still use overrides). */
   track_all_kills: boolean;
   /**
@@ -115,12 +135,20 @@ export interface ThemePreset {
     | "self_buffs_only"
     | "hide_other_pets"
     | "voice_announcements"
+    | "charm_break_alerts"
+    | "invis_break_alerts"
     | "voice_uri"
     | "voice_volume"
     | "flash_expiry_warn"
     | "verbal_expiry_warn"
     | "expiry_warn_secs"
     | "show_respawn_window"
+    | "show_alert_window"
+    | "alert_secs"
+    | "alert_font_family"
+    | "alert_size"
+    | "alert_charm_color"
+    | "alert_invis_color"
     | "track_all_kills"
     | "show_window_border"
   > & {
@@ -130,6 +158,8 @@ export interface ThemePreset {
 }
 
 export const TIMER_SIZES = ["minimal", "small", "normal", "large"] as const;
+
+export const ALERT_SIZES = ["small", "normal", "large", "huge"] as const;
 
 export const DEFAULT_OVERLAY: OverlayAppearance = {
   text_color: "#f6ebf1",
@@ -150,12 +180,20 @@ export const DEFAULT_OVERLAY: OverlayAppearance = {
   self_buffs_only: false,
   hide_other_pets: false,
   voice_announcements: true,
+  charm_break_alerts: true,
+  invis_break_alerts: true,
   voice_uri: "",
   voice_volume: 1,
   flash_expiry_warn: true,
   verbal_expiry_warn: false,
   expiry_warn_secs: 10,
   show_respawn_window: true,
+  show_alert_window: true,
+  alert_secs: 5,
+  alert_font_family: "",
+  alert_size: "large",
+  alert_charm_color: "#ff3b3b",
+  alert_invis_color: "#6ec8ff",
   track_all_kills: true,
   show_window_border: false,
 };
@@ -199,6 +237,40 @@ export function formatRecentlyWoreOffLabel(secs: number): string {
 
 export function formatExpiryWarnLabel(secs: number): string {
   return `${clampExpiryWarnSecs(secs)}s`;
+}
+
+/** Alert overlay toast lifetime bounds (seconds). */
+export const ALERT_SECS_MIN = 2;
+export const ALERT_SECS_MAX = 15;
+
+export function clampAlertSecs(secs: number | undefined | null): number {
+  const n = Number(secs);
+  if (!Number.isFinite(n)) return DEFAULT_OVERLAY.alert_secs;
+  return Math.min(ALERT_SECS_MAX, Math.max(ALERT_SECS_MIN, Math.round(n)));
+}
+
+export function formatAlertSecsLabel(secs: number): string {
+  return `${clampAlertSecs(secs)}s`;
+}
+
+export function clampAlertSize(size: string | undefined | null): string {
+  const s = (size || DEFAULT_OVERLAY.alert_size).trim().toLowerCase();
+  return (ALERT_SIZES as readonly string[]).includes(s) ? s : DEFAULT_OVERLAY.alert_size;
+}
+
+export function overlayAlertFontCss(
+  alertFont: string | undefined | null,
+  overlayFont: string | undefined | null
+): string {
+  const id = (alertFont || "").trim();
+  if (!id) return overlayFontCss(overlayFont);
+  return overlayFontCss(id);
+}
+
+export function clampHexColor(value: string | undefined | null, fallback: string): string {
+  const v = (value || "").trim();
+  if (/^#[0-9a-fA-F]{6}$/.test(v)) return v;
+  return fallback;
 }
 
 export function overlayFontCss(fontFamily: string | undefined | null): string {
@@ -389,12 +461,20 @@ export function applyThemePreset(
     self_buffs_only: current.self_buffs_only,
     hide_other_pets: current.hide_other_pets,
     voice_announcements: current.voice_announcements,
+    charm_break_alerts: current.charm_break_alerts,
+    invis_break_alerts: current.invis_break_alerts,
     voice_uri: current.voice_uri,
     voice_volume: current.voice_volume,
     flash_expiry_warn: current.flash_expiry_warn,
     verbal_expiry_warn: current.verbal_expiry_warn,
     expiry_warn_secs: current.expiry_warn_secs,
     show_respawn_window: current.show_respawn_window,
+    show_alert_window: current.show_alert_window,
+    alert_secs: current.alert_secs,
+    alert_font_family: current.alert_font_family,
+    alert_size: current.alert_size,
+    alert_charm_color: current.alert_charm_color,
+    alert_invis_color: current.alert_invis_color,
     track_all_kills: current.track_all_kills,
     show_window_border: current.show_window_border,
   };

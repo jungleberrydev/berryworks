@@ -31,6 +31,13 @@ use tauri_plugin_window_state::{AppHandleExt, StateFlags, WindowExt};
 const OVERLAY_MAIN: &str = "overlay";
 const OVERLAY_ENEMIES: &str = "overlay-enemies";
 const OVERLAY_RESPAWNS: &str = "overlay-respawns";
+const OVERLAY_ALERTS: &str = "overlay-alerts";
+const OVERLAY_WINDOWS: [&str; 4] = [
+    OVERLAY_MAIN,
+    OVERLAY_ENEMIES,
+    OVERLAY_RESPAWNS,
+    OVERLAY_ALERTS,
+];
 const WINDOW_STATE_FILE: &str = ".window-state.json";
 
 /// Persist position/size (and maximized for settings). Skip visible/decorations so
@@ -115,6 +122,26 @@ fn emit_respawns(app: &AppHandle, state: &AppState) {
     let _ = app.emit("respawns-updated", payload);
 }
 
+#[derive(Clone, serde::Serialize)]
+struct OverlayAlert {
+    id: String,
+    title: String,
+    detail: String,
+    kind: String,
+}
+
+fn emit_overlay_alert(app: &AppHandle, title: &str, detail: &str, kind: &str) {
+    let _ = app.emit(
+        "overlay-alert",
+        OverlayAlert {
+            id: uuid::Uuid::new_v4().to_string(),
+            title: title.to_string(),
+            detail: detail.to_string(),
+            kind: kind.to_string(),
+        },
+    );
+}
+
 fn emit_loot(app: &AppHandle, state: &AppState) {
     let payload = {
         let engine = state.loot.lock().unwrap();
@@ -140,9 +167,12 @@ fn apply_line(app: &AppHandle, state: &AppState, line: &str) {
     }
 
     let config = state.config.lock().unwrap().clone();
-    let spell_changed = {
+    let (spell_changed, charm_alert, invis_alert) = {
         let mut engine = state.engine.lock().unwrap();
-        engine.handle(event.clone(), &state.spells, &config)
+        let changed = engine.handle(event.clone(), &state.spells, &config);
+        let charm = engine.take_charm_break_alert();
+        let invis = engine.take_invis_break_alert();
+        (changed, charm, invis)
     };
     let respawn_changed = {
         let mut engine = state.respawn.lock().unwrap();
@@ -162,6 +192,27 @@ fn apply_line(app: &AppHandle, state: &AppState, line: &str) {
     };
     if spell_changed {
         emit_timers(app, state);
+    }
+    if let Some(alert) = charm_alert {
+        let _ = app.emit("charm-broke", &alert);
+        if config.overlay.charm_break_alerts {
+            emit_overlay_alert(app, "Charm break!", &alert.target, "charm");
+        }
+    }
+    if let Some(alert) = invis_alert {
+        let _ = app.emit("invis-broke", &alert);
+        if config.overlay.invis_break_alerts {
+            let (title, kind) = if alert.fading {
+                ("Invis fading!", "invis-fading")
+            } else {
+                match alert.kind.as_str() {
+                    "ivu" => ("IVU wore off!", "ivu"),
+                    "iva" => ("IVA wore off!", "iva"),
+                    _ => ("Invis wore off!", "invis"),
+                }
+            };
+            emit_overlay_alert(app, title, "", kind);
+        }
     }
     if respawn_changed {
         // Persist zone from log so settings / restart stay in sync.
@@ -194,7 +245,7 @@ fn apply_line(app: &AppHandle, state: &AppState, line: &str) {
 }
 
 fn is_overlay_label(label: &str) -> bool {
-    label == OVERLAY_MAIN || label == OVERLAY_ENEMIES || label == OVERLAY_RESPAWNS
+    OVERLAY_WINDOWS.contains(&label)
 }
 
 fn geom_is_usable(g: &SavedWindowGeom) -> bool {
@@ -319,7 +370,7 @@ fn restore_overlay_geom(app: &AppHandle, label: &str) {
 
 fn snapshot_overlay_pins(app: &AppHandle) -> Vec<(WebviewWindow, SavedWindowGeom)> {
     let mut pins = Vec::new();
-    for label in [OVERLAY_MAIN, OVERLAY_ENEMIES, OVERLAY_RESPAWNS] {
+    for label in OVERLAY_WINDOWS {
         let Some(win) = app.get_webview_window(label) else {
             continue;
         };
@@ -374,7 +425,7 @@ fn persist_overlay_geoms(app: &AppHandle) {
     let Some(obj) = root.as_object_mut() else {
         return;
     };
-    for label in [OVERLAY_MAIN, OVERLAY_ENEMIES, OVERLAY_RESPAWNS] {
+    for label in OVERLAY_WINDOWS {
         let Some(g) = geoms.get(label) else {
             continue;
         };
@@ -408,7 +459,7 @@ fn persist_overlay_geoms(app: &AppHandle) {
 }
 
 fn track_overlay_geometry(app: &AppHandle) {
-    for label in [OVERLAY_MAIN, OVERLAY_ENEMIES, OVERLAY_RESPAWNS] {
+    for label in OVERLAY_WINDOWS {
         let Some(win) = app.get_webview_window(label) else {
             continue;
         };
@@ -469,7 +520,7 @@ fn track_overlay_geometry(app: &AppHandle) {
 /// for a clean in-game look.
 fn apply_overlay_lock(app: &AppHandle, locked: bool) {
     pin_overlay_positions(app, || {
-        for label in [OVERLAY_MAIN, OVERLAY_ENEMIES, OVERLAY_RESPAWNS] {
+        for label in OVERLAY_WINDOWS {
             if let Some(win) = app.get_webview_window(label) {
                 let _ = win.set_ignore_cursor_events(locked);
                 let _ = win.set_shadow(!locked);
@@ -513,6 +564,23 @@ fn sync_respawn_overlay(app: &AppHandle, show: bool, locked: bool) {
     }
 }
 
+/// Show or hide the alert overlay based on `overlay.show_alert_window`.
+fn sync_alert_overlay(app: &AppHandle, show: bool, locked: bool) {
+    let Some(win) = app.get_webview_window(OVERLAY_ALERTS) else {
+        return;
+    };
+    if show {
+        let _ = win.show();
+        let _ = win.set_always_on_top(true);
+        let _ = win.set_ignore_cursor_events(locked);
+        let _ = win.set_shadow(!locked);
+        let _ = win.set_decorations(false);
+        restore_overlay_geom(app, OVERLAY_ALERTS);
+    } else {
+        let _ = win.hide();
+    }
+}
+
 #[tauri::command]
 fn get_spells(state: State<'_, AppState>) -> Vec<SpellDef> {
     state.spells.clone()
@@ -538,6 +606,7 @@ fn save_settings(
     save_config(&config)?;
     let separate = config.overlay.separate_enemy_window;
     let show_respawn = config.overlay.show_respawn_window;
+    let show_alerts = config.overlay.show_alert_window;
     let locked = config.overlay_locked;
     let respawn_zone = config.respawn_zone.clone();
     {
@@ -560,6 +629,7 @@ fn save_settings(
     }
     sync_enemy_overlay(&app, separate, locked);
     sync_respawn_overlay(&app, show_respawn, locked);
+    sync_alert_overlay(&app, show_alerts, locked);
     apply_overlay_lock(&app, locked);
     let _ = app.emit("config-updated", &config);
     emit_respawns(&app, &state);
@@ -928,11 +998,12 @@ fn set_overlay_locked(app: AppHandle, state: State<'_, AppState>, locked: bool) 
 
 #[tauri::command]
 fn show_overlay(app: AppHandle, state: State<'_, AppState>) -> Result<(), String> {
-    let (separate, show_respawn, locked) = {
+    let (separate, show_respawn, show_alerts, locked) = {
         let config = state.config.lock().unwrap();
         (
             config.overlay.separate_enemy_window,
             config.overlay.show_respawn_window,
+            config.overlay.show_alert_window,
             config.overlay_locked,
         )
     };
@@ -948,10 +1019,24 @@ fn show_overlay(app: AppHandle, state: State<'_, AppState>) -> Result<(), String
     if show_respawn {
         sync_respawn_overlay(&app, true, locked);
     }
+    if show_alerts {
+        sync_alert_overlay(&app, true, locked);
+    }
     Ok(())
 }
 
-/// Tear down overlay window(s) and exit the process (used when main closes).
+#[tauri::command]
+fn preview_overlay_alert(app: AppHandle, state: State<'_, AppState>, kind: Option<String>) {
+    let locked = state.config.lock().unwrap().overlay_locked;
+    sync_alert_overlay(&app, true, locked);
+    match kind.as_deref().unwrap_or("charm") {
+        "invis" => emit_overlay_alert(&app, "Invis wore off!", "", "invis"),
+        "invis-fading" => emit_overlay_alert(&app, "Invis fading!", "", "invis-fading"),
+        "ivu" => emit_overlay_alert(&app, "IVU wore off!", "", "ivu"),
+        "iva" => emit_overlay_alert(&app, "IVA wore off!", "", "iva"),
+        _ => emit_overlay_alert(&app, "Charm break!", "a gnoll", "charm"),
+    }
+}
 fn shutdown_with_overlay(app: &AppHandle) {
     // Flush plugin state, then overlay geoms (hidden windows / destroy races).
     // Do not destroy overlays first: WM_MOVE during teardown poisons saved coords.
@@ -990,6 +1075,7 @@ pub fn run() {
                 .skip_initial_state(OVERLAY_MAIN)
                 .skip_initial_state(OVERLAY_ENEMIES)
                 .skip_initial_state(OVERLAY_RESPAWNS)
+                .skip_initial_state(OVERLAY_ALERTS)
                 .build(),
         )
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
@@ -1028,6 +1114,7 @@ pub fn run() {
             dismiss_respawn,
             set_overlay_locked,
             show_overlay,
+            preview_overlay_alert,
             inject_log_line,
             suggest_log_paths
         ])
@@ -1065,6 +1152,11 @@ pub fn run() {
                 sync_respawn_overlay(
                     app.handle(),
                     config.overlay.show_respawn_window,
+                    config.overlay_locked,
+                );
+                sync_alert_overlay(
+                    app.handle(),
+                    config.overlay.show_alert_window,
                     config.overlay_locked,
                 );
             }
@@ -1123,15 +1215,12 @@ pub fn run() {
             });
 
             // Keep only the canonical overlay windows; destroy any stray overlay*.
-            let allowed = [OVERLAY_MAIN, OVERLAY_ENEMIES, OVERLAY_RESPAWNS];
+            let allowed = OVERLAY_WINDOWS;
             let labels: Vec<String> = app
                 .webview_windows()
                 .into_keys()
                 .filter(|l| {
-                    l == OVERLAY_MAIN
-                        || l == OVERLAY_ENEMIES
-                        || l == OVERLAY_RESPAWNS
-                        || l.starts_with("overlay")
+                    OVERLAY_WINDOWS.contains(&l.as_str()) || l.starts_with("overlay")
                 })
                 .collect();
             for label in labels {
@@ -1154,10 +1243,7 @@ pub fn run() {
                     return;
                 }
                 // Overlay close: hide so Show Overlay / toggles can reopen it.
-                if label == OVERLAY_MAIN
-                    || label == OVERLAY_ENEMIES
-                    || label == OVERLAY_RESPAWNS
-                {
+                if is_overlay_label(&label) {
                     api.prevent_close();
                     let _ = window.hide();
                 }

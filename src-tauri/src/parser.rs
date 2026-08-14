@@ -28,6 +28,13 @@ pub enum LogEvent {
     LandYou { message: String },
     WearOff { message: String },
     MezBreak { target: String, breaker: String },
+    /// Caster charm ended: `Your Allure spell has worn off of a gnoll.`
+    /// Target is empty for the generic `Your charm spell has worn off.`
+    CharmBreak { spell: String, target: String },
+    /// Self invis / IVU / IVA ended. `kind` is `invis`, `ivu`, or `iva`.
+    InvisBreak { kind: String },
+    /// Invis is about to drop: `You feel yourself starting to appear.`
+    InvisFading,
     /// NPC death. `by_you` is true for `You have slain …!` or `… has been slain by You!`.
     /// `killer` is set for `… has been slain by NAME!` (including when NAME is You).
     Death {
@@ -95,6 +102,87 @@ fn re_mez_break() -> &'static Regex {
     static RE: OnceLock<Regex> = OnceLock::new();
     RE.get_or_init(|| {
         Regex::new(r"(?i)^(.+?) has been awakened by (.+)\.?$").unwrap()
+    })
+}
+
+/// Own charm ending. Matches:
+/// - `Your Allure spell has worn off of an abhorrent.`
+/// - `Your charm spell has worn off.`
+/// - `Your Allure spell has worn off...` (no target)
+/// Not `You are no longer charmed` (you were the victim) and not
+/// `Your pet's … has worn off`. Mez/slow use the same "worn off of" shape
+/// but are rejected by `is_charm_spell`.
+fn re_charm_break() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| {
+        Regex::new(
+            r"(?i)^Your (.+?) spell has worn off(?: of (.+?))?(?:\.+|…+)?\s*$",
+        )
+        .unwrap()
+    })
+}
+
+/// Player charm line (enchanter / druid / shaman / necro). Not mez (`Entrance`)
+/// and not the CHA buff Alluring Aura.
+pub fn is_charm_spell(spell: &str) -> bool {
+    let n = spell.trim().to_ascii_lowercase();
+    const NAMES: &[&str] = &[
+        "allure",
+        "allure of the wild",
+        "alluring whispers",
+        "befriend animal",
+        "beguile",
+        "beguile animals",
+        "beguile plants",
+        "beguile undead",
+        "boltran's agacerie",
+        "cajole undead",
+        "cajoling whispers",
+        "call of karana",
+        "charm",
+        "charm animals",
+        "dictate",
+        "dominate undead",
+        "dragon charm",
+        "enslave death",
+        "thrall of bones",
+        "vampire charm",
+    ];
+    NAMES.iter().any(|s| n == *s)
+}
+
+/// Self invis drop lines (optional trailing dots / ellipsis).
+/// - `You appear` — Invisibility, Improved Invis, Superior Camouflage, …
+/// - `You return to view` — Camouflage
+/// - `Your shadows fade` — Gather Shadows
+/// - `Your skin stops tingling` — IVU / Sunskin
+/// - `Your image returns` — IVA
+fn re_invis_break() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| {
+        Regex::new(
+            r"(?i)^(You appear|You return to view|Your shadows fade|Your skin stops tingling|Your image returns)(?:\.+|…+)?\s*$",
+        )
+        .unwrap()
+    })
+}
+
+fn invis_break_kind(phrase: &str) -> &'static str {
+    let n = phrase.trim().to_ascii_lowercase();
+    if n == "your skin stops tingling" {
+        "ivu"
+    } else if n == "your image returns" {
+        "iva"
+    } else {
+        "invis"
+    }
+}
+
+/// Warning ~1–2 ticks before `You appear.`
+fn re_invis_fading() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| {
+        Regex::new(r"(?i)^You feel yourself starting to appear(?:\.+|…+)?\s*$").unwrap()
     })
 }
 
@@ -260,6 +348,30 @@ pub fn parse_line(line: &str) -> LogEvent {
         return LogEvent::MezBreak {
             target: caps[1].trim().to_string(),
             breaker: caps[2].trim().trim_end_matches('.').to_string(),
+        };
+    }
+    if let Some(caps) = re_charm_break().captures(msg) {
+        let raw = caps[1].trim();
+        if !raw.to_ascii_lowercase().starts_with("pet's ") {
+            let (base, _) = crate::spell_db::parse_spell_name_and_tier(raw);
+            if is_charm_spell(&base) {
+                let target = caps
+                    .get(2)
+                    .map(|m| m.as_str().trim().trim_end_matches('.').to_string())
+                    .unwrap_or_default();
+                return LogEvent::CharmBreak {
+                    spell: base,
+                    target,
+                };
+            }
+        }
+    }
+    if re_invis_fading().is_match(msg) {
+        return LogEvent::InvisFading;
+    }
+    if let Some(caps) = re_invis_break().captures(msg) {
+        return LogEvent::InvisBreak {
+            kind: invis_break_kind(&caps[1]).to_string(),
         };
     }
     // Prefer "You have slain X!" — the common EQL self-kill line — before the
@@ -481,6 +593,145 @@ mod tests {
             LogEvent::WearOff {
                 message: "Your speed returns to normal.".into()
             }
+        );
+    }
+
+    #[test]
+    fn parses_charm_spell_worn_off_as_charm_break() {
+        let e = parse_line("[Wed Aug 5 23:00:10 2026] Your charm spell has worn off.");
+        assert_eq!(
+            e,
+            LogEvent::CharmBreak {
+                spell: "charm".into(),
+                target: String::new(),
+            }
+        );
+    }
+
+    #[test]
+    fn parses_allure_spell_worn_off_as_charm_break() {
+        let e = parse_line("[Wed Aug 5 23:00:10 2026] Your Allure spell has worn off...");
+        assert_eq!(
+            e,
+            LogEvent::CharmBreak {
+                spell: "Allure".into(),
+                target: String::new(),
+            }
+        );
+    }
+
+    #[test]
+    fn parses_allure_worn_off_of_target() {
+        let e = parse_line(
+            "[Thu Aug 13 09:54:58 2026] Your Allure spell has worn off of an azarack.",
+        );
+        assert_eq!(
+            e,
+            LogEvent::CharmBreak {
+                spell: "Allure".into(),
+                target: "an azarack".into(),
+            }
+        );
+    }
+
+    #[test]
+    fn mesmerization_worn_off_of_is_not_charm_break() {
+        let e = parse_line(
+            "[Thu Jul 16 21:06:39 2026] Your Mesmerization spell has worn off of a loathling lich.",
+        );
+        assert!(matches!(e, LogEvent::WearOff { .. }));
+    }
+
+    #[test]
+    fn parses_beguile_and_cajoling_whispers_worn_off() {
+        assert_eq!(
+            parse_line("[Wed Aug 5 23:00:10 2026] Your Beguile spell has worn off."),
+            LogEvent::CharmBreak {
+                spell: "Beguile".into(),
+                target: String::new(),
+            }
+        );
+        assert_eq!(
+            parse_line("[Wed Aug 5 23:00:10 2026] Your Cajoling Whispers spell has worn off."),
+            LogEvent::CharmBreak {
+                spell: "Cajoling Whispers".into(),
+                target: String::new(),
+            }
+        );
+    }
+
+    #[test]
+    fn you_are_no_longer_charmed_is_wear_off_not_charm_break() {
+        let e = parse_line("[Wed Aug 5 23:00:10 2026] You are no longer charmed.");
+        assert_eq!(
+            e,
+            LogEvent::WearOff {
+                message: "You are no longer charmed.".into()
+            }
+        );
+    }
+
+    #[test]
+    fn pet_spell_worn_off_is_not_charm_break() {
+        let e = parse_line(
+            "[Wed Aug 5 23:00:10 2026] Your pet's Clarity spell has worn off.",
+        );
+        assert!(matches!(e, LogEvent::WearOff { .. }));
+    }
+
+    #[test]
+    fn parses_you_appear_as_invis_break() {
+        assert_eq!(
+            parse_line("[Wed Aug 5 23:00:10 2026] You appear."),
+            LogEvent::InvisBreak {
+                kind: "invis".into()
+            }
+        );
+        assert_eq!(
+            parse_line("[Wed Aug 5 23:00:10 2026] You appear..."),
+            LogEvent::InvisBreak {
+                kind: "invis".into()
+            }
+        );
+        assert_eq!(
+            parse_line("[Wed Aug 5 23:00:10 2026] You return to view."),
+            LogEvent::InvisBreak {
+                kind: "invis".into()
+            }
+        );
+        assert_eq!(
+            parse_line("[Wed Aug 5 23:00:10 2026] Your shadows fade."),
+            LogEvent::InvisBreak {
+                kind: "invis".into()
+            }
+        );
+    }
+
+    #[test]
+    fn parses_ivu_and_iva_wear_off() {
+        assert_eq!(
+            parse_line("[Wed Aug 5 23:00:10 2026] Your skin stops tingling."),
+            LogEvent::InvisBreak {
+                kind: "ivu".into()
+            }
+        );
+        assert_eq!(
+            parse_line("[Wed Aug 5 23:00:10 2026] Your image returns."),
+            LogEvent::InvisBreak {
+                kind: "iva".into()
+            }
+        );
+    }
+
+    #[test]
+    fn parses_invis_starting_to_appear_as_fading() {
+        assert_eq!(
+            parse_line("[Wed Aug 5 23:00:10 2026] You feel yourself starting to appear."),
+            LogEvent::InvisFading
+        );
+        assert_eq!(
+            parse_line("[Wed Aug 5 23:00:10 2026] You feel yourself starting to appear..."),
+            LogEvent::InvisFading
         );
     }
 

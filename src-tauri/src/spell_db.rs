@@ -83,6 +83,13 @@ pub struct OverlayAppearance {
     /// Speak spell name when a timer wears off or is dismissed (main overlay TTS).
     #[serde(default = "default_voice_announcements")]
     pub voice_announcements: bool,
+    /// Speak when the caster charm line `Your charm spell has worn off` is seen.
+    #[serde(default = "default_charm_break_alerts")]
+    pub charm_break_alerts: bool,
+    /// Speak/show when self invis fades (`You feel yourself starting to appear`)
+    /// or drops (`You appear`, Camouflage, IVU, IVA).
+    #[serde(default = "default_invis_break_alerts")]
+    pub invis_break_alerts: bool,
     /// Web Speech voiceURI for announcements; empty = system default.
     #[serde(default = "default_voice_uri")]
     pub voice_uri: String,
@@ -101,6 +108,24 @@ pub struct OverlayAppearance {
     /// Show the independent respawn overlay window.
     #[serde(default = "default_show_respawn_window")]
     pub show_respawn_window: bool,
+    /// Show the fading-message alert overlay (`overlay-alerts`).
+    #[serde(default = "default_show_alert_window")]
+    pub show_alert_window: bool,
+    /// How long alert overlay toasts stay (seconds). Clamped 2..=15.
+    #[serde(default = "default_alert_secs")]
+    pub alert_secs: u64,
+    /// Alert overlay font; empty = same as overlay `font_family`.
+    #[serde(default = "default_alert_font_family")]
+    pub alert_font_family: String,
+    /// Alert toast size: "small" | "normal" | "large" | "huge".
+    #[serde(default = "default_alert_size")]
+    pub alert_size: String,
+    /// Charm-break toast title color.
+    #[serde(default = "default_alert_charm_color")]
+    pub alert_charm_color: String,
+    /// Invis / IVU / IVA toast title color.
+    #[serde(default = "default_alert_invis_color")]
+    pub alert_invis_color: String,
     /// Start a zone-default respawn timer on every kill (rares still use overrides).
     #[serde(default = "default_track_all_kills")]
     pub track_all_kills: bool,
@@ -151,6 +176,14 @@ fn default_voice_announcements() -> bool {
     true
 }
 
+fn default_charm_break_alerts() -> bool {
+    true
+}
+
+fn default_invis_break_alerts() -> bool {
+    true
+}
+
 fn default_voice_uri() -> String {
     String::new()
 }
@@ -179,6 +212,10 @@ pub const RECENTLY_WORE_OFF_SECS_MAX: u64 = 300;
 pub const EXPIRY_WARN_SECS_MIN: u64 = 1;
 pub const EXPIRY_WARN_SECS_MAX: u64 = 120;
 
+/// Alert overlay toast lifetime bounds (seconds).
+pub const ALERT_SECS_MIN: u64 = 2;
+pub const ALERT_SECS_MAX: u64 = 15;
+
 impl OverlayAppearance {
     /// Clamped retention for recently-wore-off rows (15..=300 seconds).
     pub fn recently_wore_off_secs_clamped(&self) -> u64 {
@@ -199,10 +236,46 @@ impl OverlayAppearance {
         self.expiry_warn_secs
             .clamp(EXPIRY_WARN_SECS_MIN, EXPIRY_WARN_SECS_MAX)
     }
+
+    /// Clamped alert overlay toast lifetime (2..=15 seconds).
+    pub fn alert_secs_clamped(&self) -> u64 {
+        self.alert_secs.clamp(ALERT_SECS_MIN, ALERT_SECS_MAX)
+    }
 }
 
 fn default_show_respawn_window() -> bool {
     true
+}
+
+fn default_show_alert_window() -> bool {
+    true
+}
+
+fn default_alert_secs() -> u64 {
+    5
+}
+
+fn default_alert_font_family() -> String {
+    String::new()
+}
+
+fn default_alert_size() -> String {
+    "large".into()
+}
+
+fn default_alert_charm_color() -> String {
+    "#ff3b3b".into()
+}
+
+fn default_alert_invis_color() -> String {
+    "#6ec8ff".into()
+}
+
+fn normalize_alert_size(size: &str) -> String {
+    match size.trim().to_ascii_lowercase().as_str() {
+        "small" | "normal" | "large" | "huge" => size.trim().to_ascii_lowercase(),
+        _ => default_alert_size(),
+    }
 }
 
 fn default_track_all_kills() -> bool {
@@ -234,12 +307,20 @@ impl Default for OverlayAppearance {
             self_buffs_only: false,
             hide_other_pets: false,
             voice_announcements: true,
+            charm_break_alerts: true,
+            invis_break_alerts: true,
             voice_uri: default_voice_uri(),
             voice_volume: default_voice_volume(),
             flash_expiry_warn: default_flash_expiry_warn(),
             verbal_expiry_warn: default_verbal_expiry_warn(),
             expiry_warn_secs: default_expiry_warn_secs(),
             show_respawn_window: true,
+            show_alert_window: true,
+            alert_secs: default_alert_secs(),
+            alert_font_family: default_alert_font_family(),
+            alert_size: default_alert_size(),
+            alert_charm_color: default_alert_charm_color(),
+            alert_invis_color: default_alert_invis_color(),
             track_all_kills: true,
             show_window_border: false,
         }
@@ -351,6 +432,8 @@ pub fn normalize_config(config: &mut AppConfig) {
     config.overlay.recently_wore_off_secs = config.overlay.recently_wore_off_secs_clamped();
     config.overlay.voice_volume = config.overlay.voice_volume_clamped();
     config.overlay.expiry_warn_secs = config.overlay.expiry_warn_secs_clamped();
+    config.overlay.alert_secs = config.overlay.alert_secs_clamped();
+    config.overlay.alert_size = normalize_alert_size(&config.overlay.alert_size);
     // Always use production sync URL (field kept for config load compat; not user-editable).
     config.loot_sync_url = default_loot_sync_url();
     config.loot_sync_key = config.loot_sync_key.trim().to_string();

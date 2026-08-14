@@ -2,7 +2,7 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Capability for Berryworks windows",
-  "windows": ["main", "overlay", "overlay-enemies", "overlay-respawns"],
+  "windows": ["main", "overlay", "overlay-enemies", "overlay-respawns", "overlay-alerts"],
   "permissions": [
     "core:default",
     "core:event:default",

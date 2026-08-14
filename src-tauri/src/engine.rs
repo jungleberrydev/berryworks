@@ -29,6 +29,23 @@ pub struct RecentExpired {
     pub ended_at: DateTime<Utc>,
 }
 
+/// Spoken from the main overlay when `Your charm spell has worn off.`
+/// `spell` / `target` are empty when no charm timer was active.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct CharmBreakAlert {
+    pub spell: String,
+    pub target: String,
+}
+
+/// Overlay/voice alert when self invis / IVU / IVA drops or starts fading.
+/// `kind` is `invis`, `ivu`, or `iva`. `fading` is the pre-drop warning.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct InvisBreakAlert {
+    pub kind: String,
+    #[serde(default)]
+    pub fading: bool,
+}
+
 /// Default recently-wore-off retention used by unit tests.
 #[cfg(test)]
 const DEFAULT_RECENT_TTL_SECS: u64 = 300;
@@ -244,6 +261,8 @@ pub fn is_lull_spell(spell: &str) -> bool {
     TOKENS.iter().any(|t| n.contains(t))
 }
 
+pub use crate::parser::is_charm_spell;
+
 /// Recently-wore-off list: renew-relevant self / ally buffs only.
 ///
 /// Never enemy-targeted (debuff/DoT/lull on NPCs). Also never raw `debuff`/`dot`
@@ -325,6 +344,37 @@ fn is_invis_spell(spell: &str) -> bool {
         || (n.contains("veil") && (n.contains("invis") || n.contains("shadow") || n.contains("camouflage")))
 }
 
+fn is_ivu_spell(spell: &str) -> bool {
+    let n = spell.to_ascii_lowercase();
+    n == "sunskin"
+        || (n.contains("invis") && (n.contains("undead") || n.contains("invis vs")))
+}
+
+fn is_iva_spell(spell: &str) -> bool {
+    let n = spell.to_ascii_lowercase();
+    n.contains("invis") && n.contains("animal")
+}
+
+/// Regular invis / camouflage / gather shadows (not IVU, IVA, or see invis).
+fn is_true_invis_spell(spell: &str) -> bool {
+    if is_ivu_spell(spell) || is_iva_spell(spell) {
+        return false;
+    }
+    let n = spell.to_ascii_lowercase();
+    if n.contains("see invis") {
+        return false;
+    }
+    n.contains("invisib") || n.contains("camouflage") || n.contains("gather shadows")
+}
+
+fn spell_matches_invis_kind(spell: &str, kind: &str) -> bool {
+    match kind {
+        "ivu" => is_ivu_spell(spell),
+        "iva" => is_iva_spell(spell),
+        _ => is_true_invis_spell(spell),
+    }
+}
+
 fn is_root_spell(spell: &str) -> bool {
     let n = spell.to_ascii_lowercase();
     n.contains("root") || n == "immobilize" || n.contains("immobilise")
@@ -349,6 +399,8 @@ pub struct TimerEngine {
     timers: Vec<ActiveTimer>,
     recent_expired: Vec<RecentExpired>,
     pending_timeout: Duration,
+    last_charm_break: Option<CharmBreakAlert>,
+    last_invis_break: Option<InvisBreakAlert>,
 }
 
 impl TimerEngine {
@@ -358,7 +410,19 @@ impl TimerEngine {
             timers: Vec::new(),
             recent_expired: Vec::new(),
             pending_timeout: Duration::from_secs(15),
+            last_charm_break: None,
+            last_invis_break: None,
         }
+    }
+
+    /// Drain the alert produced by the last `CharmBreak` (if any).
+    pub fn take_charm_break_alert(&mut self) -> Option<CharmBreakAlert> {
+        self.last_charm_break.take()
+    }
+
+    /// Drain the alert produced by the last `InvisBreak` (if any).
+    pub fn take_invis_break_alert(&mut self) -> Option<InvisBreakAlert> {
+        self.last_invis_break.take()
     }
 
     pub fn timers(&self) -> &[ActiveTimer] {
@@ -468,6 +532,9 @@ impl TimerEngine {
                 }
             }
             LogEvent::MezBreak { target, .. } => self.cancel_by_target(&target, recent_ttl_secs),
+            LogEvent::CharmBreak { spell, target } => self.apply_charm_break(&spell, &target),
+            LogEvent::InvisBreak { kind } => self.apply_invis_break(&kind),
+            LogEvent::InvisFading => self.apply_invis_fading(),
             // Dead mobs lose every DoT/debuff; clear all timers for that name.
             LogEvent::Death { target, .. } => self.cancel_all_by_target(&target, recent_ttl_secs),
             LogEvent::ZoneChange { .. } => {
@@ -718,6 +785,85 @@ impl TimerEngine {
         true
     }
 
+    /// Drop NPC charm timers when the caster sees
+    /// `Your {spell} spell has worn off of {target}.`
+    /// Always records a `CharmBreakAlert` (uses the log target if nothing was tracked).
+    fn apply_charm_break(&mut self, named: &str, line_target: &str) -> bool {
+        let specific = is_charm_spell(named) && !named.eq_ignore_ascii_case("charm");
+        let line_tgt = line_target.trim();
+        let matches = |t: &ActiveTimer, require_target: bool| {
+            if t.target.eq_ignore_ascii_case("You") || !is_charm_spell(&t.spell) {
+                return false;
+            }
+            if specific && !t.spell.eq_ignore_ascii_case(named) {
+                return false;
+            }
+            if require_target && !line_tgt.is_empty() && !t.target.eq_ignore_ascii_case(line_tgt) {
+                return false;
+            }
+            true
+        };
+        let mut removed: Vec<ActiveTimer> = Vec::new();
+        let require_target = !line_tgt.is_empty();
+        self.timers.retain(|t| {
+            if matches(t, require_target) {
+                removed.push(t.clone());
+                false
+            } else {
+                true
+            }
+        });
+        if removed.is_empty() && require_target {
+            self.timers.retain(|t| {
+                if matches(t, false) {
+                    removed.push(t.clone());
+                    false
+                } else {
+                    true
+                }
+            });
+        }
+        removed.sort_by_key(|t| t.ends_at);
+        self.last_charm_break = Some(match removed.first() {
+            Some(t) => CharmBreakAlert {
+                spell: t.spell.clone(),
+                target: t.target.clone(),
+            },
+            None => CharmBreakAlert {
+                spell: named.to_string(),
+                target: line_tgt.to_string(),
+            },
+        });
+        !removed.is_empty()
+    }
+
+    /// Drop matching self invis timers when `You appear` / IVU / IVA wear-off is seen.
+    /// Always records an `InvisBreakAlert`.
+    fn apply_invis_break(&mut self, kind: &str) -> bool {
+        let mut removed = false;
+        self.timers.retain(|t| {
+            if !t.target.eq_ignore_ascii_case("You") || !spell_matches_invis_kind(&t.spell, kind) {
+                return true;
+            }
+            removed = true;
+            false
+        });
+        self.last_invis_break = Some(InvisBreakAlert {
+            kind: kind.to_string(),
+            fading: false,
+        });
+        removed
+    }
+
+    /// `You feel yourself starting to appear` — warn only; do not drop the timer.
+    fn apply_invis_fading(&mut self) -> bool {
+        self.last_invis_break = Some(InvisBreakAlert {
+            kind: "invis".into(),
+            fading: true,
+        });
+        false
+    }
+
     /// Remove every timer for `target` (death). A slain mob loses all DoTs/debuffs.
     fn cancel_all_by_target(&mut self, target: &str, recent_ttl_secs: u64) -> bool {
         let mut removed = Vec::new();
@@ -918,6 +1064,233 @@ mod tests {
         );
         assert_eq!(engine.timers()[0].spell, "Mesmerize");
         assert_eq!(engine.timers()[0].target, "A gnoll");
+    }
+
+    #[test]
+    fn charm_land_starts_timer() {
+        let spells = load_spells().expect("spells");
+        let mut config = AppConfig::default();
+        config.character_level = 30;
+        config.watched.insert("Beguile".into(), true);
+
+        let mut engine = TimerEngine::new();
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:00 2026] You begin casting Beguile."),
+            &spells,
+            &config,
+        );
+        let changed = engine.handle(
+            parse_line("[Wed Aug 5 23:00:03 2026] A gnoll has been charmed."),
+            &spells,
+            &config,
+        );
+        assert!(changed);
+        assert_eq!(engine.timers().len(), 1);
+        assert_eq!(engine.timers()[0].spell, "Beguile");
+        assert_eq!(engine.timers()[0].target, "A gnoll");
+    }
+
+    #[test]
+    fn charm_break_clears_charm_timer_not_mez() {
+        let spells = load_spells().expect("spells");
+        let mut config = AppConfig::default();
+        config.character_level = 30;
+        config.watched.insert("Beguile".into(), true);
+        config.watched.insert("Mesmerize".into(), true);
+
+        let mut engine = TimerEngine::new();
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:00 2026] You begin casting Beguile."),
+            &spells,
+            &config,
+        );
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:03 2026] A gnoll has been charmed."),
+            &spells,
+            &config,
+        );
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:04 2026] You begin casting Mesmerize."),
+            &spells,
+            &config,
+        );
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:06 2026] An orc pawn has been mesmerized."),
+            &spells,
+            &config,
+        );
+        assert_eq!(engine.timers().len(), 2);
+
+        let cleared = engine.handle(
+            parse_line("[Wed Aug 5 23:00:10 2026] Your charm spell has worn off."),
+            &spells,
+            &config,
+        );
+        assert!(cleared);
+        assert_eq!(engine.timers().len(), 1);
+        assert_eq!(engine.timers()[0].spell, "Mesmerize");
+        let alert = engine.take_charm_break_alert().expect("charm alert");
+        assert_eq!(alert.spell, "Beguile");
+        assert_eq!(alert.target, "A gnoll");
+    }
+
+    #[test]
+    fn charm_break_alerts_without_a_timer() {
+        let spells = load_spells().expect("spells");
+        let config = AppConfig::default();
+        let mut engine = TimerEngine::new();
+        let changed = engine.handle(
+            parse_line("[Wed Aug 5 23:00:10 2026] Your charm spell has worn off."),
+            &spells,
+            &config,
+        );
+        assert!(!changed);
+        let alert = engine.take_charm_break_alert().expect("charm alert");
+        assert_eq!(alert.spell, "charm");
+        assert_eq!(alert.target, "");
+    }
+
+    #[test]
+    fn allure_worn_off_of_target_alerts_without_timer() {
+        let spells = load_spells().expect("spells");
+        let config = AppConfig::default();
+        let mut engine = TimerEngine::new();
+        let changed = engine.handle(
+            parse_line(
+                "[Thu Aug 13 09:54:58 2026] Your Allure spell has worn off of an azarack.",
+            ),
+            &spells,
+            &config,
+        );
+        assert!(!changed);
+        let alert = engine.take_charm_break_alert().expect("charm alert");
+        assert_eq!(alert.spell, "Allure");
+        assert_eq!(alert.target, "an azarack");
+    }
+
+    #[test]
+    fn allure_spell_worn_off_clears_allure_timer() {
+        let spells = load_spells().expect("spells");
+        let mut config = AppConfig::default();
+        config.character_level = 50;
+        config.watched.insert("Allure".into(), true);
+
+        let mut engine = TimerEngine::new();
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:00 2026] You begin casting Allure."),
+            &spells,
+            &config,
+        );
+        engine.handle(
+            parse_line("[Wed Aug 5 23:00:06 2026] A gnoll has been charmed."),
+            &spells,
+            &config,
+        );
+        assert_eq!(engine.timers().len(), 1);
+        assert_eq!(engine.timers()[0].spell, "Allure");
+
+        let cleared = engine.handle(
+            parse_line("[Wed Aug 5 23:00:10 2026] Your Allure spell has worn off of A gnoll."),
+            &spells,
+            &config,
+        );
+        assert!(cleared);
+        assert!(engine.timers().is_empty());
+        let alert = engine.take_charm_break_alert().expect("charm alert");
+        assert_eq!(alert.spell, "Allure");
+        assert_eq!(alert.target, "A gnoll");
+    }
+
+    #[test]
+    fn you_appear_alerts_without_a_timer() {
+        let spells = load_spells().expect("spells");
+        let config = AppConfig::default();
+        let mut engine = TimerEngine::new();
+        let changed = engine.handle(
+            parse_line("[Wed Aug 5 23:00:10 2026] You appear."),
+            &spells,
+            &config,
+        );
+        assert!(!changed);
+        let alert = engine.take_invis_break_alert().expect("invis alert");
+        assert_eq!(alert.kind, "invis");
+        assert!(!alert.fading);
+    }
+
+    #[test]
+    fn invis_starting_to_appear_alerts_without_clearing() {
+        let mut engine = TimerEngine::new();
+        let config = AppConfig::default();
+        let now = Utc::now();
+        engine.push_timer_for_test(ActiveTimer {
+            id: "invis".into(),
+            spell: "Invisibility".into(),
+            target: "You".into(),
+            category: "debuff".into(),
+            started_at: now - chrono::Duration::seconds(10),
+            ends_at: now + chrono::Duration::seconds(50),
+            duration_secs: 60,
+        });
+        let spells = load_spells().expect("spells");
+        let changed = engine.handle(
+            parse_line("[Wed Aug 5 23:00:10 2026] You feel yourself starting to appear."),
+            &spells,
+            &config,
+        );
+        assert!(!changed);
+        assert_eq!(engine.timers().len(), 1);
+        let alert = engine.take_invis_break_alert().expect("invis fading");
+        assert_eq!(alert.kind, "invis");
+        assert!(alert.fading);
+    }
+
+    #[test]
+    fn you_appear_clears_invisibility_not_ivu() {
+        let mut engine = TimerEngine::new();
+        let config = AppConfig::default();
+        let now = Utc::now();
+        engine.push_timer_for_test(ActiveTimer {
+            id: "invis".into(),
+            spell: "Invisibility".into(),
+            target: "You".into(),
+            category: "debuff".into(),
+            started_at: now - chrono::Duration::seconds(10),
+            ends_at: now + chrono::Duration::seconds(50),
+            duration_secs: 60,
+        });
+        engine.push_timer_for_test(ActiveTimer {
+            id: "ivu".into(),
+            spell: "Invisibility Versus Undead".into(),
+            target: "You".into(),
+            category: "buff".into(),
+            started_at: now - chrono::Duration::seconds(10),
+            ends_at: now + chrono::Duration::seconds(50),
+            duration_secs: 60,
+        });
+        let spells = load_spells().expect("spells");
+        let changed = engine.handle(
+            parse_line("[Wed Aug 5 23:00:10 2026] You appear..."),
+            &spells,
+            &config,
+        );
+        assert!(changed);
+        assert_eq!(engine.timers().len(), 1);
+        assert_eq!(engine.timers()[0].spell, "Invisibility Versus Undead");
+        assert_eq!(
+            engine.take_invis_break_alert().expect("invis").kind,
+            "invis"
+        );
+    }
+
+    #[test]
+    fn charm_spell_name_heuristic() {
+        assert!(is_charm_spell("Beguile"));
+        assert!(is_charm_spell("Allure"));
+        assert!(is_charm_spell("Charm Animals"));
+        assert!(is_charm_spell("Thrall of Bones"));
+        assert!(!is_charm_spell("Entrance"));
+        assert!(!is_charm_spell("Alluring Aura"));
+        assert!(!is_charm_spell("Mesmerize"));
     }
 
     #[test]

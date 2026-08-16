@@ -389,11 +389,19 @@ pub struct AppConfig {
     #[serde(default)]
     pub loot_contributor_id: String,
     pub overlay_locked: bool,
+    /// When false, every overlay window is hidden. Per-window toggles still
+    /// apply when overlays are shown. Default true for existing configs.
+    #[serde(default = "default_overlays_visible")]
+    pub overlays_visible: bool,
     #[serde(default)]
     pub overlay: OverlayAppearance,
 }
 
 fn default_loot_tracking() -> bool {
+    true
+}
+
+fn default_overlays_visible() -> bool {
     true
 }
 
@@ -423,6 +431,7 @@ impl Default for AppConfig {
             loot_discord_user_id: String::new(),
             loot_contributor_id: String::new(),
             overlay_locked: false,
+            overlays_visible: true,
             overlay: OverlayAppearance::default(),
         }
     }
@@ -1277,6 +1286,21 @@ mod tests {
         cfg.overlay.expiry_warn_secs = 0;
         normalize_config(&mut cfg);
         assert_eq!(cfg.overlay.expiry_warn_secs, 1);
+    }
+
+    #[test]
+    fn overlays_visible_defaults_true_when_missing() {
+        let cfg: AppConfig = serde_json::from_str(
+            r#"{
+                "log_path": "",
+                "character_level": 1,
+                "spell_tiers": {},
+                "watched": {},
+                "overlay_locked": false
+            }"#,
+        )
+        .expect("config");
+        assert!(cfg.overlays_visible);
     }
 
     #[test]

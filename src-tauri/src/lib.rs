@@ -582,6 +582,34 @@ fn apply_overlay_lock(app: &AppHandle, locked: bool) {
     });
 }
 
+/// Show or hide the main timer overlay.
+fn sync_main_overlay(app: &AppHandle, show: bool, locked: bool) {
+    let Some(win) = app.get_webview_window(OVERLAY_MAIN) else {
+        return;
+    };
+    if show {
+        let _ = win.show();
+        let _ = win.set_always_on_top(true);
+        let _ = win.set_ignore_cursor_events(locked);
+        let _ = win.set_shadow(!locked);
+        let _ = win.set_decorations(false);
+        restore_overlay_geom(app, OVERLAY_MAIN);
+    } else {
+        let _ = win.hide();
+    }
+}
+
+/// Apply global overlay visibility plus per-window toggles.
+fn sync_overlays(app: &AppHandle, config: &AppConfig) {
+    let visible = config.overlays_visible;
+    let locked = config.overlay_locked;
+    sync_main_overlay(app, visible, locked);
+    sync_enemy_overlay(app, visible && config.overlay.separate_enemy_window, locked);
+    sync_respawn_overlay(app, visible && config.overlay.show_respawn_window, locked);
+    sync_alert_overlay(app, visible && config.overlay.show_alert_window, locked);
+    sync_meter_overlay(app, visible && config.overlay.show_meter_window, locked);
+}
+
 /// Show or hide the enemy overlay based on `overlay.separate_enemy_window`.
 fn sync_enemy_overlay(app: &AppHandle, separate: bool, locked: bool) {
     let Some(win) = app.get_webview_window(OVERLAY_ENEMIES) else {
@@ -673,10 +701,6 @@ fn save_settings(
 ) -> Result<AppConfig, String> {
     normalize_config(&mut config);
     save_config(&config)?;
-    let separate = config.overlay.separate_enemy_window;
-    let show_respawn = config.overlay.show_respawn_window;
-    let show_alerts = config.overlay.show_alert_window;
-    let show_meter = config.overlay.show_meter_window;
     let locked = config.overlay_locked;
     let respawn_zone = config.respawn_zone.clone();
     {
@@ -702,10 +726,7 @@ fn save_settings(
             let _ = tx.send(TailCommand::SetPath(config.log_path.clone().into()));
         }
     }
-    sync_enemy_overlay(&app, separate, locked);
-    sync_respawn_overlay(&app, show_respawn, locked);
-    sync_alert_overlay(&app, show_alerts, locked);
-    sync_meter_overlay(&app, show_meter, locked);
+    sync_overlays(&app, &config);
     apply_overlay_lock(&app, locked);
     let _ = app.emit("config-updated", &config);
     emit_respawns(&app, &state);
@@ -1101,9 +1122,29 @@ fn set_overlay_locked(
 }
 
 #[tauri::command]
+fn set_overlays_visible(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    visible: bool,
+) -> Result<(), String> {
+    let config_snapshot = {
+        let mut config = state.config.lock().unwrap();
+        config.overlays_visible = visible;
+        save_config(&config)?;
+        config.clone()
+    };
+    sync_overlays(&app, &config_snapshot);
+    apply_overlay_lock(&app, config_snapshot.overlay_locked);
+    let _ = app.emit("config-updated", &config_snapshot);
+    Ok(())
+}
+
+#[tauri::command]
 fn preview_overlay_alert(app: AppHandle, state: State<'_, AppState>, kind: Option<String>) {
-    let locked = state.config.lock().unwrap().overlay_locked;
-    sync_alert_overlay(&app, true, locked);
+    let config = state.config.lock().unwrap().clone();
+    if config.overlays_visible {
+        sync_alert_overlay(&app, true, config.overlay_locked);
+    }
     match kind.as_deref().unwrap_or("charm") {
         "invis" => emit_overlay_alert(&app, "Invis wore off!", "", "invis"),
         "invis-fading" => emit_overlay_alert(&app, "Invis fading!", "", "invis-fading"),
@@ -1192,6 +1233,7 @@ pub fn run() {
             dismiss_timer,
             dismiss_respawn,
             set_overlay_locked,
+            set_overlays_visible,
             preview_overlay_alert,
             inject_log_line,
             suggest_log_paths
@@ -1223,27 +1265,8 @@ pub fn run() {
                     state.meter.lock().unwrap().set_zone(&config.respawn_zone);
                 }
                 apply_meter_identity(&state, &config);
+                sync_overlays(app.handle(), &config);
                 apply_overlay_lock(app.handle(), config.overlay_locked);
-                sync_enemy_overlay(
-                    app.handle(),
-                    config.overlay.separate_enemy_window,
-                    config.overlay_locked,
-                );
-                sync_respawn_overlay(
-                    app.handle(),
-                    config.overlay.show_respawn_window,
-                    config.overlay_locked,
-                );
-                sync_alert_overlay(
-                    app.handle(),
-                    config.overlay.show_alert_window,
-                    config.overlay_locked,
-                );
-                sync_meter_overlay(
-                    app.handle(),
-                    config.overlay.show_meter_window,
-                    config.overlay_locked,
-                );
             }
             // After lock/show: apply last geometry (plugin restore already skipped).
             apply_saved_overlay_geoms(app.handle(), &saved_overlay_geoms);

@@ -292,7 +292,7 @@ function renderMeter(snap: OverlayMeterSnapshot) {
   const fight = meterScope === "zone" ? snap.overall : snap.current ?? snap.overall;
   const actors = (fight?.actors ?? []).filter((a) => a.damage > 0).slice(0, 8);
   if (!actors.length) {
-    box.innerHTML = `<div class="empty-state">Waiting for combat…</div>`;
+    box.innerHTML = "";
     return;
   }
   const max = Math.max(1, ...actors.map((a) => a.damage));

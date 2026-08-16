@@ -81,6 +81,8 @@ export interface AppConfig {
   loot_discord_user_id?: string;
   loot_contributor_id?: string;
   overlay_locked: boolean;
+  /** When false, every overlay window is hidden. Default true. */
+  overlays_visible?: boolean;
   overlay?: OverlayAppearance;
 }
 
@@ -277,6 +279,10 @@ function overlayOf(cfg: AppConfig | null): OverlayAppearance {
   return { ...DEFAULT_OVERLAY, ...(cfg?.overlay ?? {}) };
 }
 
+function overlaysVisibleOf(cfg: AppConfig | null): boolean {
+  return cfg?.overlays_visible !== false;
+}
+
 function syncOverlayLockUi(locked: boolean) {
   const box = document.getElementById("overlay-locked") as HTMLInputElement | null;
   if (box) box.checked = locked;
@@ -284,6 +290,16 @@ function syncOverlayLockUi(locked: boolean) {
   if (btn) {
     btn.textContent = locked ? "Unlock Overlays" : "Lock Overlays";
     btn.setAttribute("aria-pressed", locked ? "true" : "false");
+  }
+}
+
+function syncOverlayVisibleUi(visible: boolean) {
+  const box = document.getElementById("overlays-visible") as HTMLInputElement | null;
+  if (box) box.checked = visible;
+  const btn = document.getElementById("btn-overlay-visible");
+  if (btn) {
+    btn.textContent = visible ? "Hide Overlays" : "Show Overlays";
+    btn.setAttribute("aria-pressed", visible ? "true" : "false");
   }
 }
 
@@ -895,6 +911,7 @@ function readFormIntoConfig(): AppConfig {
       Number((document.getElementById("scr-rank") as HTMLSelectElement).value) || 0,
     my_pet_name: (document.getElementById("my-pet-name") as HTMLInputElement).value.trim(),
     overlay_locked: (document.getElementById("overlay-locked") as HTMLInputElement).checked,
+    overlays_visible: (document.getElementById("overlays-visible") as HTMLInputElement).checked,
     spell_tiers: { ...config.spell_tiers },
     watched: { ...config.watched },
     watched_rares: { ...(config.watched_rares ?? {}) },
@@ -1081,6 +1098,7 @@ async function load() {
   (document.getElementById("my-pet-name") as HTMLInputElement).value = config.my_pet_name ?? "";
   (document.getElementById("my-pet-name") as HTMLInputElement).title = PET_NAME_HINT;
   syncOverlayLockUi(config.overlay_locked);
+  syncOverlayVisibleUi(overlaysVisibleOf(config));
   (document.getElementById("loot-tracking") as HTMLInputElement).checked =
     config.loot_tracking !== false;
   (document.getElementById("loot-sync-enabled") as HTMLInputElement).checked =
@@ -1170,7 +1188,7 @@ function renderCombat(snap: MeterSnapshot | null) {
   const meta = document.getElementById("combat-fight-meta");
   if (meta) {
     if (!fight || (fight.actors.length === 0 && fight.damage === 0)) {
-      meta.textContent = combatView === "overall" ? "No zone damage yet." : "Waiting for combat…";
+      meta.textContent = "";
     } else {
       const label = combatView === "overall" ? "Overall" : fight.title;
       meta.textContent = `${label} · ${formatDuration(fight.duration_secs)} · ${fight.damage} dmg · ${formatDps(fight.dps)} DPS`;
@@ -1201,9 +1219,7 @@ function renderCombat(snap: MeterSnapshot | null) {
       }),
     ];
     actorsEl.innerHTML =
-      actors.length || (fight && fight.damage)
-        ? rows.join("")
-        : `<div class="hint">Deal or take damage with /log on to fill the meter.</div>`;
+      actors.length || (fight && fight.damage) ? rows.join("") : "";
     actorsEl.querySelectorAll<HTMLButtonElement>("[data-actor]").forEach((btn) => {
       btn.addEventListener("click", () => {
         selectedActorKey = btn.dataset.actor || null;
@@ -1251,7 +1267,7 @@ function renderCombat(snap: MeterSnapshot | null) {
       ...snap.recent,
     ];
     if (!list.length) {
-      fightsEl.innerHTML = `<div class="hint">Closed pulls appear here.</div>`;
+      fightsEl.innerHTML = "";
     } else {
       fightsEl.innerHTML = list
         .map((f) => {
@@ -2016,6 +2032,18 @@ window.addEventListener("DOMContentLoaded", async () => {
     await invoke("set_overlay_locked", { locked });
   });
 
+  $("overlays-visible").addEventListener("change", async (e) => {
+    const visible = (e.target as HTMLInputElement).checked;
+    syncOverlayVisibleUi(visible);
+    await invoke("set_overlays_visible", { visible });
+  });
+
+  $("btn-overlay-visible").addEventListener("click", async () => {
+    const visible = !(document.getElementById("overlays-visible") as HTMLInputElement).checked;
+    syncOverlayVisibleUi(visible);
+    await invoke("set_overlays_visible", { visible });
+  });
+
   $("spell-search").addEventListener("input", (e) => {
     spellSearch = (e.target as HTMLInputElement).value;
     renderSpellList();
@@ -2125,6 +2153,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   await listen<AppConfig>("config-updated", (event) => {
     config = event.payload;
     syncOverlayLockUi(config.overlay_locked);
+    syncOverlayVisibleUi(overlaysVisibleOf(config));
     (document.getElementById("my-pet-name") as HTMLInputElement).value =
       config.my_pet_name ?? "";
     (document.getElementById("loot-tracking") as HTMLInputElement).checked =

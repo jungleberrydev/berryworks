@@ -14,18 +14,21 @@ The in-app **What's new** dialog and Preferences → Updates list are generated 
 - Combat meter: live group/raid DPS from the character log, ability breakdown, optional always-on-top overlay, and a session tracker (kills, plat, /hr rates).
 - Unlocked overlays show a small Timers / Enemies / Respawns / Alerts / DPS label so windows are easy to tell apart.
 - Header **Lock Overlays** / **Unlock Overlays** button (same as Preferences → General).
+- Header **Hide Overlays** / **Show Overlays** and Preferences → General **Show overlays** to turn every overlay window off at once. Per-window respawn, alert, enemy, and DPS toggles still apply when overlays are shown.
 
 ### Fixed
 
 - Charm pet DPS no longer drops mid-fight when a different NPC of the same name dies, when a group buff lands during your charm cast, or when that name's damage shield hits you. The own-cast bind window uses log timestamps so a delayed log tail still counts.
 - DPS overlay can be dragged and shows its **DPS** label when unlocked (the window was missing from Tauri permissions).
+- Combat (and other long main-window pages) can scroll; the left-rail shell no longer clips overflow.
 
 ### Changed
 
+- Combat and the DPS overlay no longer show “Waiting for combat…” (or similar empty-meter hints) when idle.
 - Charm pets for the meter (and overlay charm timers) bind only when your own recent cast resolved the broadcast, stop crediting if that mob hits you, and drop on zone. Nearby enchanters' charms are no longer treated as yours.
 - Main window uses a left rail (Combat, Loot, Timers, Respawns) with Preferences as its own page. Overlay, appearance, watched spells, loot sync, and updates live there instead of nested tabs on every feature page.
 - Search fields and checkboxes follow the active theme instead of native light Windows controls.
-- DPS overlay toggle lives on Combat. Timer overlay settings stay under Preferences → Overlay. The header Show Overlay button is gone; the timer overlay stays visible, and other overlays follow their section toggles.
+- DPS overlay toggle lives on Combat. Timer overlay settings stay under Preferences → Overlay. The timer overlay is shown unless you hide all overlays from the header or Preferences → General; other overlays follow their section toggles.
 
 ## [0.2.5] - 2026-08-13
 

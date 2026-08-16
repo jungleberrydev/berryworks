@@ -148,7 +148,12 @@ mod tests {
         assert!(keep_friendly_target("You", true, false, "Gastik"));
         assert!(keep_friendly_target("Gastik", true, false, "Gastik"));
         assert!(!keep_friendly_target("Vebn", true, false, "Gastik"));
-        assert!(!keep_friendly_target("Hoptor Thaggelum pet", true, false, "Gastik"));
+        assert!(!keep_friendly_target(
+            "Hoptor Thaggelum pet",
+            true,
+            false,
+            "Gastik"
+        ));
     }
 
     #[test]
@@ -156,8 +161,18 @@ mod tests {
         assert!(keep_friendly_target("You", false, true, "Gastik"));
         assert!(keep_friendly_target("Gastik", false, true, "Gastik"));
         assert!(keep_friendly_target("Vebn", false, true, "Gastik"));
-        assert!(!keep_friendly_target("Hoptor Thaggelum pet", false, true, "Gastik"));
-        assert!(!keep_friendly_target("an earth elemental", false, true, "Gastik"));
+        assert!(!keep_friendly_target(
+            "Hoptor Thaggelum pet",
+            false,
+            true,
+            "Gastik"
+        ));
+        assert!(!keep_friendly_target(
+            "an earth elemental",
+            false,
+            true,
+            "Gastik"
+        ));
         // Without my_pet_name, owner-suffix pets are hidden but allies remain.
         assert!(keep_friendly_target("Vebn", false, true, ""));
         assert!(!keep_friendly_target("Miragul pet", false, true, ""));

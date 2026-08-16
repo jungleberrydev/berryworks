@@ -110,10 +110,8 @@ fn re_you_taken_dot() -> &'static Regex {
 fn re_you_healed() -> &'static Regex {
     static RE: OnceLock<Regex> = OnceLock::new();
     RE.get_or_init(|| {
-        Regex::new(
-            r"(?i)^You have been healed for (?P<amount>\d+) (?:hit )?points?\.?\s*$",
-        )
-        .unwrap()
+        Regex::new(r"(?i)^You have been healed for (?P<amount>\d+) (?:hit )?points?\.?\s*$")
+            .unwrap()
     })
 }
 
@@ -469,8 +467,9 @@ mod tests {
 
     #[test]
     fn melee_you_slash() {
-        let (atk, tgt, amt, ability, kind, outcome, incoming) =
-            hit_of(combat("You slash a dar ghoul knight for 28 points of damage."));
+        let (atk, tgt, amt, ability, kind, outcome, incoming) = hit_of(combat(
+            "You slash a dar ghoul knight for 28 points of damage.",
+        ));
         assert_eq!(atk, "You");
         assert_eq!(tgt, "a dar ghoul knight");
         assert_eq!(amt, 28);
@@ -482,8 +481,9 @@ mod tests {
 
     #[test]
     fn melee_incoming() {
-        let (atk, tgt, amt, _, _, _, incoming) =
-            hit_of(combat("A wan ghoul knight slashes YOU for 31 points of damage."));
+        let (atk, tgt, amt, _, _, _, incoming) = hit_of(combat(
+            "A wan ghoul knight slashes YOU for 31 points of damage.",
+        ));
         assert_eq!(atk, "A wan ghoul knight");
         assert_eq!(tgt, "YOU");
         assert_eq!(amt, 31);
@@ -492,8 +492,9 @@ mod tests {
 
     #[test]
     fn frenzy_on() {
-        let (_, _, amt, ability, _, _, _) =
-            hit_of(combat("You frenzy on a dar ghoul knight for 43 points of damage."));
+        let (_, _, amt, ability, _, _, _) = hit_of(combat(
+            "You frenzy on a dar ghoul knight for 43 points of damage.",
+        ));
         assert_eq!(amt, 43);
         assert_eq!(ability, "frenzy");
     }
@@ -592,8 +593,9 @@ mod tests {
 
     #[test]
     fn heal_other_by_you() {
-        let (atk, tgt, amt, ability, kind, _, incoming) =
-            hit_of(combat("Vebn has been healed for 150 hit points by your Complete Heal."));
+        let (atk, tgt, amt, ability, kind, _, incoming) = hit_of(combat(
+            "Vebn has been healed for 150 hit points by your Complete Heal.",
+        ));
         assert_eq!(atk, "You");
         assert_eq!(tgt, "Vebn");
         assert_eq!(amt, 150);

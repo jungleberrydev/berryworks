@@ -120,12 +120,7 @@ impl RespawnEngine {
         changed
     }
 
-    pub fn handle(
-        &mut self,
-        event: LogEvent,
-        camps: &CampsFile,
-        config: &AppConfig,
-    ) -> bool {
+    pub fn handle(&mut self, event: LogEvent, camps: &CampsFile, config: &AppConfig) -> bool {
         match event {
             LogEvent::ZoneChange { zone } => self.set_zone(&zone, camps),
             LogEvent::Death { target, .. } => {
@@ -136,11 +131,7 @@ impl RespawnEngine {
 
                 if resolved.is_rare {
                     let rare_id = resolved.rare_id.as_deref().unwrap_or("");
-                    let watched = config
-                        .watched_rares
-                        .get(rare_id)
-                        .copied()
-                        .unwrap_or(true);
+                    let watched = config.watched_rares.get(rare_id).copied().unwrap_or(true);
                     if !watched {
                         return false;
                     }

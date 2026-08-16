@@ -10,10 +10,11 @@ mod spawn_db;
 mod spell_db;
 mod tailer;
 
+use chrono::Utc;
 use engine::{ActiveTimer, RecentExpired, TimerEngine};
 use loot::{LootEngine, LootSnapshot, LootSyncResult};
 use meter::{MeterEngine, MeterSnapshot};
-use parser::parse_line;
+use parser::{parse_line, parse_log_timestamp};
 use respawn::{RespawnEngine, RespawnTimer};
 use spawn_db::{load_camps, CampsFile};
 use spell_db::{
@@ -47,8 +48,9 @@ const WINDOW_STATE_FILE: &str = ".window-state.json";
 
 /// Persist position/size (and maximized for settings). Skip visible/decorations so
 /// overlay lock + separate-enemy / respawn show/hide stay authoritative.
-const WINDOW_STATE_FLAGS: StateFlags =
-    StateFlags::SIZE.union(StateFlags::POSITION).union(StateFlags::MAXIMIZED);
+const WINDOW_STATE_FLAGS: StateFlags = StateFlags::SIZE
+    .union(StateFlags::POSITION)
+    .union(StateFlags::MAXIMIZED);
 
 /// Last-known overlay geometry. The window-state plugin restores in `on_window_ready`,
 /// then overlay lock/shadow/show races with Windows `CW_USEDEFAULT` placement and can
@@ -191,9 +193,10 @@ fn apply_line(app: &AppHandle, state: &AppState, line: &str) {
     }
 
     let config = state.config.lock().unwrap().clone();
+    let event_at = parse_log_timestamp(line).unwrap_or_else(Utc::now);
     let (spell_changed, charm_alert, invis_alert) = {
         let mut engine = state.engine.lock().unwrap();
-        let changed = engine.handle(event.clone(), &state.spells, &config);
+        let changed = engine.handle_at(event.clone(), &state.spells, &config, event_at);
         let charm = engine.take_charm_break_alert();
         let invis = engine.take_invis_break_alert();
         (changed, charm, invis)
@@ -312,7 +315,8 @@ fn load_saved_window_geoms(app: &AppHandle) -> HashMap<String, SavedWindowGeom> 
     let Ok(data) = std::fs::read(path) else {
         return HashMap::new();
     };
-    let parsed: HashMap<String, SavedWindowGeom> = serde_json::from_slice(&data).unwrap_or_default();
+    let parsed: HashMap<String, SavedWindowGeom> =
+        serde_json::from_slice(&data).unwrap_or_default();
     parsed
         .into_iter()
         .filter(|(label, g)| is_overlay_label(label) && geom_is_usable(g))
@@ -540,7 +544,9 @@ fn track_overlay_geometry(app: &AppHandle) {
                     if size.width == 0 || size.height == 0 {
                         return;
                     }
-                    let pos = tracked.outer_position().unwrap_or(PhysicalPosition { x: 0, y: 0 });
+                    let pos = tracked
+                        .outer_position()
+                        .unwrap_or(PhysicalPosition { x: 0, y: 0 });
                     remember_overlay_geom(
                         &handle,
                         &label,
@@ -574,6 +580,34 @@ fn apply_overlay_lock(app: &AppHandle, locked: bool) {
             }
         }
     });
+}
+
+/// Show or hide the main timer overlay.
+fn sync_main_overlay(app: &AppHandle, show: bool, locked: bool) {
+    let Some(win) = app.get_webview_window(OVERLAY_MAIN) else {
+        return;
+    };
+    if show {
+        let _ = win.show();
+        let _ = win.set_always_on_top(true);
+        let _ = win.set_ignore_cursor_events(locked);
+        let _ = win.set_shadow(!locked);
+        let _ = win.set_decorations(false);
+        restore_overlay_geom(app, OVERLAY_MAIN);
+    } else {
+        let _ = win.hide();
+    }
+}
+
+/// Apply global overlay visibility plus per-window toggles.
+fn sync_overlays(app: &AppHandle, config: &AppConfig) {
+    let visible = config.overlays_visible;
+    let locked = config.overlay_locked;
+    sync_main_overlay(app, visible, locked);
+    sync_enemy_overlay(app, visible && config.overlay.separate_enemy_window, locked);
+    sync_respawn_overlay(app, visible && config.overlay.show_respawn_window, locked);
+    sync_alert_overlay(app, visible && config.overlay.show_alert_window, locked);
+    sync_meter_overlay(app, visible && config.overlay.show_meter_window, locked);
 }
 
 /// Show or hide the enemy overlay based on `overlay.separate_enemy_window`.
@@ -667,10 +701,6 @@ fn save_settings(
 ) -> Result<AppConfig, String> {
     normalize_config(&mut config);
     save_config(&config)?;
-    let separate = config.overlay.separate_enemy_window;
-    let show_respawn = config.overlay.show_respawn_window;
-    let show_alerts = config.overlay.show_alert_window;
-    let show_meter = config.overlay.show_meter_window;
     let locked = config.overlay_locked;
     let respawn_zone = config.respawn_zone.clone();
     {
@@ -696,10 +726,7 @@ fn save_settings(
             let _ = tx.send(TailCommand::SetPath(config.log_path.clone().into()));
         }
     }
-    sync_enemy_overlay(&app, separate, locked);
-    sync_respawn_overlay(&app, show_respawn, locked);
-    sync_alert_overlay(&app, show_alerts, locked);
-    sync_meter_overlay(&app, show_meter, locked);
+    sync_overlays(&app, &config);
     apply_overlay_lock(&app, locked);
     let _ = app.emit("config-updated", &config);
     emit_respawns(&app, &state);
@@ -735,14 +762,14 @@ fn set_respawn_zone(
         let mut engine = state.respawn.lock().unwrap();
         engine.set_zone(&zone, &state.camps);
     }
-            {
-                let mut loot = state.loot.lock().unwrap();
-                loot.set_zone(&zone);
-            }
-            {
-                let mut meter = state.meter.lock().unwrap();
-                meter.set_zone(&zone);
-            }
+    {
+        let mut loot = state.loot.lock().unwrap();
+        loot.set_zone(&zone);
+    }
+    {
+        let mut meter = state.meter.lock().unwrap();
+        meter.set_zone(&zone);
+    }
     let snapshot = {
         let mut config = state.config.lock().unwrap();
         config.respawn_zone = zone.trim().to_string();
@@ -864,9 +891,7 @@ fn upload_loot(state: State<'_, AppState>) -> Result<LootSyncResult, String> {
             .header("Authorization", format!("Bearer {ops_key}"))
             .header("X-Berryworks-Key", ops_key);
     }
-    let response = request
-        .send()
-        .map_err(|e| format!("Upload failed: {e}"))?;
+    let response = request.send().map_err(|e| format!("Upload failed: {e}"))?;
 
     let status = response.status();
     let text = response.text().unwrap_or_default();
@@ -1006,8 +1031,7 @@ fn login_loot_discord(
                     cfg.loot_upload_token = token;
                     cfg.loot_discord_user_id = user.id.clone();
                     cfg.loot_discord_username = user.username.clone();
-                    cfg.loot_discord_global_name =
-                        user.global_name.clone().unwrap_or_default();
+                    cfg.loot_discord_global_name = user.global_name.clone().unwrap_or_default();
                     cfg.loot_sync_enabled = true;
                     normalize_config(&mut cfg);
                     save_config(&cfg)?;
@@ -1059,7 +1083,7 @@ fn logout_loot_discord(state: State<'_, AppState>) -> Result<(), String> {
 fn dismiss_timer(app: AppHandle, state: State<'_, AppState>, id: String) -> bool {
     let removed = state.engine.lock().unwrap().dismiss_timer(&id);
     if let Some(timer) = removed {
-            let _ = app.emit(
+        let _ = app.emit(
             "timer-dismissed",
             serde_json::json!({ "id": timer.id, "spell": timer.spell }),
         );
@@ -1080,7 +1104,11 @@ fn dismiss_respawn(app: AppHandle, state: State<'_, AppState>, id: String) -> bo
 }
 
 #[tauri::command]
-fn set_overlay_locked(app: AppHandle, state: State<'_, AppState>, locked: bool) -> Result<(), String> {
+fn set_overlay_locked(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    locked: bool,
+) -> Result<(), String> {
     let config_snapshot = {
         let mut config = state.config.lock().unwrap();
         config.overlay_locked = locked;
@@ -1094,9 +1122,29 @@ fn set_overlay_locked(app: AppHandle, state: State<'_, AppState>, locked: bool) 
 }
 
 #[tauri::command]
+fn set_overlays_visible(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    visible: bool,
+) -> Result<(), String> {
+    let config_snapshot = {
+        let mut config = state.config.lock().unwrap();
+        config.overlays_visible = visible;
+        save_config(&config)?;
+        config.clone()
+    };
+    sync_overlays(&app, &config_snapshot);
+    apply_overlay_lock(&app, config_snapshot.overlay_locked);
+    let _ = app.emit("config-updated", &config_snapshot);
+    Ok(())
+}
+
+#[tauri::command]
 fn preview_overlay_alert(app: AppHandle, state: State<'_, AppState>, kind: Option<String>) {
-    let locked = state.config.lock().unwrap().overlay_locked;
-    sync_alert_overlay(&app, true, locked);
+    let config = state.config.lock().unwrap().clone();
+    if config.overlays_visible {
+        sync_alert_overlay(&app, true, config.overlay_locked);
+    }
     match kind.as_deref().unwrap_or("charm") {
         "invis" => emit_overlay_alert(&app, "Invis wore off!", "", "invis"),
         "invis-fading" => emit_overlay_alert(&app, "Invis fading!", "", "invis-fading"),
@@ -1185,6 +1233,7 @@ pub fn run() {
             dismiss_timer,
             dismiss_respawn,
             set_overlay_locked,
+            set_overlays_visible,
             preview_overlay_alert,
             inject_log_line,
             suggest_log_paths
@@ -1216,27 +1265,8 @@ pub fn run() {
                     state.meter.lock().unwrap().set_zone(&config.respawn_zone);
                 }
                 apply_meter_identity(&state, &config);
+                sync_overlays(app.handle(), &config);
                 apply_overlay_lock(app.handle(), config.overlay_locked);
-                sync_enemy_overlay(
-                    app.handle(),
-                    config.overlay.separate_enemy_window,
-                    config.overlay_locked,
-                );
-                sync_respawn_overlay(
-                    app.handle(),
-                    config.overlay.show_respawn_window,
-                    config.overlay_locked,
-                );
-                sync_alert_overlay(
-                    app.handle(),
-                    config.overlay.show_alert_window,
-                    config.overlay_locked,
-                );
-                sync_meter_overlay(
-                    app.handle(),
-                    config.overlay.show_meter_window,
-                    config.overlay_locked,
-                );
             }
             // After lock/show: apply last geometry (plugin restore already skipped).
             apply_saved_overlay_geoms(app.handle(), &saved_overlay_geoms);
@@ -1305,9 +1335,7 @@ pub fn run() {
             let labels: Vec<String> = app
                 .webview_windows()
                 .into_keys()
-                .filter(|l| {
-                    OVERLAY_WINDOWS.contains(&l.as_str()) || l.starts_with("overlay")
-                })
+                .filter(|l| OVERLAY_WINDOWS.contains(&l.as_str()) || l.starts_with("overlay"))
                 .collect();
             for label in labels {
                 if allowed.contains(&label.as_str()) {

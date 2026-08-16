@@ -168,10 +168,7 @@ pub fn character_name_from_log_path(path: &str) -> String {
 }
 
 fn label_for(path: &Path) -> String {
-    let file = path
-        .file_name()
-        .and_then(|n| n.to_str())
-        .unwrap_or("eqlog");
+    let file = path.file_name().and_then(|n| n.to_str()).unwrap_or("eqlog");
     // eqlog_Character_Server.txt → Character (Server)
     let stem = file.trim_end_matches(".txt").trim_end_matches(".TXT");
     let rest = stem.strip_prefix("eqlog_").unwrap_or(stem);
@@ -201,17 +198,12 @@ mod tests {
 
     #[test]
     fn collect_finds_eqlog_files() {
-        let dir = std::env::temp_dir().join(format!(
-            "berryworks-log-suggest-{}",
-            std::process::id()
-        ));
+        let dir =
+            std::env::temp_dir().join(format!("berryworks-log-suggest-{}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
         let log = dir.join("eqlog_Test_Server.txt");
-        File::create(&log)
-            .unwrap()
-            .write_all(b"test")
-            .unwrap();
+        File::create(&log).unwrap().write_all(b"test").unwrap();
         File::create(dir.join("notes.txt"))
             .unwrap()
             .write_all(b"skip")

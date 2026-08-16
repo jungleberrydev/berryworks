@@ -5,24 +5,32 @@ All notable changes to [Berryworks](https://github.com/jungleberrydev/berryworks
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-The in-app **What's new** dialog and General → Updates list are generated from this file.
+The in-app **What's new** dialog and Preferences → Updates list are generated from this file.
 
 ## [Unreleased]
+
+## [0.2.6] - 2026-08-15
 
 ### Added
 
 - Combat meter: live group/raid DPS from the character log, ability breakdown, optional always-on-top overlay, and a session tracker (kills, plat, /hr rates).
 - Unlocked overlays show a small Timers / Enemies / Respawns / Alerts / DPS label so windows are easy to tell apart.
-- Header **Lock Overlays** / **Unlock Overlays** button (same as Timers → General).
+- Header **Lock Overlays** / **Unlock Overlays** button (same as Preferences → General).
+- Header **Hide Overlays** / **Show Overlays** and Preferences → General **Show overlays** to turn every overlay window off at once. Per-window respawn, alert, enemy, and DPS toggles still apply when overlays are shown.
 
 ### Fixed
 
+- Charm pet DPS no longer drops mid-fight when a different NPC of the same name dies, when a group buff lands during your charm cast, or when that name's damage shield hits you. The own-cast bind window uses log timestamps so a delayed log tail still counts.
 - DPS overlay can be dragged and shows its **DPS** label when unlocked (the window was missing from Tauri permissions).
+- Combat (and other long main-window pages) can scroll; the left-rail shell no longer clips overflow.
 
 ### Changed
 
+- Combat and the DPS overlay no longer show “Waiting for combat…” (or similar empty-meter hints) when idle.
 - Charm pets for the meter (and overlay charm timers) bind only when your own recent cast resolved the broadcast, stop crediting if that mob hits you, and drop on zone. Nearby enchanters' charms are no longer treated as yours.
-- DPS overlay toggle lives on Combat. Timer overlay settings stay under Timers → Overlay. The header Show Overlay button is gone; the timer overlay stays visible, and other overlays follow their section toggles.
+- Main window uses a left rail (Combat, Loot, Timers, Respawns) with Preferences as its own page. Overlay, appearance, watched spells, loot sync, and updates live there instead of nested tabs on every feature page.
+- Search fields and checkboxes follow the active theme instead of native light Windows controls.
+- DPS overlay toggle lives on Combat. Timer overlay settings stay under Preferences → Overlay. The timer overlay is shown unless you hide all overlays from the header or Preferences → General; other overlays follow their section toggles.
 
 ## [0.2.5] - 2026-08-13
 
@@ -98,7 +106,8 @@ Initial public release of Berryworks — an EverQuest Legends timers toolkit tha
 - Windows NSIS installer bundle and GitHub Actions release workflow (tag-driven builds uploading `Berryworks_*_x64-setup.exe`).
 - MIT license and README install / in-game / development docs.
 
-[Unreleased]: https://github.com/jungleberrydev/berryworks/compare/v0.2.5...HEAD
+[Unreleased]: https://github.com/jungleberrydev/berryworks/compare/v0.2.6...HEAD
+[0.2.6]: https://github.com/jungleberrydev/berryworks/compare/v0.2.5...v0.2.6
 [0.2.5]: https://github.com/jungleberrydev/berryworks/compare/v0.2.4...v0.2.5
 [0.2.4]: https://github.com/jungleberrydev/berryworks/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/jungleberrydev/berryworks/compare/v0.2.2...v0.2.3

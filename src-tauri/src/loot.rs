@@ -200,9 +200,7 @@ impl LootEngine {
     }
 
     fn zone_key(&self) -> String {
-        self.zone
-            .clone()
-            .unwrap_or_else(|| "Unknown".to_string())
+        self.zone.clone().unwrap_or_else(|| "Unknown".to_string())
     }
 
     fn age(now: chrono::DateTime<Utc>, then: chrono::DateTime<Utc>) -> Duration {
@@ -325,9 +323,10 @@ impl LootEngine {
 
     fn record_coin(&mut self, copper: u64) -> bool {
         let now = Utc::now();
-        let idx = self.recent.iter().position(|k| {
-            !k.coin_claimed && Self::age(now, k.last_activity) <= COIN_WINDOW
-        });
+        let idx = self
+            .recent
+            .iter()
+            .position(|k| !k.coin_claimed && Self::age(now, k.last_activity) <= COIN_WINDOW);
         let Some(idx) = idx else {
             return false;
         };
@@ -438,8 +437,7 @@ impl LootEngine {
                 }
 
                 for (item, drop) in &stats.items {
-                    total_item_appearances =
-                        total_item_appearances.saturating_add(drop.times);
+                    total_item_appearances = total_item_appearances.saturating_add(drop.times);
                     let item_match = q.is_empty()
                         || item.to_lowercase().contains(&q)
                         || stats.display_name.to_lowercase().contains(&q)
@@ -622,7 +620,10 @@ mod tests {
         );
 
         let snap = eng.snapshot("ogre");
-        assert_eq!(snap.mobs[0].kills, 1, "kill + multi-item loot = one opportunity");
+        assert_eq!(
+            snap.mobs[0].kills, 1,
+            "kill + multi-item loot = one opportunity"
+        );
         assert_eq!(snap.total_item_appearances, 2);
     }
 
@@ -679,15 +680,11 @@ mod tests {
         cfg.my_pet_name = "Gastik".into();
 
         assert!(!eng.handle(
-            parse_line(
-                "[Thu Aug 06 21:51:20 2026] A frenzied ghoul has been slain by Vebn!",
-            ),
+            parse_line("[Thu Aug 06 21:51:20 2026] A frenzied ghoul has been slain by Vebn!",),
             &cfg,
         ));
         assert!(eng.handle(
-            parse_line(
-                "[Thu Aug 06 21:51:21 2026] A frenzied ghoul has been slain by Gastik!",
-            ),
+            parse_line("[Thu Aug 06 21:51:21 2026] A frenzied ghoul has been slain by Gastik!",),
             &cfg,
         ));
         assert_eq!(eng.snapshot("").mobs[0].kills, 1);
@@ -709,9 +706,7 @@ mod tests {
 
         // Nearby group kill — not personal credit, ignored for denominator.
         assert!(!eng.handle(
-            parse_line(
-                "[Thu Aug 06 21:51:20 2026] A frenzied ghoul has been slain by Vebn!",
-            ),
+            parse_line("[Thu Aug 06 21:51:20 2026] A frenzied ghoul has been slain by Vebn!",),
             &cfg,
         ));
         // First loot opens the opportunity.

@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::sync::OnceLock;
@@ -21,18 +22,35 @@ pub enum LootDisposition {
 pub enum LogEvent {
     /// Raw spell text from the cast line (may include a trailing Roman tier).
     /// The engine resolves base name + tier against the spell DB.
-    BeginCast { spell: String },
+    BeginCast {
+        spell: String,
+    },
     Interrupted,
     Fizzle,
-    LandOther { target: String, message: String },
-    LandYou { message: String },
-    WearOff { message: String },
-    MezBreak { target: String, breaker: String },
+    LandOther {
+        target: String,
+        message: String,
+    },
+    LandYou {
+        message: String,
+    },
+    WearOff {
+        message: String,
+    },
+    MezBreak {
+        target: String,
+        breaker: String,
+    },
     /// Caster charm ended: `Your Allure spell has worn off of a gnoll.`
     /// Target is empty for the generic `Your charm spell has worn off.`
-    CharmBreak { spell: String, target: String },
+    CharmBreak {
+        spell: String,
+        target: String,
+    },
     /// Self invis / IVU / IVA ended. `kind` is `invis`, `ivu`, or `iva`.
-    InvisBreak { kind: String },
+    InvisBreak {
+        kind: String,
+    },
     /// Invis is about to drop: `You feel yourself starting to appear.`
     InvisFading,
     /// NPC death. `by_you` is true for `You have slain …!` or `… has been slain by You!`.
@@ -42,9 +60,13 @@ pub enum LogEvent {
         by_you: bool,
         killer: Option<String>,
     },
-    ZoneChange { zone: String },
+    ZoneChange {
+        zone: String,
+    },
     /// `You have gained a level! Welcome to level N!`
-    LevelUp { level: u32 },
+    LevelUp {
+        level: u32,
+    },
     /// Item looted from a named corpse (mob is always present in EQL).
     LootItem {
         item: String,
@@ -53,7 +75,9 @@ pub enum LogEvent {
         disposition: LootDisposition,
     },
     /// `You receive … from the corpse.` (no mob name — correlate via recent kill).
-    CorpseCoin { copper: u64 },
+    CorpseCoin {
+        copper: u64,
+    },
     /// Melee/spell/DoT/DS hit, miss, resist, or heal.
     CombatHit {
         attacker: String,
@@ -120,9 +144,7 @@ fn re_died() -> &'static Regex {
 
 fn re_mez_break() -> &'static Regex {
     static RE: OnceLock<Regex> = OnceLock::new();
-    RE.get_or_init(|| {
-        Regex::new(r"(?i)^(.+?) has been awakened by (.+)\.?$").unwrap()
-    })
+    RE.get_or_init(|| Regex::new(r"(?i)^(.+?) has been awakened by (.+)\.?$").unwrap())
 }
 
 /// Own charm ending. Matches:
@@ -135,10 +157,7 @@ fn re_mez_break() -> &'static Regex {
 fn re_charm_break() -> &'static Regex {
     static RE: OnceLock<Regex> = OnceLock::new();
     RE.get_or_init(|| {
-        Regex::new(
-            r"(?i)^Your (.+?) spell has worn off(?: of (.+?))?(?:\.+|…+)?\s*$",
-        )
-        .unwrap()
+        Regex::new(r"(?i)^Your (.+?) spell has worn off(?: of (.+?))?(?:\.+|…+)?\s*$").unwrap()
     })
 }
 
@@ -219,10 +238,7 @@ fn re_level_up() -> &'static Regex {
 fn re_loot_kept() -> &'static Regex {
     static RE: OnceLock<Regex> = OnceLock::new();
     RE.get_or_init(|| {
-        Regex::new(
-            r"(?i)^--You have looted (?:a |an )?(.+?) from (.+?)'s corpse\.--\s*$",
-        )
-        .unwrap()
+        Regex::new(r"(?i)^--You have looted (?:a |an )?(.+?) from (.+?)'s corpse\.--\s*$").unwrap()
     })
 }
 
@@ -241,9 +257,7 @@ fn re_loot_action() -> &'static Regex {
 /// Coin only: `You receive 5 silver and 3 copper from the corpse.`
 fn re_corpse_coin() -> &'static Regex {
     static RE: OnceLock<Regex> = OnceLock::new();
-    RE.get_or_init(|| {
-        Regex::new(r"(?i)^You receive (.+?) from the corpse\.?\s*$").unwrap()
-    })
+    RE.get_or_init(|| Regex::new(r"(?i)^You receive (.+?) from the corpse\.?\s*$").unwrap())
 }
 
 /// Parse EQ coin phrase into total copper (1p=1000, 1g=100, 1s=10, 1c=1).
@@ -338,6 +352,40 @@ pub fn strip_timestamp(line: &str) -> &str {
         }
     }
     line
+}
+
+/// Parse the EQ log stamp `[Wed Aug 5 23:00:00 2026]`. Day may be one or two
+/// digits. Treated as UTC so deltas between lines are stable; the zone offset
+/// is not in the log. Month names are matched in English (EQ logs are English)
+/// so this does not depend on the process locale.
+pub fn parse_log_timestamp(line: &str) -> Option<DateTime<Utc>> {
+    let line = line.trim();
+    let rest = line.strip_prefix('[')?;
+    let end = rest.find(']')?;
+    let stamp = rest[..end].trim();
+    let parts: Vec<&str> = stamp.split_whitespace().collect();
+    if parts.len() != 5 {
+        return None;
+    }
+    const MONTHS: &[&str] = &[
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+    ];
+    let month = MONTHS
+        .iter()
+        .position(|m| m.eq_ignore_ascii_case(parts[1]))? as u32
+        + 1;
+    let day: u32 = parts[2].parse().ok()?;
+    let year: i32 = parts[4].parse().ok()?;
+    let hms: Vec<&str> = parts[3].split(':').collect();
+    if hms.len() != 3 {
+        return None;
+    }
+    let hour: u32 = hms[0].parse().ok()?;
+    let min: u32 = hms[1].parse().ok()?;
+    let sec: u32 = hms[2].parse().ok()?;
+    chrono::NaiveDate::from_ymd_opt(year, month, day)?
+        .and_hms_opt(hour, min, sec)
+        .map(|ndt| ndt.and_utc())
 }
 
 pub fn parse_line(line: &str) -> LogEvent {
@@ -545,6 +593,19 @@ mod tests {
     use super::*;
 
     #[test]
+    fn parse_log_timestamp_accepts_single_digit_day() {
+        let t = parse_log_timestamp("[Wed Aug 5 23:00:00 2026] You begin casting Beguile.")
+            .expect("stamp");
+        assert_eq!(
+            t.format("%Y-%m-%d %H:%M:%S").to_string(),
+            "2026-08-05 23:00:00"
+        );
+        let t2 = parse_log_timestamp("[Wed Aug 05 23:12:00 2026] A gnoll has been charmed.")
+            .expect("padded day");
+        assert_eq!(t2.format("%H:%M:%S").to_string(), "23:12:00");
+    }
+
+    #[test]
     fn parses_begin_cast() {
         let e = parse_line("[Wed Aug 5 23:00:00 2026] You begin casting Mesmerize.");
         assert_eq!(
@@ -593,9 +654,7 @@ mod tests {
     #[test]
     fn parses_clarity_self_land_as_land_you() {
         // Real EQL log line (Jungleberry); must not fall through to LandOther.
-        let e = parse_line(
-            "[Thu Aug 06 00:09:03 2026] A cool breeze slips through your mind.",
-        );
+        let e = parse_line("[Thu Aug 06 00:09:03 2026] A cool breeze slips through your mind.");
         assert_eq!(
             e,
             LogEvent::LandYou {
@@ -655,9 +714,8 @@ mod tests {
 
     #[test]
     fn parses_allure_worn_off_of_target() {
-        let e = parse_line(
-            "[Thu Aug 13 09:54:58 2026] Your Allure spell has worn off of an azarack.",
-        );
+        let e =
+            parse_line("[Thu Aug 13 09:54:58 2026] Your Allure spell has worn off of an azarack.");
         assert_eq!(
             e,
             LogEvent::CharmBreak {
@@ -706,9 +764,7 @@ mod tests {
 
     #[test]
     fn pet_spell_worn_off_is_not_charm_break() {
-        let e = parse_line(
-            "[Wed Aug 5 23:00:10 2026] Your pet's Clarity spell has worn off.",
-        );
+        let e = parse_line("[Wed Aug 5 23:00:10 2026] Your pet's Clarity spell has worn off.");
         assert!(matches!(e, LogEvent::WearOff { .. }));
     }
 
@@ -744,15 +800,11 @@ mod tests {
     fn parses_ivu_and_iva_wear_off() {
         assert_eq!(
             parse_line("[Wed Aug 5 23:00:10 2026] Your skin stops tingling."),
-            LogEvent::InvisBreak {
-                kind: "ivu".into()
-            }
+            LogEvent::InvisBreak { kind: "ivu".into() }
         );
         assert_eq!(
             parse_line("[Wed Aug 5 23:00:10 2026] Your image returns."),
-            LogEvent::InvisBreak {
-                kind: "iva".into()
-            }
+            LogEvent::InvisBreak { kind: "iva".into() }
         );
     }
 
@@ -770,9 +822,8 @@ mod tests {
 
     #[test]
     fn parses_level_up() {
-        let e = parse_line(
-            "[Thu Aug 06 21:09:06 2026] You have gained a level! Welcome to level 43!",
-        );
+        let e =
+            parse_line("[Thu Aug 06 21:09:06 2026] You have gained a level! Welcome to level 43!");
         assert_eq!(e, LogEvent::LevelUp { level: 43 });
     }
 
@@ -792,9 +843,7 @@ mod tests {
 
     #[test]
     fn parses_has_been_slain_by() {
-        let e = parse_line(
-            "[Thu Aug 06 21:51:20 2026] A zol ghoul knight has been slain by Vebn!",
-        );
+        let e = parse_line("[Thu Aug 06 21:51:20 2026] A zol ghoul knight has been slain by Vebn!");
         assert_eq!(
             e,
             LogEvent::Death {
@@ -807,9 +856,7 @@ mod tests {
 
     #[test]
     fn parses_has_been_slain_by_you() {
-        let e = parse_line(
-            "[Thu Aug 06 21:51:20 2026] A zol ghoul knight has been slain by You!",
-        );
+        let e = parse_line("[Thu Aug 06 21:51:20 2026] A zol ghoul knight has been slain by You!");
         assert_eq!(
             e,
             LogEvent::Death {

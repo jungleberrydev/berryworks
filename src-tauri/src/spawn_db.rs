@@ -69,11 +69,7 @@ pub fn find_zone<'a>(camps: &'a CampsFile, zone_name: &str) -> Option<&'a ZoneCa
 }
 
 /// Resolve respawn seconds + optional rare metadata for a kill in a zone.
-pub fn resolve_kill(
-    camps: &CampsFile,
-    zone_name: &str,
-    npc_name: &str,
-) -> KillResolve {
+pub fn resolve_kill(camps: &CampsFile, zone_name: &str, npc_name: &str) -> KillResolve {
     let zone = find_zone(camps, zone_name);
     let default_secs = zone
         .map(|z| z.default_respawn_secs)

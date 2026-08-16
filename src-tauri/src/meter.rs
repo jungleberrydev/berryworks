@@ -1,6 +1,6 @@
 //! Live combat meter: fight grouping, actor rows, ability breakdown, session stats.
 
-use crate::engine::looks_like_unnamed_npc;
+use crate::engine::{looks_like_unnamed_npc, npc_names_match};
 use crate::parser::LogEvent;
 use crate::pets::{is_my_pet, is_pet_target};
 use chrono::{DateTime, Utc};
@@ -307,10 +307,7 @@ impl MeterEngine {
         if incoming {
             is_charm = false;
         }
-        let include_as_dps = is_you
-            || is_pet
-            || is_charm
-            || !looks_like_unnamed_npc(&actor_name);
+        let include_as_dps = is_you || is_pet || is_charm || !looks_like_unnamed_npc(&actor_name);
 
         if self.current.is_none() {
             let title = if incoming {
@@ -418,12 +415,15 @@ impl MeterEngine {
             } else {
                 self.my_pet_name.clone()
             };
-            return (format!("pet:{}", shown.to_ascii_lowercase()), shown, false, true, false);
+            return (
+                format!("pet:{}", shown.to_ascii_lowercase()),
+                shown,
+                false,
+                true,
+                false,
+            );
         }
-        if charmed_targets
-            .iter()
-            .any(|t| t.eq_ignore_ascii_case(&name))
-        {
+        if charmed_targets.iter().any(|t| npc_names_match(t, &name)) {
             let shown = format!("{name} (charm)");
             return (
                 format!("charm:{}", name.to_ascii_lowercase()),
@@ -473,7 +473,7 @@ impl MeterEngine {
         if self.is_you_name(k) || is_my_pet(k, &self.my_pet_name) {
             return true;
         }
-        charmed_targets.iter().any(|t| t.eq_ignore_ascii_case(k))
+        charmed_targets.iter().any(|t| npc_names_match(t, k))
     }
 
     fn close_if_stale(&mut self, now: DateTime<Utc>) -> bool {
@@ -534,8 +534,7 @@ impl MeterEngine {
                 plat_copper: self.session_plat,
                 plat_per_hour_copper: self.session_plat as f64 / hours,
                 deaths: self.session_deaths,
-                fights: self.session_fights
-                    + if self.current.is_some() { 1 } else { 0 },
+                fights: self.session_fights + if self.current.is_some() { 1 } else { 0 },
                 damage: self.session_damage,
                 session_dps: if elapsed > 0.0 {
                     self.session_damage as f64 / elapsed
@@ -579,11 +578,8 @@ impl Fight {
 
     fn snapshot(&self, now: DateTime<Utc>, active: bool) -> FightSnapshot {
         let duration = self.duration_secs(now);
-        let mut actors: Vec<ActorRow> = self
-            .actors
-            .values()
-            .map(|a| a.snapshot(duration))
-            .collect();
+        let mut actors: Vec<ActorRow> =
+            self.actors.values().map(|a| a.snapshot(duration)).collect();
         actors.sort_by(|a, b| b.damage.cmp(&a.damage).then(a.name.cmp(&b.name)));
         FightSnapshot {
             id: self.id.clone(),
@@ -649,20 +645,23 @@ fn record_on_fight(
     incoming: bool,
     _target_is_you: bool,
 ) {
-    let actor = fight.actors.entry(key.to_string()).or_insert_with(|| ActorAcc {
-        key: key.to_string(),
-        name: name.to_string(),
-        is_you,
-        is_pet,
-        is_charm_pet: is_charm,
-        damage: 0,
-        healing: 0,
-        taken: 0,
-        hits: 0,
-        misses: 0,
-        resists: 0,
-        abilities: HashMap::new(),
-    });
+    let actor = fight
+        .actors
+        .entry(key.to_string())
+        .or_insert_with(|| ActorAcc {
+            key: key.to_string(),
+            name: name.to_string(),
+            is_you,
+            is_pet,
+            is_charm_pet: is_charm,
+            damage: 0,
+            healing: 0,
+            taken: 0,
+            hits: 0,
+            misses: 0,
+            resists: 0,
+            abilities: HashMap::new(),
+        });
     let ability_key = ability.to_ascii_lowercase();
     let acc = actor
         .abilities
@@ -703,20 +702,23 @@ fn record_on_fight(
 }
 
 fn credit_taken_on(fight: &mut Fight, key: &str, name: &str, amount: u64) {
-    let actor = fight.actors.entry(key.to_string()).or_insert_with(|| ActorAcc {
-        key: key.to_string(),
-        name: name.to_string(),
-        is_you: true,
-        is_pet: false,
-        is_charm_pet: false,
-        damage: 0,
-        healing: 0,
-        taken: 0,
-        hits: 0,
-        misses: 0,
-        resists: 0,
-        abilities: HashMap::new(),
-    });
+    let actor = fight
+        .actors
+        .entry(key.to_string())
+        .or_insert_with(|| ActorAcc {
+            key: key.to_string(),
+            name: name.to_string(),
+            is_you: true,
+            is_pet: false,
+            is_charm_pet: false,
+            damage: 0,
+            healing: 0,
+            taken: 0,
+            hits: 0,
+            misses: 0,
+            resists: 0,
+            abilities: HashMap::new(),
+        });
     actor.taken = actor.taken.saturating_add(amount);
 }
 
@@ -756,7 +758,10 @@ mod tests {
             &[],
         );
         let fight = m.snapshot().current.expect("fight");
-        assert!(fight.actors.iter().any(|a| a.name == "Vebn" && a.damage == 90));
+        assert!(fight
+            .actors
+            .iter()
+            .any(|a| a.name == "Vebn" && a.damage == 90));
         assert_eq!(fight.actors.len(), 2);
     }
 
@@ -791,6 +796,23 @@ mod tests {
     }
 
     #[test]
+    fn charm_pet_matches_land_article_and_case() {
+        let mut m = MeterEngine::new();
+        m.set_identity("Jungleberry", "");
+        m.handle(
+            &hit("[Wed Aug 5 23:00:00 2026] a gnoll slashes an orc pawn for 40 points of damage."),
+            &["A gnoll".into()],
+        );
+        let fight = m.snapshot().current.expect("fight");
+        let pet = fight
+            .actors
+            .iter()
+            .find(|a| a.is_charm_pet)
+            .expect("charm row");
+        assert_eq!(pet.damage, 40);
+    }
+
+    #[test]
     fn charm_swinging_at_you_is_not_charm_dps() {
         let mut m = MeterEngine::new();
         m.set_identity("Jungleberry", "");
@@ -799,7 +821,10 @@ mod tests {
             &["an azarack".into()],
         );
         let fight = m.snapshot().current.expect("fight");
-        assert!(fight.actors.iter().all(|a| !a.is_charm_pet || a.damage == 0));
+        assert!(fight
+            .actors
+            .iter()
+            .all(|a| !a.is_charm_pet || a.damage == 0));
         let you = fight.actors.iter().find(|a| a.is_you).expect("you");
         assert_eq!(you.taken, 40);
     }
@@ -852,7 +877,10 @@ mod tests {
         let snap = m.snapshot();
         assert!(snap.session.kills >= 1);
         assert!(snap.session.plat_copper > 0);
-        let fight = snap.current.or(snap.recent.into_iter().next()).expect("fight");
+        let fight = snap
+            .current
+            .or(snap.recent.into_iter().next())
+            .expect("fight");
         assert!(fight.actors.iter().any(|a| a.is_you && a.damage > 0));
         assert!(fight.actors.iter().any(|a| a.name == "Vebn"));
         assert!(fight.actors.iter().any(|a| a.is_pet));

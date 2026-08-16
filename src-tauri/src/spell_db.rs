@@ -389,11 +389,19 @@ pub struct AppConfig {
     #[serde(default)]
     pub loot_contributor_id: String,
     pub overlay_locked: bool,
+    /// When false, every overlay window is hidden. Per-window toggles still
+    /// apply when overlays are shown. Default true for existing configs.
+    #[serde(default = "default_overlays_visible")]
+    pub overlays_visible: bool,
     #[serde(default)]
     pub overlay: OverlayAppearance,
 }
 
 fn default_loot_tracking() -> bool {
+    true
+}
+
+fn default_overlays_visible() -> bool {
     true
 }
 
@@ -423,6 +431,7 @@ impl Default for AppConfig {
             loot_discord_user_id: String::new(),
             loot_contributor_id: String::new(),
             overlay_locked: false,
+            overlays_visible: true,
             overlay: OverlayAppearance::default(),
         }
     }
@@ -493,9 +502,7 @@ pub fn config_path() -> PathBuf {
 fn dirs_config_dir() -> Option<PathBuf> {
     std::env::var_os("APPDATA")
         .map(PathBuf::from)
-        .or_else(|| {
-            std::env::var_os("HOME").map(|h| PathBuf::from(h).join(".config"))
-        })
+        .or_else(|| std::env::var_os("HOME").map(|h| PathBuf::from(h).join(".config")))
 }
 
 pub fn load_config(spells: &[SpellDef]) -> AppConfig {
@@ -511,10 +518,7 @@ pub fn load_config(spells: &[SpellDef]) -> AppConfig {
     normalize_config(&mut config);
 
     for spell in spells {
-        config
-            .spell_tiers
-            .entry(spell.name.clone())
-            .or_insert(0);
+        config.spell_tiers.entry(spell.name.clone()).or_insert(0);
         config
             .watched
             .entry(spell.name.clone())
@@ -716,10 +720,7 @@ pub fn resolve_cast_spell<'a>(
 
 /// Exact name, then wiki `" (Spell)"` disambiguation alias either direction.
 fn find_spell_def_by_name<'a>(spells: &'a [SpellDef], name: &str) -> Option<&'a SpellDef> {
-    if let Some(spell) = spells
-        .iter()
-        .find(|s| s.name.eq_ignore_ascii_case(name))
-    {
+    if let Some(spell) = spells.iter().find(|s| s.name.eq_ignore_ascii_case(name)) {
         return Some(spell);
     }
     let with_suffix = format!("{name} (Spell)");
@@ -735,9 +736,7 @@ fn find_spell_def_by_name<'a>(spells: &'a [SpellDef], name: &str) -> Option<&'a 
     {
         let base = base.trim();
         if !base.is_empty() {
-            return spells
-                .iter()
-                .find(|s| s.name.eq_ignore_ascii_case(base));
+            return spells.iter().find(|s| s.name.eq_ignore_ascii_case(base));
         }
     }
     None
@@ -766,7 +765,9 @@ const ROMAN_TIERS: &[(&str, u32)] = &[
 pub fn parse_spell_name_and_tier(name: &str) -> (String, u32) {
     let mut s = name.trim().trim_end_matches('.').to_string();
 
-    for suffix in [" Rk. III", " Rk. II", " Rk. I", " Rk.III", " Rk.II", " Rk.I"] {
+    for suffix in [
+        " Rk. III", " Rk. II", " Rk. I", " Rk.III", " Rk.II", " Rk.I",
+    ] {
         if let Some(stripped) = s.strip_suffix(suffix) {
             s = stripped.trim_end().to_string();
             break;
@@ -1006,7 +1007,10 @@ mod tests {
     #[test]
     fn spells_json_includes_classes() {
         let spells = load_spells().expect("spells");
-        let clarity = spells.iter().find(|s| s.name == "Clarity").expect("Clarity");
+        let clarity = spells
+            .iter()
+            .find(|s| s.name == "Clarity")
+            .expect("Clarity");
         assert!(
             clarity
                 .classes
@@ -1203,10 +1207,7 @@ mod tests {
         assert_eq!(gom.base_ticks, 600);
         assert_eq!(gom.max_ticks, 600);
         assert_eq!(gom.spellicon, "H");
-        assert_eq!(
-            gom.land_you,
-            "Your thoughts begin to race and flow faster"
-        );
+        assert_eq!(gom.land_you, "Your thoughts begin to race and flow faster");
         assert_eq!(gom.wear_off_you, "Your gift of magic fades");
         assert!(gom.watched_by_default);
         assert_eq!(duration_seconds(gom, 34, 0), 3600);
@@ -1288,6 +1289,21 @@ mod tests {
     }
 
     #[test]
+    fn overlays_visible_defaults_true_when_missing() {
+        let cfg: AppConfig = serde_json::from_str(
+            r#"{
+                "log_path": "",
+                "character_level": 1,
+                "spell_tiers": {},
+                "watched": {},
+                "overlay_locked": false
+            }"#,
+        )
+        .expect("config");
+        assert!(cfg.overlays_visible);
+    }
+
+    #[test]
     fn spell_casting_reinforcement_rank_percents() {
         assert_eq!(spell_casting_reinforcement_pct(0), 0.0);
         assert_eq!(spell_casting_reinforcement_pct(1), 5.0);
@@ -1326,7 +1342,10 @@ mod tests {
         assert!(!spell_eligible_for_reinforcement(aura));
         assert!(!spell_eligible_for_reinforcement(barrier));
         assert!(!spell_eligible_for_reinforcement(harm));
-        assert_eq!(duration_seconds(aura, 50, 0), duration_seconds_with_aa(aura, 50, 0, 4));
+        assert_eq!(
+            duration_seconds(aura, 50, 0),
+            duration_seconds_with_aa(aura, 50, 0, 4)
+        );
         assert_eq!(
             duration_seconds(barrier, 50, 0),
             duration_seconds_with_aa(barrier, 50, 0, 4)

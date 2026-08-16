@@ -9,6 +9,8 @@ The in-app **What's new** dialog and Preferences → Updates list are generated 
 
 ## [Unreleased]
 
+## [0.2.6] - 2026-08-15
+
 ### Added
 
 - Combat meter: live group/raid DPS from the character log, ability breakdown, optional always-on-top overlay, and a session tracker (kills, plat, /hr rates).
@@ -104,7 +106,8 @@ Initial public release of Berryworks — an EverQuest Legends timers toolkit tha
 - Windows NSIS installer bundle and GitHub Actions release workflow (tag-driven builds uploading `Berryworks_*_x64-setup.exe`).
 - MIT license and README install / in-game / development docs.
 
-[Unreleased]: https://github.com/jungleberrydev/berryworks/compare/v0.2.5...HEAD
+[Unreleased]: https://github.com/jungleberrydev/berryworks/compare/v0.2.6...HEAD
+[0.2.6]: https://github.com/jungleberrydev/berryworks/compare/v0.2.5...v0.2.6
 [0.2.5]: https://github.com/jungleberrydev/berryworks/compare/v0.2.4...v0.2.5
 [0.2.4]: https://github.com/jungleberrydev/berryworks/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/jungleberrydev/berryworks/compare/v0.2.2...v0.2.3
